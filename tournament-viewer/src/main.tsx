@@ -2,6 +2,9 @@ import React from 'react'
 import ReactDOM from 'react-dom/client'
 import {App} from './App.tsx'
 
+import 'brackets-viewer/dist/brackets-viewer.min.css'
+import 'brackets-viewer/dist/brackets-viewer.min.js'
+
 ReactDOM.createRoot(document.getElementById('root')!).render(
   <React.StrictMode>
     <App />
