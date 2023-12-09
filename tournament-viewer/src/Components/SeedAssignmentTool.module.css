@@ -1,0 +1,41 @@
+.primary-container {
+  display: flex;
+  width: 50%;
+  margin: 0 auto;
+}
+
+.unassigned-teams-container {
+  flex: 1;
+  margin: 0% 10%;
+  display: flex;
+  flex-flow: column;
+}
+
+.assigned-teams-container {
+  flex: 1;
+  margin: 0 10%;
+  display: flex;
+  flex-flow: column;
+}
+
+.unassigned-team {
+  margin: .5rem .5rem 0 .5rem;
+  display: flex;
+  justify-content: center;
+  border: solid black 1px;
+  min-height: 1rem;
+}
+
+.assigned-team-top {
+  flex: 1;
+  border: solid black 1px;
+  min-height: 1rem;
+}
+
+.assigned-team-bottom {
+  flex: 1;
+  border: solid black 1px;
+  border-top: none;
+  margin-bottom: 1rem;
+  min-height: 1rem;
+}

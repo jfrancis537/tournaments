@@ -39,10 +39,11 @@ class TeamManager {
     this.teams.set(team.id, team);
     const teams = this.tournamentToTeams.get(options.tournamentId)!;
     teams.push(team.id);
+    return team;
   }
 
   // This should be called from the UI when a team is dragged and dropped to it's spot in the inital round.
-  public assignSeedNumber(id: string, seed: number) {
+  public assignSeedNumber(id: string, seed: number | undefined) {
     const team = this.teams.get(id);
     if(!team)
     {

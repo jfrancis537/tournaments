@@ -13,34 +13,35 @@ class Demo {
         'double_elimination'
       ],
       stageSettings: [
-        { grandFinal: 'double' }
+        { grandFinal: 'double', seedOrdering: ['natural'] }
       ]
     });
 
-    for(let i = 1 ; i <= 8; i++)
+    for(let i = 1 ; i <= 7; i++)
     {
       this.generatePlayer(t.id,i);
     }
 
-    TournamentManager.instance.startTournament(t.id);
+    return t.id;
   }
 
   generatePlayer(tid: string, num: number) {
     TeamManager.instance.registerTeam({
       tournamentId: tid,
       name: `Team ${num}`,
-      players: 1
-    })
+      players: 1,
+    });
   }
 
-  onClick(match: Match) {
+  async onClick(match: Match) {
     switch(match.status)
     {
       case Status.Ready:
-        TournamentManager.instance.startMatch(match);
+        await TournamentManager.instance.updateScore(match.opponent1!.id as number,match,12);
         break;
       case Status.Running:
-        
+        await TournamentManager.instance.updateScore(match.opponent2!.id as number,match,13);
+
     }
 
   }

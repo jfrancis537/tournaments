@@ -2,6 +2,7 @@ import React from 'react'
 import ReactDOM from 'react-dom/client'
 import {App} from './App.tsx'
 
+import './global.css'
 import 'brackets-viewer/dist/brackets-viewer.min.css'
 import 'brackets-viewer/dist/brackets-viewer.min.js'
 
