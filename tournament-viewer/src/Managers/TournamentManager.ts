@@ -139,8 +139,9 @@ class TournamentManager {
   }
 
   public async startMatch(match: Match) {
-    // @ts-ignore overload error.
-    await this.manager.storage.update('match',match.id,{
+
+    // // @ts-ignore overload error.
+    await this.manager.update.match({
       id: match.id,
       opponent1: {
         score: 0
@@ -149,7 +150,7 @@ class TournamentManager {
         score: 0
       },
       status: Status.Running
-    })
+    });
     this.onmatchstarted.invoke(match);
   }
 
@@ -160,10 +161,10 @@ class TournamentManager {
    * @param newScore 
    */
   public async updateScore(teamId: number, match: Match, newScore: number) {
-    if(match.status !== Status.Running)
-    {
-      throw new Error('Score was updated on a match that was not running.');
-    }
+    // if(match.status !== Status.Running)
+    // {
+    //   throw new Error('Score was updated on a match that was not running.');
+    // }
     if (match.opponent1!.id === teamId) {
       await this.manager.update.match({
         id: match.id,

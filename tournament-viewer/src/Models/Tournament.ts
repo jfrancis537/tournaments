@@ -1,4 +1,5 @@
 import { StageSettings, StageType } from "brackets-model";
+import { DateTime } from "luxon";
 
 export enum TournamentState {
   New,
@@ -12,9 +13,9 @@ export interface Tournament {
   id: string;
   name: string;
   state: TournamentState;
-  startDate: Date;
-  endDate: Date;
-  registrationOpenDate?: Date;
+  startDate: DateTime;
+  endDate: DateTime;
+  registrationOpenDate?: DateTime;
   stages: StageType[];
   stageSettings: StageSettings[];
 }
