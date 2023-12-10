@@ -8,6 +8,10 @@ html,body,#root {
   height: 100%;
 }
 
+#root {
+  padding: 1rem;
+}
+
 .match[data-match-status="3"] .opponents{
   border: rgb(21, 119, 205) solid 2px;
 }
