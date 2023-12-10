@@ -45,22 +45,6 @@ export const TournamentPage: React.FC<TournamentPageProps> = (props) => {
     tournamentStateChanged();
   }, [props.tournamentId]);
 
-  useEffect(() => {
-    if (tournamentData) {
-      BracketsViewer.instance.render({
-        stages: tournamentData.stage,
-        matches: tournamentData.match,
-        matchGames: tournamentData.match_game,
-        participants: tournamentData.participant,
-
-      }, {
-        clear: true,
-        selector: "#bracket_container",
-        onMatchClick: onMatchClicked,
-      });
-    }
-  }, [tournamentData])
-
   function renderAssigning() {
     const teams = TeamManager.instance.getTeams(props.tournamentId);
     if (!teams) {
@@ -71,11 +55,11 @@ export const TournamentPage: React.FC<TournamentPageProps> = (props) => {
     );
   }
 
-  function acceptSeeding(teamIds: (string|undefined)[]) {
-    for (let i = 0; i < teamIds.length;i++) {
+  function acceptSeeding(teamIds: (string | undefined)[]) {
+    for (let i = 0; i < teamIds.length; i++) {
 
       const id = teamIds[i];
-      if(id) {
+      if (id) {
         TeamManager.instance.assignSeedNumber(id, i);
       }
 
@@ -91,7 +75,7 @@ export const TournamentPage: React.FC<TournamentPageProps> = (props) => {
         return <div>Tournament doesn't exist</div>
       case LoadState.COMPLETE:
         if (tournamentData) {
-          return <div id="bracket_container" className="brackets-viewer"></div>
+          return <BracketsViewer tournamentData={tournamentData} onMatchClicked={onMatchClicked} />
         } else {
           return (
             <>
@@ -130,8 +114,7 @@ export const TournamentPage: React.FC<TournamentPageProps> = (props) => {
   }
 
   async function onMatchClicked(match: Match) {
-    if(match.status >= Status.Ready)
-    {
+    if (match.status >= Status.Ready) {
       setLocation(matchUrl(props.tournamentId, match.id as number));
     }
   }

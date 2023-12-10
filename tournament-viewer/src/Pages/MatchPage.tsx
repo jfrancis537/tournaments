@@ -7,35 +7,36 @@ import { tournamentUrl } from "../Utilities/RouteUtils";
 
 interface MatchPageProps {
   matchId: number,
-  tournamentId: string,
+  tournamentId: string
 }
 
 export const MatchPage: React.FC<MatchPageProps> = (props) => {
 
   const [match, setMatch] = useState<Match>();
-  const [started,setStarted] = useState(false);
 
   useEffect(() => {
     matchChanged();
   }, [props.matchId, props.tournamentId]);
 
   useEffect(() => {
-    TournamentManager.instance.matchStatusIsAtLeast(props.tournamentId,props.matchId,Status.Running).then(setStarted)
     TournamentManager.instance.onmatchupdated.addListener(matchChanged);
-    TournamentManager.instance.onmatchstarted.addListener((m) => matchStarted(m))
+    TournamentManager.instance.onmatchstarted.addListener(matchStarted);
     return () => {
+      TournamentManager.instance.onmatchupdated.removeListener(matchChanged);
       TournamentManager.instance.onmatchupdated.removeListener(matchChanged);
     }
   },[]);
 
   async function matchChanged() {
-    const match = await TournamentManager.instance.getMatch(props.tournamentId, props.matchId);
-    setMatch(match);
+    const updated = await TournamentManager.instance.getMatch(props.tournamentId, props.matchId);
+
+    setMatch(updated);
   }
 
   function matchStarted(m: Match) {
     if(m.id === props.matchId) {
-      setStarted(true);
+      console.log(match === m);
+      setMatch(m);
     }
   }
 
@@ -43,7 +44,7 @@ export const MatchPage: React.FC<MatchPageProps> = (props) => {
     const match = await TournamentManager.instance.getMatch(props.tournamentId,props.matchId);
     if(match)
     {
-      TournamentManager.instance.startMatch(match);
+      TournamentManager.instance.startMatch(props.tournamentId,match);
     }
   }
 
@@ -64,29 +65,29 @@ export const MatchPage: React.FC<MatchPageProps> = (props) => {
         <>
           <div>
             <h1>{title}</h1>
-            <button onClick={startMatch} disabled={started}>Start</button>
-            <button disabled={!started} onClick={() => {
+            <button onClick={startMatch} disabled={match.status > Status.Ready}>Start</button>
+            <button disabled={match.status !== Status.Running} onClick={() => {
               updateTeamScore(match,match.opponent1!,(match.opponent1!.score ?? 0) + 1);
             }}>{`Increment ${team1.name}`}</button>
-            <button disabled={!started} onClick={() => {
+            <button disabled={match.status !== Status.Running} onClick={() => {
               updateTeamScore(match,match.opponent2!,(match.opponent2!.score ?? 0) + 1);
             }}>{`Increment ${team2.name}`}</button>
-            <button disabled={!started} onClick={() => {
+            <button disabled={match.status !== Status.Running} onClick={() => {
               updateTeamScore(match,match.opponent1!,(match.opponent1!.score ?? 0) - 1);
             }}>{`Decrement ${team1.name}`}</button>
-            <button disabled={!started} onClick={() => {
+            <button disabled={match.status !== Status.Running} onClick={() => {
               updateTeamScore(match,match.opponent2!,(match.opponent2!.score ?? 0) - 1);
             }}>{`Decrement ${team2.name}`}</button>
-            <button disabled={!started} onClick={() => {
+            <button disabled={match.status !== Status.Running} onClick={() => {
               TournamentManager.instance.forfeit(match.opponent1!.id as number,match);
             }}>{`Forfeit ${team1.name}`}</button>
-            <button disabled={!started} onClick={() => {
+            <button disabled={match.status !== Status.Running} onClick={() => {
               TournamentManager.instance.forfeit(match.opponent2!.id as number,match);
             }}>{`Forfeit ${team2.name}`}</button>
-            <button disabled={!started} onClick={() => {
+            <button disabled={match.status !== Status.Running} onClick={() => {
               TournamentManager.instance.selectWinner(match.opponent1!.id as number,match);
             }}>{`Set Winner to ${team1.name}`}</button>
-            <button disabled={!started} onClick={() => {
+            <button disabled={match.status !== Status.Running} onClick={() => {
               TournamentManager.instance.selectWinner(match.opponent2!.id as number,match);
             }}>{`Set Winner to ${team2.name}`}</button>
           </div>

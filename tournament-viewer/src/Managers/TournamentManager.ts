@@ -9,7 +9,7 @@ import { Action } from "../Utilities/Action";
 import { nextPowerOf2 } from "../Utilities/Math";
 import { Team } from "../Models/Team";
 
-type TournamentOptions = Omit<Omit<Tournament, 'id'>,'state'>;
+type TournamentOptions = Omit<Omit<Tournament, 'id'>, 'state'>;
 
 class TournamentManager {
 
@@ -69,11 +69,11 @@ class TournamentManager {
   }
 
   public openRegistration(id: string) {
-    this.setTournamentState(id, TournamentState.RegistrationOpen,this.onregistrationopen);
+    this.setTournamentState(id, TournamentState.RegistrationOpen, this.onregistrationopen);
   }
 
   public async closeRegistration(id: string) {
-    this.setTournamentState(id, TournamentState.RegistrationClosed,this.onregistrationclosed);
+    this.setTournamentState(id, TournamentState.RegistrationClosed, this.onregistrationclosed);
   }
 
   public async startTournament(id: string) {
@@ -84,7 +84,7 @@ class TournamentManager {
         const settings = tournament.stageSettings[i];
         await this.createStage(tournament, stage, settings);
       }
-      this.setTournamentState(id,TournamentState.Running,this.ontournamentstarted);
+      this.setTournamentState(id, TournamentState.Running, this.ontournamentstarted);
       return true;
     }
     return false;
@@ -120,62 +120,69 @@ class TournamentManager {
     }
   }
 
-  public async matchStatusIs(tournamentId: string,matchId: number, status: Status) {
-    const match = await this.getMatch(tournamentId,matchId);
-    if(!match)
-    {
+  public async matchStatusIs(tournamentId: string, matchId: number, status: Status, mode: 'gt' | 'lt' | 'eq' = 'eq') {
+    const match = await this.getMatch(tournamentId, matchId);
+    if (!match) {
       return false;
     }
-    return match.status === status;
-  }
-
-  public async matchStatusIsAtLeast(tournamentId: string,matchId: number, status: Status) {
-    const match = await this.getMatch(tournamentId,matchId);
-    if(!match)
-    {
-      return false;
+    switch (mode) {
+      case 'eq':
+        return match.status === status;
+      case 'gt':
+        return match.status >= status;
+      case 'lt':
+        return match.status >= status;
     }
-    return match.status >= status;
   }
 
-  public async startMatch(match: Match) {
+  public async getMatchStatus(tournamentId: string, matchId: number) {
+    const match = await this.getMatch(tournamentId, matchId);
+    return match?.status;
+  }
 
-    // // @ts-ignore overload error.
-    await this.manager.update.match({
-      id: match.id,
+  public async startMatch(tournamentId: string,match: Match) {
+
+    await this.manager.storage.update('match', {
+      id: match.id
+    }, {
       opponent1: {
+        id: match.opponent1!.id,
         score: 0
       },
       opponent2: {
+        id: match.opponent2!.id,
         score: 0
       },
       status: Status.Running
     });
-    this.onmatchstarted.invoke(match);
+
+    const updated = await this.getMatch(tournamentId,match.id as number);
+    this.onmatchstarted.invoke(updated!);
   }
 
   /**
    * This function does not check that the team id provided is matched to an opponent in this match.
-   * @param teamId 
-   * @param match 
-   * @param newScore 
    */
   public async updateScore(teamId: number, match: Match, newScore: number) {
-    // if(match.status !== Status.Running)
-    // {
-    //   throw new Error('Score was updated on a match that was not running.');
-    // }
+    if(match.status !== Status.Running)
+    {
+      throw new Error('Score was updated on a match that was not running.');
+    }
     if (match.opponent1!.id === teamId) {
-      await this.manager.update.match({
-        id: match.id,
+      await this.manager.storage.update('match', {
+        id: match.id
+      }, {
         opponent1: {
+          id: match.opponent1!.id,
           score: newScore
-        }
+        },
       });
     } else {
-      await this.manager.update.match({
-        id: match.id,
+      await this.manager.storage.update('match', {
+        id: match.id
+      }, {
         opponent2: {
+          id: match.opponent2!.id,
           score: newScore
         },
       });
@@ -234,22 +241,19 @@ class TournamentManager {
     }
   }
 
-  public async getTournamentData(id: string): Promise<[Tournament,Database] | undefined>
-  {
+  public async getTournamentData(id: string): Promise<[Tournament, Database] | undefined> {
     const tournament = this.tournaments.get(id);
-    if(tournament)
-    {
-      return [tournament,await this.manager.get.tournamentData(id)];
+    if (tournament) {
+      return [tournament, await this.manager.get.tournamentData(id)];
     } else {
       return undefined;
     }
   }
 
-  public async getMatch(tournamentId: string,matchId: number): Promise<Match | undefined> {
+  public async getMatch(tournamentId: string, matchId: number): Promise<Match | undefined> {
 
     const stage = await this.manager.get.currentStage(tournamentId);
-    if(!stage)
-    {
+    if (!stage) {
       return undefined;
     }
 
@@ -257,8 +261,8 @@ class TournamentManager {
       stage_id: stage.id,
       id: matchId
     }
-    const selection = await this.manager.storage.select('match',filter);
-    if(!selection) {
+    const selection = await this.manager.storage.select('match', filter);
+    if (!selection) {
       return undefined;
     }
     return selection[0];
@@ -277,13 +281,11 @@ class TournamentManager {
       return a.seedNumber! - b.seedNumber!;
     });
 
-    const seeding: (Team|undefined)[] = [];
+    const seeding: (Team | undefined)[] = [];
     let index = 0;
-    for(let seedNumber = 0; seedNumber < nextPowerOf2(teams.length); seedNumber++)
-    {
+    for (let seedNumber = 0; seedNumber < nextPowerOf2(teams.length); seedNumber++) {
       const team = teams[index];
-      if(team && team.seedNumber === seedNumber)
-      {
+      if (team && team.seedNumber === seedNumber) {
         seeding.push(team);
         index++;
       } else {
@@ -302,10 +304,10 @@ class TournamentManager {
       tournament_id: stage.tournament_id
     }
     // Not null asserted because we just created the stage.
-    const participants = (await this.manager.storage.select('participant',filter))!;
+    const participants = (await this.manager.storage.select('participant', filter))!;
     participants.forEach((participant, i) => {
       const team = teams[i];
-      TeamManager.instance.assignSeedNumber(team.id,participant.id as number);
+      TeamManager.instance.assignSeedNumber(team.id, participant.id as number);
     });
   }
 
@@ -313,8 +315,7 @@ class TournamentManager {
     const tournament = this.tournaments.get(id);
     if (tournament) {
       tournament.state = state;
-      if(actionToFire)
-      {
+      if (actionToFire) {
         actionToFire.invoke(tournament);
       }
     }
