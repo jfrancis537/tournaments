@@ -47,7 +47,7 @@ export const TournamentPage: React.FC<TournamentPageProps> = (props) => {
 
   useEffect(() => {
     if (tournamentData) {
-      BracketsViewer.render({
+      BracketsViewer.instance.render({
         stages: tournamentData.stage,
         matches: tournamentData.match,
         matchGames: tournamentData.match_game,

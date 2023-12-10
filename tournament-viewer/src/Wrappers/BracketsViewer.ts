@@ -1,5 +1,6 @@
 import 'brackets-viewer/dist/brackets-viewer.min.css'
 import url from 'brackets-viewer/dist/brackets-viewer.min.js?url'
+import { Lazy } from '../Utilities/Lazy';
 
 // We have to shim this in since vite won't do this manipulation via index.html
 function loadViewer() {
@@ -14,5 +15,6 @@ function loadViewer() {
   });
 }
 
-await loadViewer();
-export const BracketsViewer = globalThis.bracketsViewer;
+loadViewer();
+
+export const BracketsViewer = new Lazy(() => globalThis.bracketsViewer);
