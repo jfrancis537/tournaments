@@ -8,6 +8,7 @@ import { useLocation } from "wouter";
 import { matchUrl } from "../Utilities/RouteUtils";
 import { SeedAssignmentTool } from "../Components/SeedAssignmentTool";
 import { TeamManager } from "../Managers/TeamManager";
+import { BracketsViewer } from "../Wrappers/BracketsViewer";
 
 import './TournamentPage.module.css'
 
@@ -15,9 +16,8 @@ interface TournamentPageProps {
   tournamentId: string;
 }
 
-const BracketsViewer = globalThis.bracketsViewer;
-
 export const TournamentPage: React.FC<TournamentPageProps> = (props) => {
+
   const [loadingState, setLoadingState] = useState<LoadState>(LoadState.LOADING);
   const [assigning, setAssigning] = useState(false);
   const [tournamentData, setTournamentData] = useState<Database>();
