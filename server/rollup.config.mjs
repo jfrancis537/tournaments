@@ -5,7 +5,7 @@ import json from '@rollup/plugin-json';
 export default {
   input: 'server/tsc_out/server/src/index.js',
   output: {
-    dir: 'dist',
+    dir: 'publish',
     format: 'cjs'
   },
   plugins: [nodeResolve({
