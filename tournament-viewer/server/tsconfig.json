@@ -1,0 +1,32 @@
+{
+  "compilerOptions": {
+    "target": "ES2020",
+    "useDefineForClassFields": true,
+    "lib": ["ES2020"],
+    "module": "ESNext",
+    "skipLibCheck": true,
+    "experimentalDecorators": true,
+    "allowSyntheticDefaultImports": true,
+
+    /* Bundler mode */
+    "moduleResolution": "Node",
+    "resolveJsonModule": true,
+    "isolatedModules": true,
+    "noEmit": false,
+    "esModuleInterop": true,
+    "outDir": "./tsc_out",
+
+    /* Linting */
+    "strict": true,
+    "noUnusedLocals": false,
+    "noUnusedParameters": false,
+    "noFallthroughCasesInSwitch": true,
+    /* Aliases */
+    "paths": {
+      "@common/*": ["../common/*"]
+    }
+  },
+  "include": ["src","../common"],
+  "references": [{ "path": "../tsconfig.node.json" }]
+  
+}
