@@ -7,6 +7,7 @@ import { NotFound } from './Pages/NotFound';
 import { NEW_TOURNAMENT_ID, tournamentUrl } from './Utilities/RouteUtils';
 import { TournamentCreatorPage } from './Pages/TournamentCreatorPage';
 import { Tournament } from '@common/Models/Tournament';
+import { AuthAPI } from './APIs/AuthAPI';
 
 const DemoComponent: React.FC<{ t?: Tournament }> = (props) => {
 

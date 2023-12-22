@@ -2,6 +2,7 @@ import { MatchAPIConstants } from "@common/Constants/MatchAPIConstants";
 import { Match, ParticipantResult, Status } from "brackets-model";
 import { HttpStatusError } from "../Errors/HttpStatusError";
 
+
 export namespace MatchAPI {
   export async function getMatch(tournamentId: string, matchId: number): Promise<Match> {
     const resp = await fetch(`${MatchAPIConstants.BASE_PATH}${MatchAPIConstants.GET_MATCH(tournamentId,matchId.toString())}`);
