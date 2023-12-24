@@ -1,4 +1,4 @@
-import { AuthAPIConstants } from "@common/Constants/AuthAPIConstants";
+import { AuthAPIConstants, RegistrationResult } from "@common/Constants/AuthAPIConstants";
 import { User } from "@common/Models/User";
 import { HttpStatusError } from "../Errors/HttpStatusError";
 
@@ -36,6 +36,17 @@ export namespace AuthAPI {
     if (!resp.ok) {
       throw new HttpStatusError('Failed to logout', resp.status);
     }
+  }
+
+  export async function register(request: AuthAPIConstants.AccountRegistrationRequest) {
+    const resp = await fetch(`${AuthAPIConstants.BASE_PATH}${AuthAPIConstants.REGISTER}`, {
+      method: 'PUT',
+      body: JSON.stringify(request),
+      headers: {
+        'Content-Type': 'application/json'
+      }
+    });
+    return await resp.json() as AuthAPIConstants.AccountRegistrationResponse;
   }
 
   export async function getCurrentUser() {

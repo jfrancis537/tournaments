@@ -8,6 +8,9 @@ import { NEW_TOURNAMENT_ID, tournamentUrl } from './Utilities/RouteUtils';
 import { TournamentCreatorPage } from './Pages/TournamentCreatorPage';
 import { Tournament } from '@common/Models/Tournament';
 import { AuthAPI } from './APIs/AuthAPI';
+import { AccountRegistration } from './Pages/AccountRegistration';
+import { Login } from './Pages/Login';
+import { Container } from '@mui/joy';
 
 const DemoComponent: React.FC<{ t?: Tournament }> = (props) => {
 
@@ -35,10 +38,16 @@ export const App: React.FC = () => {
 
   function render() {
     return (
-      <div>
+      <>
         <Route path='/'>
           {/* <HomePage /> */}
           <DemoComponent t={tournament} />
+        </Route>
+        <Route path='/account/register'>
+          <AccountRegistration />
+        </Route>
+        <Route path='/account/login'>
+          <Login />
         </Route>
         <Route path='/tournament/:id'>
           {(params) => {
@@ -59,7 +68,7 @@ export const App: React.FC = () => {
             return <MatchPage tournamentId={params.tournamentId} matchId={matchIdNumber} />
           }}
         </Route>
-      </div>
+      </>
     );
   }
 

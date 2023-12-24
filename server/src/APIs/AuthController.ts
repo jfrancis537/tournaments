@@ -1,7 +1,8 @@
-import { AuthAPIConstants } from "@common/Constants/AuthAPIConstants";
+import { AuthAPIConstants, LoginResult, RegistrationResult } from "@common/Constants/AuthAPIConstants";
 import { User } from "@common/Models/User";
 import express, { Router } from "express";
 import { Session } from "express-session";
+import { UserManager } from "../Managers/UserManager";
 
 export interface AuthSession extends Session {
   user?: User
@@ -49,12 +50,15 @@ namespace AuthController {
     const body = req.body as AuthAPIConstants.LoginRequest;
     if (body.password && body.username) {
       // TODO actually verify login details
-      const user: User = {
-        username: 'example',
-        role: 'admin'
+      const [result, user] = await UserManager.instance.loginUser(body);
+      if (result === LoginResult.SUCCESS) {
+        authSession.user = user;
+        resp.json(user);
+      } else if (result === LoginResult.INVALID_CREDENTIALS) {
+        resp.status(401).send('Credentials invalid.');
+      } else {
+        resp.sendStatus(500);
       }
-      authSession.user = user;
-      resp.json(user);
       return;
     } else {
       resp.sendStatus(400);
@@ -62,7 +66,7 @@ namespace AuthController {
     }
   });
 
-  router.post(AuthAPIConstants.LOGOUT,async (req,resp) => {
+  router.post(AuthAPIConstants.LOGOUT, async (req, resp) => {
     try {
       await regenSession(req.session);
       resp.redirect("/");
@@ -72,7 +76,33 @@ namespace AuthController {
     }
   });
 
-  router.get(AuthAPIConstants.CURRENT_USER, async (req,resp) => {
+  router.put(AuthAPIConstants.REGISTER, async (req, resp) => {
+    const body: AuthAPIConstants.AccountRegistrationRequest = req.body;
+    if (!body) {
+      // Send bad request if no body.
+      resp.sendStatus(400);
+      return;
+    }
+
+    const result = await UserManager.instance.registerUser(body);
+    let responseBody: AuthAPIConstants.AccountRegistrationResponse = { result };
+    switch (result) {
+      case RegistrationResult.SUCCESS:
+        resp.status(200).json(responseBody);
+        break;
+      case RegistrationResult.FAILED_USER_EXISTS:
+      case RegistrationResult.FAILED_BAD_PASSWORD:
+      case RegistrationResult.FAILED_BAD_EMAIL:
+      case RegistrationResult.FAILED_BAD_USERNAME:
+        resp.status(400).json(responseBody);
+        break;
+      case RegistrationResult.FAILED_UNK:
+        resp.status(500).json(responseBody);
+        break;
+    }
+  });
+
+  router.get(AuthAPIConstants.CURRENT_USER, async (req, resp) => {
     let authSession = req.session as AuthSession;
     resp.json(authSession.user ?? null);
   });
