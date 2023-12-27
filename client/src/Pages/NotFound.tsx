@@ -1,3 +1,11 @@
+import { Container } from "@mui/joy"
+
 export const NotFound: React.FC = () => {
-  return <div>Not Found</div>
+  return (
+    <Container maxWidth='md'>
+      <h1 style={{
+        textAlign: 'center'
+      }}>There is nothing to see here...</h1>
+    </Container>
+  )
 }

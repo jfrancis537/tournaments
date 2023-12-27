@@ -4,6 +4,17 @@ import { HttpStatusError } from "../Errors/HttpStatusError";
 import { SerializedTournament, Tournament, TournamentOptions } from "@common/Models/Tournament";
 
 export namespace TournamentAPI {
+
+  export async function getAllTournaments(): Promise<Tournament[]> {
+    const resp = await fetch(`${TournamentAPIConstants.BASE_PATH}${TournamentAPIConstants.GET_ALL_TOURNAMENTS}`);
+    if(resp.ok) {
+      const tournaments = await resp.json() as SerializedTournament[];
+
+      return tournaments.map(Tournament.Deserialize);
+    }
+    throw new HttpStatusError("Error occured while fetching tournaments.", resp.status);
+  }
+
   export async function getTournamentData(id: string): Promise<[Tournament,Database]> {
     const resp = await fetch(`${TournamentAPIConstants.BASE_PATH}${TournamentAPIConstants.GET_TOURNAMENT_DATA(id)}`);
     if(resp.ok) {

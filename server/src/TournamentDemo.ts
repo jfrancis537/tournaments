@@ -4,7 +4,7 @@ import { Tournament } from "@common/Models/Tournament";
 class Demo {
 
   async run(t: Tournament) {
-    for(let i = 1 ; i <= 7; i++)
+    for(let i = 1 ; i <= 31; i++)
     {
       this.generatePlayer(t.id,i);
     }

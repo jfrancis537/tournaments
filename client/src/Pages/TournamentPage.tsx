@@ -1,10 +1,10 @@
-import { useEffect, useState } from "react";
+import { useContext, useEffect, useState } from "react";
 import { LoadState } from "../Utilities/LoadState";
 import { Database } from "brackets-manager";
 import { Match, Status } from "brackets-model";
 import { TournamentState } from "@common/Models/Tournament";
 import { useLocation } from "wouter";
-import { matchUrl } from "../Utilities/RouteUtils";
+import { matchUrl, tournamentUrl } from "../Utilities/RouteUtils";
 import { SeedAssignmentTool } from "../Components/SeedAssignmentTool";
 import { BracketsViewer } from "../Wrappers/BracketsViewer";
 
@@ -12,17 +12,20 @@ import './TournamentPage.module.css'
 import { TournamentSocketAPI } from "@common/SocketAPIs/TournamentAPI";
 import { TournamentAPI } from "../APIs/TournamentAPI";
 import { TeamAPI } from "../APIs/TeamAPI";
+import { UserContext } from "../Contexts/UserContext";
 
 interface TournamentPageProps {
   tournamentId: string;
+  assigning?: boolean;
 }
 
 export const TournamentPage: React.FC<TournamentPageProps> = (props) => {
 
   const [loadingState, setLoadingState] = useState<LoadState>(LoadState.LOADING);
-  const [assigning, setAssigning] = useState(false);
   const [tournamentData, setTournamentData] = useState<Database>();
-  const [, setLocation] = useLocation();
+  const [location, setLocation] = useLocation();
+
+  const {user} = useContext(UserContext);
 
   function componentWillUnmount() {
     TournamentSocketAPI.ontournamentcreated.removeListener(tournamentStateChanged);
@@ -32,6 +35,7 @@ export const TournamentPage: React.FC<TournamentPageProps> = (props) => {
   }
 
   function componentWillMount() {
+    // This is not very efficient, however it is not common for people to be looking an uncreated tournaments.
     TournamentSocketAPI.ontournamentcreated.addListener(tournamentStateChanged);
     TournamentSocketAPI.ontournamentstarted.addListener(tournamentStateChanged);
     TournamentSocketAPI.onmatchupdated.addListener(onMatchUpdated);
@@ -48,7 +52,8 @@ export const TournamentPage: React.FC<TournamentPageProps> = (props) => {
 
   async function acceptSeeding(teamIds: (string | undefined)[]) {
     await TeamAPI.assignSeedNumbers(teamIds);
-    setAssigning(false);
+    // Go back to tournament page.
+    setLocation(tournamentUrl(props.tournamentId));
   }
 
   function renderBracketView() {
@@ -68,7 +73,7 @@ export const TournamentPage: React.FC<TournamentPageProps> = (props) => {
               >
                 Start
               </button>
-              <button onClick={() => { setAssigning(!assigning) }}>Assign Players</button>
+              <button onClick={() => setLocation(`${location}/assigning`)}>Assign Players</button>
             </>
           );
         }
@@ -76,7 +81,7 @@ export const TournamentPage: React.FC<TournamentPageProps> = (props) => {
   }
 
   function render() {
-    if (assigning) {
+    if (!!props.assigning) {
       return (
         <SeedAssignmentTool tournamentId={props.tournamentId} onAccept={acceptSeeding} />
       );

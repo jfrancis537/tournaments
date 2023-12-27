@@ -7,7 +7,7 @@ import { HOME_PAGE_URL } from "../Utilities/RouteUtils";
 import { TournamentAPI } from "../APIs/TournamentAPI";
 
 interface TournamentCreatorPageProps {
-  onAccept: (tournament: Tournament) => void;
+  onAccept?: (tournament: Tournament) => void;
 }
 
 export enum SeedingMode {
@@ -100,7 +100,7 @@ export const TournamentCreatorPage: React.FC<TournamentCreatorPageProps> = (prop
       ],
       stageSettings: getStageSettings()
     });
-    props.onAccept(t);
+    props.onAccept?.call(undefined,t);
     setLocation(HOME_PAGE_URL);
   }
 

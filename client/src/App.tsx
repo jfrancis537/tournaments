@@ -1,74 +1,109 @@
-import { useEffect, useState } from 'react';
-import { Route, useLocation } from 'wouter';
+import { Route, Switch, useLocation } from 'wouter';
 import { TournamentPage } from './Pages/TournamentPage';
-import { Demo } from '../../server/src/TournamentDemo';
 import { MatchPage } from './Pages/MatchPage';
 import { NotFound } from './Pages/NotFound';
-import { NEW_TOURNAMENT_ID, tournamentUrl } from './Utilities/RouteUtils';
+import { NEW_TOURNAMENT_ID } from './Utilities/RouteUtils';
 import { TournamentCreatorPage } from './Pages/TournamentCreatorPage';
-import { Tournament } from '@common/Models/Tournament';
-import { AuthAPI } from './APIs/AuthAPI';
 import { AccountRegistration } from './Pages/AccountRegistration';
 import { Login } from './Pages/Login';
-import { Container } from '@mui/joy';
+import { HomePage } from './Pages/HomePage';
+import { TournamentAPI } from './APIs/TournamentAPI';
+import { DateTime } from 'luxon';
+import { Tournament } from '@common/Models/Tournament';
+import React, { useContext, useEffect, useState } from 'react';
+import { UserContext } from './Contexts/UserContext';
+import { User } from '@common/Models/User';
+import { AuthAPI } from './APIs/AuthAPI';
+import { NavBar } from './Components/NavBar';
 
-const DemoComponent: React.FC<{ t?: Tournament }> = (props) => {
 
+const DemoComponent: React.FC = () => {
   const [, setLocation] = useLocation();
-
+  const { user } = useContext(UserContext);
   return (
     <>
-      <button onClick={async () => {
-        setLocation(tournamentUrl(NEW_TOURNAMENT_ID));
-      }}>Create Tournament</button>
-      {props.t && (
-        <button onClick={() => setLocation(tournamentUrl(props.t!.id))}>View {props.t.name}</button>
-      )}
+      <button disabled={!user} onClick={async () => {
+        const promises: Promise<Tournament>[] = [];
+        for (let i = 0; i < 5; i++) {
+          promises.push(
+            TournamentAPI.createNewTournament({
+              name: `Sample Tournament ${i}`,
+              startDate: DateTime.now(),
+              endDate: DateTime.now().plus({ days: i + 1 }),
+              stages: [
+                'double_elimination'
+              ],
+              stageSettings: [
+                { seedOrdering: ['natural'], grandFinal: 'double' },
+              ]
+            }));
+        }
+        await Promise.all(promises);
+        setLocation('/');
+      }}>Generate Tournaments</button>
     </>
   )
 }
 
 export const App: React.FC = () => {
-  const [tournament, setTournament] = useState<Tournament>();
+
+  const [user, setUser] = useState<User>();
+
   useEffect(() => {
-    if (tournament) {
-      Demo.run(tournament);
-    }
-  }, [tournament]);
+    AuthAPI.getCurrentUser().then(setUser);
+  }, [])
 
   function render() {
     return (
-      <>
-        <Route path='/'>
-          {/* <HomePage /> */}
-          <DemoComponent t={tournament} />
-        </Route>
-        <Route path='/account/register'>
-          <AccountRegistration />
-        </Route>
-        <Route path='/account/login'>
-          <Login />
-        </Route>
-        <Route path='/tournament/:id'>
-          {(params) => {
-            if (params.id === NEW_TOURNAMENT_ID) {
-              return (
-                <TournamentCreatorPage onAccept={(t) => { setTournament(t) }} />
-              )
-            }
-            return <TournamentPage tournamentId={params.id} />
-          }}
-        </Route>
-        <Route path='/tournament/:tournamentId/match/:matchId'>
-          {(params) => {
-            const matchIdNumber = Number(params.matchId);
-            if (isNaN(matchIdNumber)) {
-              return <NotFound />
-            }
-            return <MatchPage tournamentId={params.tournamentId} matchId={matchIdNumber} />
-          }}
-        </Route>
-      </>
+      <UserContext.Provider value={{ user, setUser }}>
+        <NavBar />
+        <Switch>
+          <Route path='/'>
+            <HomePage />
+          </Route>
+          <Route path='/demo'>
+            <DemoComponent />
+          </Route>
+          <Route path='/account/register'>
+            <AccountRegistration />
+          </Route>
+          <Route path='/account/login'>
+            <Login />
+          </Route>
+          <Route path='/tournament/:id'>
+            {(params) => {
+              if (params.id === NEW_TOURNAMENT_ID) {
+                return (
+                  <TournamentCreatorPage />
+                )
+              }
+              return <TournamentPage tournamentId={params.id} />
+            }}
+          </Route>
+          <Route path='/tournament/:id/assigning'>
+            {(params) => {
+              if (params.id === NEW_TOURNAMENT_ID) {
+                return (
+                  <NotFound />
+                )
+              }
+              return <TournamentPage tournamentId={params.id} assigning />
+            }}
+          </Route>
+          <Route path='/tournament/:tournamentId/match/:matchId'>
+            {(params) => {
+              const matchIdNumber = Number(params.matchId);
+              if (isNaN(matchIdNumber)) {
+                return <NotFound />
+              }
+              return <MatchPage tournamentId={params.tournamentId} matchId={matchIdNumber} />
+            }}
+          </Route>
+          <Route>
+            <NotFound />
+          </Route>
+        </Switch>
+      </UserContext.Provider>
     );
   }
 

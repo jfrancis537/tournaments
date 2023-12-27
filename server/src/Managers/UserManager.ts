@@ -6,6 +6,7 @@ import crypto from 'crypto';
 import { DateTime } from "luxon";
 import { User } from "@common/Models/User";
 import { Validators } from "@common/Utilities/Validators";
+import { EnvironmentVariables } from "../Utilities/EnvironmentVariables";
 
 class UserManager {
   public async registerUser(request: AuthAPIConstants.AccountRegistrationRequest) {
@@ -32,7 +33,7 @@ class UserManager {
         username: request.username,
         email: request.email,
         createdDate: DateTime.now().toString(),
-        role: 'user',
+        role: EnvironmentVariables.IS_DEVELOPMENT ? 'admin' : 'user',
         hash,
         salt,
         state: 'pending'

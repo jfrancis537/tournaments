@@ -1,0 +1,9 @@
+.nav {
+  width: 100%;
+  background-color: var(--joy-palette-neutral-300);
+  display: flex;
+  align-items: center;
+  padding: 0 1rem;
+  justify-content: space-between;
+  margin-bottom: 2rem;
+}

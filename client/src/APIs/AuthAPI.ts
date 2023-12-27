@@ -26,6 +26,7 @@ export namespace AuthAPI {
     }
 
     const user: User = await resp.json();
+    return user;
   }
 
   export async function logout() {

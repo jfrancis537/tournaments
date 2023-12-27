@@ -1,7 +1,10 @@
 export namespace TournamentAPIConstants {
   export const BASE_PATH = '/api/v1/tournament';
+
+  export const GET_ALL_TOURNAMENTS = '/get/all'
+
   export const GET_TOURNAMENT_DATA = (id = ':id') => {
-    return `/getData/${id}`;
+    return `/get/data/${id}`;
   }
   export const START_TOURNAMENT = (id = ':id') => {
     return `/start/${id}`;

@@ -8,6 +8,11 @@ namespace TournamentManagerController {
   export const path = TournamentAPIConstants.BASE_PATH;
   export const router = express.Router();
 
+  router.get(TournamentAPIConstants.GET_ALL_TOURNAMENTS, async (req,resp) => {
+    const data = TournamentManager.instance.getTournaments();
+    resp.status(200).json(data);
+  });
+
   router.get(TournamentAPIConstants.GET_TOURNAMENT_DATA(), async (req, resp) => {
     const data = await TournamentManager.instance.getTournamentData(req.params.id);
     if (data) {

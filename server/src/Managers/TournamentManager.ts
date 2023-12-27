@@ -68,6 +68,10 @@ class TournamentManager {
     return false;
   }
 
+  public getTournaments() {
+    return [...this.tournaments.values()]
+  }
+
   // All of the following public commands are called from the match view / settings screen. 
   // That screen will be brought up by the on click function so there should 
   // be access to all of these parameters.
