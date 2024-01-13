@@ -1,4 +1,4 @@
-import { BracketsManager, CrudInterface, DataTypes, Database } from "brackets-manager";
+import { BracketsManager, CrudInterface, DataTypes, Database as BracketsDatabase } from "brackets-manager";
 import { InMemoryDatabase } from "brackets-memory-db";
 import { v4 as uuid } from "uuid";
 import { Tournament, TournamentOptions, TournamentState } from "@common/Models/Tournament";
@@ -10,12 +10,13 @@ import { nextPowerOf2 } from "@common/Utilities/Math";
 import { TournamentSocketAPI } from "@common/SocketAPIs/TournamentAPI";
 import { SocketAction } from "@common/Utilities/SocketAction";
 import { Demo } from "../TournamentDemo";
+import { Database } from "../Database/Database";
 
 class TournamentManager {
 
   private readonly storage: CrudInterface;
   private readonly manager: BracketsManager;
-  private readonly tournaments: Map<string, Tournament>;
+  private tournaments: Map<string, Tournament>;
 
   constructor() {
     this.storage = new InMemoryDatabase();
@@ -36,22 +37,29 @@ class TournamentManager {
       endDate: options.endDate,
       registrationOpenDate: options.registrationOpenDate,
       stages: options.stages,
-      stageSettings: options.stageSettings
+      stageSettings: options.stageSettings,
+      playersSeeded: options.playersSeeded
     }
 
+    // TODO remove this line.
     Demo.run(tournament);
 
     this.tournaments.set(tournament.id, tournament);
     TournamentSocketAPI.ontournamentcreated.invoke(tournament);
+    this.save();
     return tournament;
   }
 
-  public openRegistration(id: string) {
-    this.setTournamentState(id, TournamentState.RegistrationOpen, TournamentSocketAPI.onregistrationopen);
+  public async openRegistration(id: string) {
+    await this.setTournamentState(id, TournamentState.RegistrationOpen, TournamentSocketAPI.ontournamentstateupdated);
   }
 
   public async closeRegistration(id: string) {
-    this.setTournamentState(id, TournamentState.RegistrationClosed, TournamentSocketAPI.onregistrationclosed);
+    await this.setTournamentState(id, TournamentState.RegistrationClosed, TournamentSocketAPI.ontournamentstateupdated);
+  }
+
+  public async completeTournament(id: string) {
+    await this.setTournamentState(id, TournamentState.Complete, TournamentSocketAPI.ontournamentstateupdated);
   }
 
   public async startTournament(id: string) {
@@ -62,14 +70,30 @@ class TournamentManager {
         const settings = tournament.stageSettings[i];
         await this.createStage(tournament, stage, settings);
       }
+      // Save occurs here.
       this.setTournamentState(id, TournamentState.Running, TournamentSocketAPI.ontournamentstarted);
       return true;
     }
     return false;
   }
 
+  public async setTournamentSeeded(id: string) {
+    const tournament = this.tournaments.get(id);
+    if(!tournament)
+    {
+      return false;
+    }
+    tournament.playersSeeded = true;
+    await this.save();
+    return true;
+  }
+
   public getTournaments() {
     return [...this.tournaments.values()]
+  }
+
+  public getTournament(id: string) {
+    return this.tournaments.get(id);
   }
 
   // All of the following public commands are called from the match view / settings screen. 
@@ -88,6 +112,7 @@ class TournamentManager {
         }
       });
       TournamentSocketAPI.onmatchupdated.invoke(match);
+      this.save();
       return true;
     } else if (match.opponent2!.id === teamId) {
       await this.manager.update.match({
@@ -99,6 +124,7 @@ class TournamentManager {
           forfeit: true
         }
       });
+      this.save();
       TournamentSocketAPI.onmatchupdated.invoke(match);
       return true;
     }
@@ -143,6 +169,7 @@ class TournamentManager {
 
     const updated = await this.getMatch(tournamentId, match.id as number);
     TournamentSocketAPI.onmatchstarted.invoke(updated!);
+    this.save();
   }
 
   /**
@@ -161,6 +188,8 @@ class TournamentManager {
           score: newScore
         },
       });
+      TournamentSocketAPI.onmatchupdated.invoke(match);
+      this.save();
     } else {
       await this.manager.storage.update('match', {
         id: match.id
@@ -172,15 +201,17 @@ class TournamentManager {
       });
     }
     TournamentSocketAPI.onmatchupdated.invoke(match);
+    this.save();
     return true;
   }
 
-  public async updateMatch(tournamentId: string,matchId: number, update: Partial<Match>) {
+  public async updateMatch(tournamentId: string, matchId: number, update: Partial<Match>) {
     const success = await this.manager.storage.update('match', {
       id: matchId
     }, update);
-    const updated = await this.getMatch(tournamentId,matchId);
+    const updated = await this.getMatch(tournamentId, matchId);
     TournamentSocketAPI.onmatchupdated.invoke(updated!);
+    this.save();
     return success;
   }
 
@@ -196,6 +227,7 @@ class TournamentManager {
         }
       });
       TournamentSocketAPI.onmatchupdated.invoke(match);
+      this.save();
       return true;
     } else if (match.opponent2!.id === teamId) {
       await this.manager.update.match({
@@ -208,12 +240,12 @@ class TournamentManager {
         }
       });
       TournamentSocketAPI.onmatchupdated.invoke(match);
+      this.save();
       return true;
     }
     return false;
   }
 
-  // TODO implement futher draw logic.
   public async declareDraw(teamId: number, match: Match) {
     if (match.opponent1!.id === teamId) {
       await this.manager.update.match({
@@ -237,9 +269,10 @@ class TournamentManager {
       });
     }
     TournamentSocketAPI.onmatchupdated.invoke(match);
+    this.save();
   }
 
-  public async getTournamentData(id: string): Promise<[Tournament, Database] | undefined> {
+  public async getTournamentData(id: string): Promise<[Tournament, BracketsDatabase] | undefined> {
     const tournament = this.tournaments.get(id);
     if (tournament) {
       return [tournament, await this.manager.get.tournamentData(id)];
@@ -302,13 +335,15 @@ class TournamentManager {
     }
     // Not null asserted because we just created the stage.
     const participants = (await this.manager.storage.select('participant', filter))!;
-    participants.forEach((participant, i) => {
-      const team = teams[i];
-      TeamManager.instance.assignSeedNumber(team.id, participant.id as number);
-    });
+    await TeamManager.instance.assignSeedNumbers(
+      participants.map((participant, i) => {
+        const team = teams[i];
+        return [team.id, participant.id as number];
+      }));
+    await this.save();
   }
 
-  private setTournamentState(id: string, state: TournamentState, actionToFire?: SocketAction<Tournament>) {
+  private async setTournamentState(id: string, state: TournamentState, actionToFire?: SocketAction<Tournament>) {
     const tournament = this.tournaments.get(id);
     if (tournament) {
       tournament.state = state;
@@ -316,6 +351,22 @@ class TournamentManager {
         actionToFire.invoke(tournament);
       }
     }
+    await this.save();
+  }
+
+  private async save() {
+    const data = await this.manager.export();
+    const tournaments = [...this.tournaments];
+    await Database.instance.setTournamentData({
+      tournaments,
+      bracketsData: data
+    });
+  }
+
+  public async load() {
+    const data = await Database.instance.getTournamentData();
+    await this.manager.import(data.bracketsData);
+    this.tournaments = new Map(data.tournaments);
   }
 
 }

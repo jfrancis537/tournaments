@@ -1,6 +1,7 @@
 import { User } from "@common/Models/User";
 import { RequestHandler } from "express";
 import { AuthSession } from "../APIs/AuthController";
+import { EnvironmentVariables } from "../Utilities/EnvironmentVariables";
 
 type RoleType = User['role'];
 
@@ -21,6 +22,11 @@ export function RequireRole(roles: RoleType | RoleType[]): RequestHandler {
     }
     if(!hasCorrectRole)
     {
+      if(EnvironmentVariables.IS_DEVELOPMENT)
+      {
+        next();
+        return;
+      }
       resp.sendStatus(403);
       return;
     }

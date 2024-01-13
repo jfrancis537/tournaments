@@ -1,13 +1,28 @@
 import { User } from "@common/Models/User";
-import { Lazy } from "@common/Utilities/Lazy";
 import { EnvironmentVariables } from "../Utilities/EnvironmentVariables";
 import { MemoryDatabase } from "./MemoryDatabase";
+import { DataTypes, ValueToArray } from "brackets-manager";
+import { Tournament } from "@common/Models/Tournament";
+import { Team } from "@common/Models/Team";
+import { JsonDatabase } from "./JsonDatabase";
+
+type ArrayMap<K,V> = [K,V][];
 
 export interface UserRecord extends User{
-  salt: string,
-  hash: string,
-  createdDate: string,
-  state: 'pending' | ''
+  salt: string;
+  hash: string;
+  createdDate: string;
+  state: 'pending' | '';
+}
+
+export interface TournamentData {
+  bracketsData: ValueToArray<DataTypes>;
+  tournaments: [string,Tournament][];
+}
+
+export interface TeamData {
+  teams: ArrayMap<string,Team>;
+  tournamentToTeams: ArrayMap<string,string[]>;
 }
 
 export interface Database {
@@ -15,14 +30,16 @@ export interface Database {
   getUser(username: string): Promise<UserRecord>;
   addUser(user: UserRecord): Promise<UserRecord>;
   updateUser(username: string, details: Partial<Omit<UserRecord, 'username'>>): Promise<UserRecord>;
+  
+  setTournamentData(data: TournamentData): Promise<void>;
+  getTournamentData(): Promise<TournamentData>
+
+  setTeamData(data: TeamData): Promise<void>;
+  getTeamData(): Promise<TeamData>;
 }
 
 export namespace Database {
-  // const lazy = new Lazy<Database>(() => {
-  //   // TODO use other database type for not development.
-  //   return EnvironmentVariables.IS_DEVELOPMENT ? new MemoryDatabase() : new MemoryDatabase();
-  // });
 
-  export const instance = EnvironmentVariables.IS_DEVELOPMENT ? new MemoryDatabase() : new MemoryDatabase();
+  export const instance = EnvironmentVariables.IS_DEVELOPMENT ? new JsonDatabase(`${process.env.HOME}/Desktop/database.json`) : new JsonDatabase("./database.json");
 
 }

@@ -15,4 +15,5 @@ html,body,#root {
 #root {
   display: flex;
   flex-flow: column;
+  overflow: hidden;
 }

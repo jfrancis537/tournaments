@@ -3,7 +3,7 @@ import React from "react";
 
 interface UserContext {
   user?: User;
-  setUser: (user: User) => void;
+  setUser: (user?: User) => void;
 }
 
 const ctx = React.createContext<UserContext>({setUser: () => {}});

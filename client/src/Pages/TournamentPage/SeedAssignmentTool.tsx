@@ -2,23 +2,32 @@
 import { useEffect, useState } from "react";
 import { Team } from "@common/Models/Team";
 import styles from "./SeedAssignmentTool.module.css";
-import { nextPowerOf2 } from "../../../common/Utilities/Math";
-import { TeamAPI } from "../APIs/TeamAPI";
+import { nextPowerOf2 } from "../../../../common/Utilities/Math";
+import { TeamAPI } from "../../APIs/TeamAPI";
 import { Box, Button, Card, CardContent, Container, Divider, Grid, Sheet } from "@mui/joy";
+import { v4 as uuid } from "uuid";
+import { useLocation } from "wouter";
+import { tournamentUrl } from "../../Utilities/RouteUtils";
 
 interface SeedAssignmentToolProps {
   tournamentId: string;
-  onAccept: (item: (string | undefined)[]) => void;
 }
 
 export const SeedAssignmentTool: React.FC<SeedAssignmentToolProps> = (props) => {
 
   const [assigned, setAssigned] = useState<(string | undefined)[]>([]);
   const [teams, setTeams] = useState<Team[]>();
+  const [, setLocation] = useLocation();
 
   useEffect(() => {
     TeamAPI.getTeams(props.tournamentId).then(setTeams);
   }, [props.tournamentId])
+
+  async function acceptSeeding(teamIds: (string | undefined)[]) {
+    await TeamAPI.assignSeedNumbers(props.tournamentId, teamIds);
+    // Go back to tournament page.
+    setLocation(`${tournamentUrl(props.tournamentId)}/manage`);
+  }
 
   function handleDragStart(event: React.DragEvent<HTMLDivElement>, team: Team) {
     event.dataTransfer.setData('text/plain', team.id);
@@ -59,7 +68,7 @@ export const SeedAssignmentTool: React.FC<SeedAssignmentToolProps> = (props) => 
       return (
         <Sheet>
           <Box
-            key={Math.random()}
+            key={uuid()}
             className={styles["unassigned-team"]}
           >
           </Box>
@@ -160,7 +169,7 @@ export const SeedAssignmentTool: React.FC<SeedAssignmentToolProps> = (props) => 
         </Grid>
         <Box className={styles["accept-button-container"]}>
           <Button
-            onClick={() => props.onAccept(assigned)}
+            onClick={() => acceptSeeding(assigned)}
           >
             Accept</Button>
         </Box>

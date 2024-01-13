@@ -1,0 +1,52 @@
+.admin-controls {
+  display: flex;
+  justify-content: flex-end;
+  padding: 0px 1rem;
+}
+
+.page-container {
+  height: 100%;
+  overflow: hidden;
+}
+
+.page-container>.content-container {
+  height: 100%;
+  display: flex;
+  flex-flow: column;
+  overflow: hidden;
+}
+
+.tournament-grid {
+  flex: 1;
+  overflow: hidden;
+  height: 100%;
+}
+
+.column {
+  flex: 1;
+  display: flex;
+  flex-flow: column;
+  align-items: center;
+  overflow-y: hidden;
+  padding: 0px 1rem;
+  max-height: 100%;
+}
+
+.column-content {
+  overflow-y: auto;
+  width: 100%;
+  margin-top: 1rem;
+}
+
+.column-content>div {
+  width: 100%;
+  margin-bottom: 1rem;
+}
+
+.tabs {
+  width: 100%;
+  justify-content: center;
+  height: 3.5rem;
+}
+
+/* Make media queries to add tabs for mobile rendering */

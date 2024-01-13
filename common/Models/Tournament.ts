@@ -20,6 +20,7 @@ export interface Tournament {
   registrationOpenDate?: DateTime;
   stages: StageType[];
   stageSettings: StageSettings[];
+  playersSeeded: boolean;
 }
 
 export interface SerializedTournament {
@@ -31,6 +32,7 @@ export interface SerializedTournament {
   registrationOpenDate?: string;
   stages: StageType[];
   stageSettings: StageSettings[];
+  playersSeeded: boolean;
 }
 
 export namespace Tournament {
@@ -43,7 +45,8 @@ export namespace Tournament {
       endDate: DateTime.fromISO(data.endDate),
       registrationOpenDate: data.registrationOpenDate ? DateTime.fromISO(data.registrationOpenDate) : undefined,
       stages: data.stages,
-      stageSettings: data.stageSettings
+      stageSettings: data.stageSettings,
+      playersSeeded: !!data.playersSeeded
     }
   }
 }

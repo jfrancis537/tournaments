@@ -9,6 +9,8 @@ import { MatchController } from "./APIs/MatchController";
 import path from 'path';
 import session, { MemoryStore, SessionOptions } from "express-session";
 import { AuthController } from "./APIs/AuthController";
+import { TeamManager } from "./Managers/TeamManager";
+import { TournamentManager } from "./Managers/TournamentManager";
 
 class App {
 
@@ -64,7 +66,10 @@ class App {
     this.expressApp.use(session(sessionOptions));
   }
 
-  public start() {
+  public async start() {
+    // Load data
+    await TournamentManager.instance.load();
+    await TeamManager.instance.load();
     // Start Http server.
     const server = this.expressApp.listen(EnvironmentVariables.PORT, () => {
       console.log("Server listening on port", EnvironmentVariables.PORT);

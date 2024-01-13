@@ -3,10 +3,13 @@ import { Tournament } from "@common/Models/Tournament";
 import { useState } from "react";
 import { DateTime } from "luxon";
 import { useLocation } from "wouter";
-import { HOME_PAGE_URL } from "../Utilities/RouteUtils";
-import { TournamentAPI } from "../APIs/TournamentAPI";
+import { HOME_PAGE_URL } from "../../Utilities/RouteUtils";
+import { TournamentAPI } from "../../APIs/TournamentAPI";
+import { Container, FormControl, FormLabel, Input, Select, Option, Button } from "@mui/joy";
 
-interface TournamentCreatorPageProps {
+import pageStyles from './TournamentCreator.module.css';
+
+interface TournamentCreatorProps {
   onAccept?: (tournament: Tournament) => void;
 }
 
@@ -30,13 +33,13 @@ export namespace SeedingMode {
 
 }
 
-export const TournamentCreatorPage: React.FC<TournamentCreatorPageProps> = (props) => {
+export const TournamentCreator: React.FC<TournamentCreatorProps> = (props) => {
 
   const [name, setName] = useState('');
   const [mode, setMode] = useState<StageType>('single_elimination');
   const [seedingMode, setSeedingMode] = useState(SeedingMode.MANUAL);
   const [startDate, setStartDate] = useState<DateTime>(DateTime.invalid('No Value'));
-  const [registrationDate,setRegistrationDate] = useState<DateTime>(DateTime.invalid('No Value'));
+  const [registrationDate, setRegistrationDate] = useState<DateTime>(DateTime.invalid('No Value'));
   const [endDate, setEndDate] = useState<DateTime>(DateTime.invalid('No Value'));
 
 
@@ -98,9 +101,10 @@ export const TournamentCreatorPage: React.FC<TournamentCreatorPageProps> = (prop
       stages: [
         mode
       ],
-      stageSettings: getStageSettings()
+      stageSettings: getStageSettings(),
+      playersSeeded: false
     });
-    props.onAccept?.call(undefined,t);
+    props.onAccept?.call(undefined, t);
     setLocation(HOME_PAGE_URL);
   }
 
@@ -110,45 +114,45 @@ export const TournamentCreatorPage: React.FC<TournamentCreatorPageProps> = (prop
 
   function render() {
     return (
-      <div>
-        <div>
-          <label>Name: </label>
-          <input type="text" onChange={(e) => setName(e.currentTarget.value)}></input>
-        </div>
-        <div>
-          <label>Start Date: </label>
-          <input onChange={handleStartDateChanged} type="date"></input>
-        </div>
-        <div>
-          <label>End Date: </label>
-          <input onChange={handleEndDateChanged} type="date"></input>
-        </div>
-        <div>
-          <label>Registration Open Date: </label>
-          <input onChange={handleRegistrationOpenDateChanged} type="date"></input>
-        </div>
-        <div>
-          <label>Mode: </label>
-          <select onChange={e => setMode(e.currentTarget.value as StageType)}>
+      <Container className={pageStyles.container} maxWidth="sm">
+        <FormControl>
+          <FormLabel>Tournament Name</FormLabel>
+          <Input type="text" onChange={(e) => setName(e.currentTarget.value)} />
+        </FormControl>
+        <FormControl>
+          <FormLabel>Start Date</FormLabel>
+          <Input onChange={handleStartDateChanged} type="date" />
+        </FormControl>
+        <FormControl>
+          <FormLabel>End Date</FormLabel>
+          <Input onChange={handleEndDateChanged} type="date" />
+        </FormControl>
+        <FormControl>
+          <FormLabel>Registration Open Date</FormLabel>
+          <Input onChange={handleRegistrationOpenDateChanged} type="date" />
+        </FormControl>
+        <FormControl>
+          <FormLabel>Mode</FormLabel>
+          <Select value={mode} onChange={(_, v) => setMode(v!)}>
             {stageTypes.map(st => {
               return (
-                <option key={st} value={st}>{
+                <Option key={st} value={st} onSelect={console.log}>{
                   st.split('_').map(word => word[0].toLocaleUpperCase() + word.substring(1)).join(' ')
-                }</option>
+                }</Option>
               )
             })}
-          </select>
-        </div>
-        <div>
-          <label>Seeding Mode: </label>
-          <select onChange={(e) => setSeedingMode(e.currentTarget.value as SeedingMode)}>
-            <option value={SeedingMode.MANUAL}>{SeedingMode.toString(SeedingMode.MANUAL)}</option>
-            <option disabled value={SeedingMode.IN_ORDER}>{SeedingMode.toString(SeedingMode.IN_ORDER)}</option>
-            <option disabled value={SeedingMode.RANDOM}>{SeedingMode.toString(SeedingMode.RANDOM)}</option>
-          </select>
-        </div>
-        <button disabled={!canCreate()} onClick={accept}>Create</button>
-      </div>
+          </Select>
+        </FormControl>
+        <FormControl>
+          <FormLabel>Seeding Mode</FormLabel>
+          <Select value={seedingMode} onChange={(_, v) => setSeedingMode(v!)}>
+            <Option value={SeedingMode.MANUAL}>{SeedingMode.toString(SeedingMode.MANUAL)}</Option>
+            <Option disabled value={SeedingMode.IN_ORDER}>{SeedingMode.toString(SeedingMode.IN_ORDER)}</Option>
+            <Option disabled value={SeedingMode.RANDOM}>{SeedingMode.toString(SeedingMode.RANDOM)}</Option>
+          </Select>
+        </FormControl>
+        <Button disabled={!canCreate()} onClick={accept}>Create</Button>
+      </Container>
     )
   }
 

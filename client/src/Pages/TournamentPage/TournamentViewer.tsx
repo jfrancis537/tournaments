@@ -1,31 +1,24 @@
 import { useContext, useEffect, useState } from "react";
-import { LoadState } from "../Utilities/LoadState";
-import { Database } from "brackets-manager";
+import { LoadState } from "../../Utilities/LoadState";
+import { Database as BracketsDatabase } from "brackets-manager";
 import { Match, Status } from "brackets-model";
 import { TournamentState } from "@common/Models/Tournament";
 import { useLocation } from "wouter";
-import { matchUrl, tournamentUrl } from "../Utilities/RouteUtils";
-import { SeedAssignmentTool } from "../Components/SeedAssignmentTool";
-import { BracketsViewer } from "../Wrappers/BracketsViewer";
-
-import './TournamentPage.module.css'
+import { matchUrl } from "../../Utilities/RouteUtils";
+import { BracketsViewer } from "../../Wrappers/BracketsViewer";
 import { TournamentSocketAPI } from "@common/SocketAPIs/TournamentAPI";
-import { TournamentAPI } from "../APIs/TournamentAPI";
-import { TeamAPI } from "../APIs/TeamAPI";
-import { UserContext } from "../Contexts/UserContext";
+import { TournamentAPI } from "../../APIs/TournamentAPI";
 
 interface TournamentPageProps {
   tournamentId: string;
   assigning?: boolean;
 }
 
-export const TournamentPage: React.FC<TournamentPageProps> = (props) => {
+export const TournamentViewer: React.FC<TournamentPageProps> = (props) => {
 
   const [loadingState, setLoadingState] = useState<LoadState>(LoadState.LOADING);
-  const [tournamentData, setTournamentData] = useState<Database>();
-  const [location, setLocation] = useLocation();
-
-  const {user} = useContext(UserContext);
+  const [tournamentData, setTournamentData] = useState<BracketsDatabase>();
+  const [, setLocation] = useLocation();
 
   function componentWillUnmount() {
     TournamentSocketAPI.ontournamentcreated.removeListener(tournamentStateChanged);
@@ -50,45 +43,24 @@ export const TournamentPage: React.FC<TournamentPageProps> = (props) => {
     tournamentStateChanged();
   }, [props.tournamentId]);
 
-  async function acceptSeeding(teamIds: (string | undefined)[]) {
-    await TeamAPI.assignSeedNumbers(teamIds);
-    // Go back to tournament page.
-    setLocation(tournamentUrl(props.tournamentId));
+  function renderNotStarted() {
+    return <h1>Tournament not started yet.</h1>
   }
+  
 
-  function renderBracketView() {
+  function render() {
     switch (loadingState) {
       case LoadState.LOADING:
-        return <div>Getting Ready...</div>
+        return <div>Getting Ready...</div>;
       case LoadState.FAILED:
-        return <div>Tournament doesn't exist</div>
+        return <div>Tournament doesn't exist</div>;
       case LoadState.COMPLETE:
         if (tournamentData) {
           return <BracketsViewer tournamentData={tournamentData} onMatchClicked={onMatchClicked} />
         } else {
-          return (
-            <>
-              <button
-                onClick={() => TournamentAPI.startTournament(props.tournamentId)}
-              >
-                Start
-              </button>
-              <button onClick={() => setLocation(`${location}/assigning`)}>Assign Players</button>
-            </>
-          );
+          return renderNotStarted();
         }
     }
-  }
-
-  function render() {
-    if (!!props.assigning) {
-      return (
-        <SeedAssignmentTool tournamentId={props.tournamentId} onAccept={acceptSeeding} />
-      );
-    } else {
-      return renderBracketView();
-    }
-
   }
 
   async function tournamentStateChanged() {

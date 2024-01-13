@@ -13,8 +13,8 @@ export namespace TeamAPI {
     throw new HttpStatusError("Failed to get teams", response.status);
   }
 
-  export async function assignSeedNumbers(teamIds: (string | undefined)[]) {
-    const response = await fetch(`${TeamAPIConstants.BASE_PATH}${TeamAPIConstants.ASSIGN_SEED_NUMBERS()}`, {
+  export async function assignSeedNumbers(tournamentId: string,teamIds: (string | undefined)[]) {
+    const response = await fetch(`${TeamAPIConstants.BASE_PATH}${TeamAPIConstants.ASSIGN_SEED_NUMBERS(tournamentId)}`, {
       body: JSON.stringify(teamIds),
       headers: {
         'Content-Type': 'application/json'

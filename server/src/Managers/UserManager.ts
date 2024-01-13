@@ -9,6 +9,7 @@ import { Validators } from "@common/Utilities/Validators";
 import { EnvironmentVariables } from "../Utilities/EnvironmentVariables";
 
 class UserManager {
+
   public async registerUser(request: AuthAPIConstants.AccountRegistrationRequest) {
     if (await Database.instance.hasUser(request.username)) {
       return RegistrationResult.FAILED_USER_EXISTS;

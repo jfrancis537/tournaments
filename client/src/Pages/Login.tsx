@@ -1,4 +1,4 @@
-import { useContext, useEffect, useState } from "react";
+import React, { useContext, useEffect, useState } from "react";
 import { AuthAPI } from "../APIs/AuthAPI";
 import { HttpStatusError } from "../Errors/HttpStatusError";
 import { useLocation } from "wouter";
@@ -7,8 +7,11 @@ import {
   Card,
   CardContent,
   Container,
+  Divider,
   FormControl,
-  Input
+  Input,
+  Link,
+  Typography
 } from "@mui/joy";
 
 import PersonIcon from '@mui/icons-material/Person';
@@ -19,37 +22,35 @@ export const Login: React.FC = () => {
 
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
-  const {setUser} = useContext(UserContext);
+  const { setUser } = useContext(UserContext);
 
   const [_, setLocation] = useLocation();
 
-  useEffect(() => {
-    window.addEventListener('keypress',handleEnterPressed);
-    return () => {
-      window.removeEventListener('keypress',handleEnterPressed);
-    }
-  },[]);
-
-  function handleEnterPressed(event: KeyboardEvent) {
-    if(event.key !== 'Enter')
-    {
+  async function handleEnterPressed(event: React.KeyboardEvent) {
+    if (event.key !== 'Enter') {
       return;
     }
+    await login();
+  }
 
-    login();
+  function handleUsernameChanged(event: React.ChangeEvent<HTMLInputElement>) {
+    setUsername(event.target.value);
+  }
+
+  function handlePasswordChanged(event: React.ChangeEvent<HTMLInputElement>) {
+    setPassword(event.target.value);
   }
 
   async function login() {
     try {
       const loggedInUser = await AuthAPI.login(username, password);
-      setUser(loggedInUser)
+      setUser(loggedInUser);
       setLocation('/');
     } catch (err) {
       if (err instanceof HttpStatusError) {
         alert(err.message);
       }
     }
-
   }
 
 
@@ -64,15 +65,18 @@ export const Login: React.FC = () => {
         <div style={{
           flex: 1,
           maxWidth: '400px'
-        }}>
-          <h2>Login</h2>
+        }}
+        onKeyPress={handleEnterPressed}>
           <Card>
+            <Typography level="h3">Login</Typography>
+            <Divider />
             <CardContent>
               <FormControl>
                 <Input
                   startDecorator={<PersonIcon />}
-                  type='text' value={username}
-                  onChange={e => setUsername(e.currentTarget.value)}
+                  type='text'
+                  value={username}
+                  onChange={handleUsernameChanged}
                   placeholder='Username'
                 />
               </FormControl>
@@ -80,11 +84,12 @@ export const Login: React.FC = () => {
                 <Input
                   startDecorator={<Key />}
                   value={password}
-                  onChange={e => setPassword(e.currentTarget.value)}
+                  onChange={handlePasswordChanged}
                   type='password'
                   placeholder='Password'
                 />
               </FormControl>
+              <Link onClick={() => setLocation('/account/register')}>Register</Link>
               <Button onClick={login}>Login</Button>
             </CardContent>
           </Card>

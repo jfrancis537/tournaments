@@ -1,13 +1,15 @@
 import MenuIcon from '@mui/icons-material/Menu'
-import { Box, Button, Typography } from '@mui/joy';
+import { Box, Button, Dropdown, Menu, MenuButton, MenuItem, Typography } from '@mui/joy';
 
 import navStyles from './NavBar.module.css';
 import { useContext } from 'react';
 import { UserContext } from '../Contexts/UserContext';
 import { useLocation } from 'wouter';
+import { Person } from '@mui/icons-material';
+import { AuthAPI } from '../APIs/AuthAPI';
 
 
-const NavBarButton: React.FC<{url: string, children: string}> = (props) => {
+const NavBarButton: React.FC<{ url: string, children: string }> = (props) => {
   const [, setLocation] = useLocation();
 
   return (
@@ -19,12 +21,35 @@ const NavBarButton: React.FC<{url: string, children: string}> = (props) => {
 
 export const NavBar: React.FC = () => {
 
-  const { user } = useContext(UserContext);
+  const { user, setUser } = useContext(UserContext);
+  const [, setLocation] = useLocation();
+
+  async function logout() {
+    await AuthAPI.logout();
+    setUser(undefined);
+    setLocation('/');
+  }
 
   function renderUserOrLogin() {
     if (user) {
       return (
-        <Typography sx={{display: 'inline'}}>Hello {user.username}</Typography>
+        <Dropdown>
+          <MenuButton
+            color="neutral"
+            variant='plain'
+            endDecorator={<Person />}
+          >
+            {user.username}
+          </MenuButton>
+          <Menu>
+            <MenuItem
+              onClick={logout}
+            >
+              Logout
+            </MenuItem>
+          </Menu>
+        </Dropdown>
+
       )
     } else {
       return (

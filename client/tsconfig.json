@@ -26,7 +26,7 @@
       "@common/*" : ["../common/*"]
     }
   },
-  "include": ["src","../common", "../server/src/Managers/TeamManager.ts", "../server/src/Managers/TournamentManager.ts", "../server/src/TournamentDemo.ts"],
+  "include": ["src","../common"],
   "references": [{ "path": "../tsconfig.node.json" }]
   
 }

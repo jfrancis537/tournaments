@@ -1,9 +1,9 @@
 import { Route, Switch, useLocation } from 'wouter';
-import { TournamentPage } from './Pages/TournamentPage';
+import { TournamentViewer } from './Pages/TournamentPage/TournamentViewer';
 import { MatchPage } from './Pages/MatchPage';
 import { NotFound } from './Pages/NotFound';
 import { NEW_TOURNAMENT_ID } from './Utilities/RouteUtils';
-import { TournamentCreatorPage } from './Pages/TournamentCreatorPage';
+import { TournamentCreator } from './Pages/TournamentPage/TournamentCreator';
 import { AccountRegistration } from './Pages/AccountRegistration';
 import { Login } from './Pages/Login';
 import { HomePage } from './Pages/HomePage';
@@ -15,6 +15,9 @@ import { UserContext } from './Contexts/UserContext';
 import { User } from '@common/Models/User';
 import { AuthAPI } from './APIs/AuthAPI';
 import { NavBar } from './Components/NavBar';
+import { SeedAssignmentTool } from './Pages/TournamentPage/SeedAssignmentTool';
+import { AuthenticatedRoute } from './Components/AuthenticatedRoute';
+import { TournamentManagment } from './Pages/TournamentPage/TournamentManagement';
 
 
 const DemoComponent: React.FC = () => {
@@ -22,7 +25,7 @@ const DemoComponent: React.FC = () => {
   const { user } = useContext(UserContext);
   return (
     <>
-      <button disabled={!user} onClick={async () => {
+      <button onClick={async () => {
         const promises: Promise<Tournament>[] = [];
         for (let i = 0; i < 5; i++) {
           promises.push(
@@ -30,12 +33,14 @@ const DemoComponent: React.FC = () => {
               name: `Sample Tournament ${i}`,
               startDate: DateTime.now(),
               endDate: DateTime.now().plus({ days: i + 1 }),
+              registrationOpenDate: DateTime.now().minus({ hour: 1 }),
               stages: [
                 'double_elimination'
               ],
               stageSettings: [
                 { seedOrdering: ['natural'], grandFinal: 'double' },
-              ]
+              ],
+              playersSeeded: false
             }));
         }
         await Promise.all(promises);
@@ -74,22 +79,32 @@ export const App: React.FC = () => {
             {(params) => {
               if (params.id === NEW_TOURNAMENT_ID) {
                 return (
-                  <TournamentCreatorPage />
+                  <TournamentCreator />
                 )
               }
-              return <TournamentPage tournamentId={params.id} />
+              return <TournamentViewer tournamentId={params.id} />
             }}
           </Route>
-          <Route path='/tournament/:id/assigning'>
+          <AuthenticatedRoute roles={['admin']} path='/tournament/:id/manage'>
             {(params) => {
               if (params.id === NEW_TOURNAMENT_ID) {
                 return (
                   <NotFound />
                 )
               }
-              return <TournamentPage tournamentId={params.id} assigning />
+              return <TournamentManagment tournamentId={params.id} />
             }}
-          </Route>
+          </AuthenticatedRoute>
+          <AuthenticatedRoute roles={['admin']} path='/tournament/:id/assigning'>
+            {(params) => {
+              if (params.id === NEW_TOURNAMENT_ID) {
+                return (
+                  <NotFound />
+                )
+              }
+              return <SeedAssignmentTool tournamentId={params.id} />
+            }}
+          </AuthenticatedRoute>
           <Route path='/tournament/:tournamentId/match/:matchId'>
             {(params) => {
               const matchIdNumber = Number(params.matchId);

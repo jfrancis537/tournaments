@@ -6,8 +6,7 @@ import { SocketName } from "../Utilities/SocketName";
 class TournamentSocketAPI {
   private initialized = false;
   private ontournamentcreated_?: SocketAction<Tournament>;
-  private onregistrationopen_?: SocketAction<Tournament>;
-  private onregistrationclosed_?: SocketAction<Tournament>;
+  private ontournamentstateupdated_?: SocketAction<Tournament>;
   private ontournamentstarted_?: SocketAction<Tournament>;
 
   private onmatchupdated_?: SocketAction<Match>;
@@ -29,15 +28,8 @@ class TournamentSocketAPI {
       Tournament.Deserialize
     );
     // Registration open
-    this.onregistrationopen_ = new SocketAction(
-      SocketName.RegistrationOpen,
-      socket,
-      undefined,
-      Tournament.Deserialize
-    );
-    // Registration closed
-    this.onregistrationclosed_ = new SocketAction(
-      SocketName.RegistrationClosed,
+    this.ontournamentstateupdated_ = new SocketAction(
+      SocketName.TournamentStateUpdated,
       socket,
       undefined,
       Tournament.Deserialize
@@ -63,18 +55,11 @@ class TournamentSocketAPI {
     return this.ontournamentcreated_!;
   }
 
-  public get onregistrationopen() {
+  public get ontournamentstateupdated() {
     if (!this.initialized) {
       throw new Error('API is not initialized');
     }
-    return this.onregistrationopen_!;
-  }
-
-  public get onregistrationclosed() {
-    if (!this.initialized) {
-      throw new Error('API is not initialized');
-    }
-    return this.onregistrationclosed_!;
+    return this.ontournamentstateupdated_!;
   }
 
   public get ontournamentstarted() {

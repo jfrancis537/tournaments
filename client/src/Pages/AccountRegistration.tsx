@@ -4,8 +4,6 @@ import { AuthAPIConstants, RegistrationResult } from "@common/Constants/AuthAPIC
 import { useLocation } from "wouter";
 import { Button, Container, FormControl, FormLabel, Input, Sheet } from "@mui/joy";
 
-import PersonIcon from '@mui/icons-material/Person';
-
 import pageStyles from './AccountRegistration.module.css';
 import { Validators } from "@common/Utilities/Validators";
 
