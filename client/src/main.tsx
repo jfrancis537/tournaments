@@ -12,7 +12,7 @@ async function run() {
   await SocketManager.initAPIs();
   ReactDOM.createRoot(document.getElementById('root')!).render(
     <React.StrictMode>
-      <CssVarsProvider defaultMode='system'>
+      <CssVarsProvider defaultMode='light'>
         <CssBaseline />
         <App />
       </CssVarsProvider>
