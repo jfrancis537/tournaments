@@ -4,20 +4,25 @@ import { App } from './App.tsx'
 import { SocketManager } from './Managers/SocketManager.ts'
 
 import './global.css'
-import { CssVarsProvider } from '@mui/joy/styles';
+import { CssVarsProvider, extendTheme, useColorScheme } from '@mui/joy/styles';
 import CssBaseline from '@mui/joy/CssBaseline';
 
 
-async function run() {
-  await SocketManager.initAPIs();
-  ReactDOM.createRoot(document.getElementById('root')!).render(
+const EntryPoint: React.FC = () => {
+
+  return (
     <React.StrictMode>
-      <CssVarsProvider defaultMode='light' defaultColorScheme='light'>
+      <CssVarsProvider disableNestedContext defaultMode='light' defaultColorScheme='light'>
         <CssBaseline />
         <App />
       </CssVarsProvider>
-    </React.StrictMode>,
+    </React.StrictMode>
   )
+}
+
+async function run() {
+  await SocketManager.initAPIs();
+  ReactDOM.createRoot(document.getElementById('root')!).render(<EntryPoint />)
 }
 
 run();

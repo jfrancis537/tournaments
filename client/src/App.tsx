@@ -18,6 +18,7 @@ import { NavBar } from './Components/NavBar';
 import { SeedAssignmentTool } from './Pages/TournamentPage/SeedAssignmentTool';
 import { AuthenticatedRoute } from './Components/AuthenticatedRoute';
 import { TournamentManagment } from './Pages/TournamentPage/TournamentManagement';
+import { useColorScheme } from '@mui/joy';
 
 
 const DemoComponent: React.FC = () => {
@@ -53,9 +54,11 @@ const DemoComponent: React.FC = () => {
 export const App: React.FC = () => {
 
   const [user, setUser] = useState<User>();
+  const {setMode} = useColorScheme();
 
   useEffect(() => {
     AuthAPI.getCurrentUser().then(setUser);
+    setMode('light');
   }, [])
 
   function render() {
