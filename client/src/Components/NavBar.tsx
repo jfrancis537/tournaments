@@ -62,7 +62,7 @@ export const NavBar: React.FC = () => {
     return (
       <div className={navStyles['nav']}>
         <Box>
-          <h4>Kingsgate Pickleball</h4>
+          <Typography level='h4'>{import.meta.env.VITE_APP_TITLE}</Typography>
         </Box>
         <Box>
           <NavBarButton url='/'>Home</NavBarButton>

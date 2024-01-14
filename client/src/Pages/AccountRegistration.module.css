@@ -1,17 +1,18 @@
-.sheet {
-  padding: 1rem;
-  border-radius: 10px;
-}
+.card {}
 
-.sheet button {
+.card-content {}
+
+.button-container {
   margin-top: 1rem;
+  display: flex;
+  justify-content: space-evenly;
 }
 
 .error-container {
   margin-top: 2rem;
 }
 
-.error-container > p {
+.error-container>p {
   border-radius: 10px;
   justify-content: space-between;
 }

@@ -16,6 +16,13 @@
   overflow: hidden;
 }
 
+.centered-content {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100%;
+}
+
 .tournament-grid {
   flex: 1;
   overflow: hidden;

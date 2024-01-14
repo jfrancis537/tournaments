@@ -35,6 +35,12 @@ class MailManager {
   }
 
   public async sendEmail(message: Mail.Options): Promise<boolean> {
+
+    if(!EnvironmentVariables.ENABLE_EMAIL)
+    {
+      return false;
+    }
+
     if (!(await this.ready)) {
       return false;
     }

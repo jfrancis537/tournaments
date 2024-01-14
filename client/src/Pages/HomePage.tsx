@@ -121,84 +121,105 @@ export const HomePage: React.FC = () => {
     return classes(classList);
   }
 
+  function renderNoTournaments() {
+    return (
+      <Container maxWidth="md" className={pageStyles["page-container"]}>
+      <Box className={pageStyles["centered-content"]}>
+        <Typography level="title-lg">No Tournaments available</Typography>
+      </Box>
+    </Container>
+    );
+  }
+
   function renderForLoadState() {
     let component: JSX.Element;
     switch (loadState) {
       case LoadState.LOADING:
-        component = <CircularProgress />
+        component = (
+          <Container maxWidth="md" className={pageStyles["page-container"]}>
+            <Box className={pageStyles["centered-content"]}>
+              <CircularProgress size="lg" />
+            </Box>
+          </Container>
+        )
         break;
       case LoadState.FAILED:
         component = <span>Error Loading</span>
         // TODO ERROR
         break;
       case LoadState.COMPLETE:
-        component = (
-          <>
-            <Container disableGutters className={pageStyles["content-container"]}>
-              <Grid
-                container
-                columnSpacing={2}
-                columnGap={2}
-                columns={{ xs: 3 }}
-                className={pageStyles["tournament-grid"]}>
-                <div className={getClassesForColumn(tab === TabName.Active)}>
-                  <Typography
-                    className={mobileHelper["desktop-only"]}
-                    level="title-lg">
-                    Active
-                  </Typography>
-                  {renderActive(tournaments)}
-                </div>
-                <div className={getClassesForColumn(tab === TabName.Upcoming)}>
-                  <Typography
-                    className={mobileHelper["desktop-only"]}
-                    level="title-lg">
-                    Upcoming
-                  </Typography>
-                  {renderUpcoming(tournaments)}
-                </div>
-                <div className={getClassesForColumn(tab === TabName.Past)}>
-                  <Typography
-                    className={mobileHelper["desktop-only"]}
-                    level="title-lg">
-                    Past
-                  </Typography>
-                  {renderPast(tournaments)}
-                </div>
-              </Grid>
-              <Grid
-                container
-                columnSpacing={2}
-                columnGap={2}
-                columns={{ xs: 3 }}
-                className={mobileHelper["mobile-only"]}
-              >
-                <ButtonGroup
-                  variant="soft"
-                  aria-label="Tournament Type tabs"
-                  buttonFlex="1"
-                  className={pageStyles.tabs}
+        if (tournaments.length === 0) {
+          component = renderNoTournaments()
+        } else {
+          component = (
+            <>
+              <Container disableGutters className={pageStyles["content-container"]}>
+                <Grid
+                  container
+                  columnSpacing={2}
+                  columnGap={2}
+                  columns={{ xs: 3 }}
+                  className={pageStyles["tournament-grid"]}>
+                  <div className={getClassesForColumn(tab === TabName.Active)}>
+                    <Typography
+                      className={mobileHelper["desktop-only"]}
+                      level="title-lg">
+                      Active
+                    </Typography>
+                    {renderActive(tournaments)}
+                  </div>
+                  <div className={getClassesForColumn(tab === TabName.Upcoming)}>
+                    <Typography
+                      className={mobileHelper["desktop-only"]}
+                      level="title-lg">
+                      Upcoming
+                    </Typography>
+                    {renderUpcoming(tournaments)}
+                  </div>
+                  <div className={getClassesForColumn(tab === TabName.Past)}>
+                    <Typography
+                      className={mobileHelper["desktop-only"]}
+                      level="title-lg">
+                      Past
+                    </Typography>
+                    {renderPast(tournaments)}
+                  </div>
+                </Grid>
+                <Grid
+                  container
+                  columnSpacing={2}
+                  columnGap={2}
+                  columns={{ xs: 3 }}
+                  className={mobileHelper["mobile-only"]}
                 >
-                  <Button
-                    variant={tab === TabName.Active ? "solid" : undefined}
-                    onClick={() => setTab(TabName.Active)}>
-                    Active
-                  </Button>
-                  <Button
-                    variant={tab === TabName.Upcoming ? "solid" : undefined}
-                    onClick={() => setTab(TabName.Upcoming)}>
-                    Upcoming
-                  </Button>
-                  <Button
-                    variant={tab === TabName.Past ? "solid" : undefined}
-                    onClick={() => setTab(TabName.Past)}>
-                    Past
-                  </Button>
-                </ButtonGroup>
-              </Grid>
-            </Container>
-          </>
-        );
+                  <ButtonGroup
+                    variant="soft"
+                    aria-label="Tournament Type tabs"
+                    buttonFlex="1"
+                    className={pageStyles.tabs}
+                  >
+                    <Button
+                      variant={tab === TabName.Active ? "solid" : undefined}
+                      onClick={() => setTab(TabName.Active)}>
+                      Active
+                    </Button>
+                    <Button
+                      variant={tab === TabName.Upcoming ? "solid" : undefined}
+                      onClick={() => setTab(TabName.Upcoming)}>
+                      Upcoming
+                    </Button>
+                    <Button
+                      variant={tab === TabName.Past ? "solid" : undefined}
+                      onClick={() => setTab(TabName.Past)}>
+                      Past
+                    </Button>
+                  </ButtonGroup>
+                </Grid>
+              </Container>
+            </>
+          );
+        }
+
         break;
     }
     return component;
