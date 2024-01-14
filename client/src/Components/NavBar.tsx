@@ -7,6 +7,7 @@ import { UserContext } from '../Contexts/UserContext';
 import { useLocation } from 'wouter';
 import { Person } from '@mui/icons-material';
 import { AuthAPI } from '../APIs/AuthAPI';
+import { useSocketState } from '../Managers/SocketManager';
 
 
 const NavBarButton: React.FC<{ url: string, children: string }> = (props) => {
@@ -68,7 +69,6 @@ export const NavBar: React.FC = () => {
           <NavBarButton url='/'>Home</NavBarButton>
           {renderUserOrLogin()}
         </Box>
-
       </div>
     );
   }

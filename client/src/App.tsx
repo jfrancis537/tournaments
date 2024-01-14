@@ -18,8 +18,9 @@ import { NavBar } from './Components/NavBar';
 import { SeedAssignmentTool } from './Pages/TournamentPage/SeedAssignmentTool';
 import { AuthenticatedRoute } from './Components/AuthenticatedRoute';
 import { TournamentManagment } from './Pages/TournamentPage/TournamentManagement';
-import { useColorScheme } from '@mui/joy';
+import { Snackbar, Typography, useColorScheme } from '@mui/joy';
 import { ConfirmRegistration } from './Pages/ConfirmRegistration';
+import { useSocketState } from './Managers/SocketManager';
 
 
 const DemoComponent: React.FC = () => {
@@ -55,12 +56,43 @@ const DemoComponent: React.FC = () => {
 export const App: React.FC = () => {
 
   const [user, setUser] = useState<User>();
+  const [connectionMessageOpen, setConnectionMessageOpen] = useState(false);
+
   const { setMode } = useColorScheme();
+  const socketState = useSocketState();
+
+  useEffect(() => {
+    if (socketState !== 'initial') {
+      setConnectionMessageOpen(true);
+    }
+  }, [socketState]);
 
   useEffect(() => {
     AuthAPI.getCurrentUser().then(setUser);
     setMode('light');
-  }, [])
+  }, []);
+
+  function closeConnectionMessage() {
+    setConnectionMessageOpen(false);
+  }
+
+  function renderConnectionNotification() {
+
+    const color = socketState === 'connected' ? 'success' : 'danger';
+    const message = socketState === 'connected' ? 'Successfully reconnected.' : 'Connection lost, functionality may be limited.';
+
+    return (
+      <Snackbar
+        variant='soft'
+        open={connectionMessageOpen}
+        color={color}
+        onClose={closeConnectionMessage}
+        autoHideDuration={2000}
+      >
+        <Typography color={color}>{message}</Typography>
+      </Snackbar>
+    );
+  }
 
   function render() {
     return (
@@ -127,6 +159,7 @@ export const App: React.FC = () => {
             <NotFound />
           </Route>
         </Switch>
+        {renderConnectionNotification()}
       </UserContext.Provider>
     );
   }
