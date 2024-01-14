@@ -11,6 +11,7 @@ import session, { MemoryStore, SessionOptions } from "express-session";
 import { AuthController } from "./APIs/AuthController";
 import { TeamManager } from "./Managers/TeamManager";
 import { TournamentManager } from "./Managers/TournamentManager";
+import { generateToken, generateTokenSync } from "./Utilities/Crypto";
 
 class App {
 
@@ -50,10 +51,11 @@ class App {
   public addSessions() {
 
     const sessionOptions: SessionOptions = {
-      // TODO cryptographically random env variable.
-      secret: 'jdfhlaksjdhflajknfaf38h29802n3fy293p8dyh238d209fpg2b37',
-      cookie: { maxAge: 1000 * 60 * 2, httpOnly: true, sameSite: 'strict' },
+      secret: generateTokenSync(),
+      // Two hours
+      cookie: { maxAge: 1000 * 60 * 60 * 2, httpOnly: true, sameSite: 'strict' },
       resave: false,
+      // TODO don't use memory store.
       store: new MemoryStore(),
       saveUninitialized: false
     };

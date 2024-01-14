@@ -49,7 +49,6 @@ namespace AuthController {
     // Verify Login details
     const body = req.body as AuthAPIConstants.LoginRequest;
     if (body.password && body.username) {
-      // TODO actually verify login details
       const [result, user] = await UserManager.instance.loginUser(body);
       if (result === LoginResult.SUCCESS) {
         authSession.user = user;

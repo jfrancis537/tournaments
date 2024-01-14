@@ -22,7 +22,7 @@
     "noUnusedParameters": false,
     "noFallthroughCasesInSwitch": true,
   },
-  "include": ["./"],
+  "include": ["./", "../server/src/Utilities/Crypto.ts"],
   "references": [{ "path": "../tsconfig.node.json" }]
   
 }

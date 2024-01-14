@@ -11,6 +11,7 @@ import { User } from "@common/Models/User";
 import { Validators } from "@common/Utilities/Validators";
 import { EnvironmentVariables } from "../Utilities/EnvironmentVariables";
 import { MailManager } from "./MailManager";
+import { generateToken } from '../Utilities/Crypto';
 
 class UserManager {
 
@@ -41,7 +42,7 @@ class UserManager {
         role: EnvironmentVariables.IS_DEVELOPMENT ? 'admin' : 'user',
         hash,
         salt,
-        registrationToken: await this.generateToken()
+        registrationToken: await generateToken()
       });
 
       const confirmUrl = `https://${EnvironmentVariables.HOST}/account/confirm/${record.registrationToken!}`;
@@ -122,17 +123,6 @@ class UserManager {
 
   private generateHash(password: string, salt: string) {
     return crypto.pbkdf2Sync(password, salt, 10000, 512, 'sha512').toString('base64');
-  }
-
-  private async generateToken(): Promise<string> {
-    return new Promise((resolve, reject) => {
-      crypto.randomBytes(48, (err, buf) => {
-        if (err) {
-          reject(err);
-        }
-        resolve(buf.toString('hex'));
-      });
-    })
   }
 }
 

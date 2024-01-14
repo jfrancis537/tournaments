@@ -169,7 +169,6 @@ export const HomePage: React.FC = () => {
         break;
       case LoadState.FAILED:
         component = <span>Error Loading</span>
-        // TODO ERROR
         break;
       case LoadState.COMPLETE:
         if (tournaments.length === 0) {
