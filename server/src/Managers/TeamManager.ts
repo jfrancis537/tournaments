@@ -2,6 +2,9 @@ import { Team } from "@common/Models/Team";
 import { Lazy } from "@common/Utilities/Lazy";
 import { v4 as uuid } from "uuid";
 import { Database, TeamData } from "../Database/Database";
+import { TeamAPIConstants } from "@common/Constants/TeamAPIConstants";
+import { TournamentManager } from "./TournamentManager";
+import { Tournament, TournamentState } from "@common/Models/Tournament";
 
 type TeamOptions = Omit<Omit<Team, 'id'>, 'seedNumber'>
 
@@ -23,15 +26,31 @@ class TeamManager {
     return undefined;
   }
 
-  public getTeam(id: string)
-  {
+  public getTeam(id: string) {
     return this.teams.get(id);
   }
 
-  public async registerTeam(options: TeamOptions) {
+  public async registerTeam(options: TeamOptions): Promise<[TeamAPIConstants.TeamRegistrationResult, Team | undefined]> {
     if (!this.tournamentToTeams.has(options.tournamentId)) {
       this.tournamentToTeams.set(options.tournamentId, []);
     }
+    const tournament = TournamentManager.instance.getTournament(options.tournamentId)
+    if(!tournament)
+    {
+      return [TeamAPIConstants.TeamRegistrationResult.NO_SUCH_TOURNAMENT, undefined]
+    } else {
+      if(!Tournament.isRegistrationOpen(tournament))
+      {
+        return [TeamAPIConstants.TeamRegistrationResult.REGISTRATION_CLOSED, undefined]
+      }
+    }
+
+    for (const existing of this.teams.values()) {
+      if (existing.contactEmail === options.contactEmail) {
+        return [TeamAPIConstants.TeamRegistrationResult.INVALID_EMAIL, undefined]
+      }
+    }
+
     const team: Team = {
       id: uuid(),
       seedNumber: undefined,
@@ -41,15 +60,13 @@ class TeamManager {
     const teams = this.tournamentToTeams.get(options.tournamentId)!;
     teams.push(team.id);
     await this.save();
-    return team;
+    return [TeamAPIConstants.TeamRegistrationResult.SUCCESS, team];
   }
 
-  public async assignSeedNumbers(toAssign: [string,number | undefined][])
-  {
-    for(const [id,seed] of toAssign) {
+  public async assignSeedNumbers(toAssign: [string, number | undefined][]) {
+    for (const [id, seed] of toAssign) {
       const team = this.teams.get(id);
-      if(!team)
-      {
+      if (!team) {
         throw new Error(`Team with id: ${id} does not exist.`);
       }
       team.seedNumber = seed;

@@ -28,8 +28,10 @@ export const TournamentManagment: React.FC<TournamentManagmentProps> = (props) =
   useEffect(() => {
     //TODO Add update for teams here.
     TournamentSocketAPI.ontournamentstateupdated.addListener(tournamentStateChanged);
+    TournamentSocketAPI.ontournamentstarted.addListener(tournamentStateChanged);
     return () => {
       TournamentSocketAPI.ontournamentstateupdated.removeListener(tournamentStateChanged);
+      TournamentSocketAPI.ontournamentstarted.removeListener(tournamentStateChanged);
     }
   }, []);
 
@@ -86,6 +88,7 @@ export const TournamentManagment: React.FC<TournamentManagmentProps> = (props) =
           </>
         );
       case TournamentState.Running:
+        // TODO have controls for when the tournament is running
       case TournamentState.Complete:
         return null;
     }

@@ -1,0 +1,82 @@
+.page-box {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+}
+
+.team-section-container {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  margin-top: 1rem;
+}
+
+.team-section {
+  flex: 1;
+  margin: 1rem 2rem;
+  display: flex;
+  flex-flow: column;
+}
+
+.team-heading-container {
+  display: flex;
+  justify-content: center;
+  padding-top: 1rem;
+}
+
+.score {
+  flex: 1;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.controls {
+  display: flex;
+  justify-content: center;
+}
+
+.button-container {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  column-gap: 1rem;
+  margin: 0px 1rem;
+}
+
+.start-button {
+  grid-column: 0;
+  justify-self: center;
+}
+
+.back-button {
+  grid-column: 1;
+  justify-self: flex-start;
+}
+
+.score-sections {
+  flex: 1;
+  display: flex;
+  margin-bottom: 1rem;
+}
+
+
+/* MD or smaller*/
+
+@media (max-width: 720px) {
+  .score-sections {
+    flex-flow: column;
+  }
+
+  .score>h1 {
+    font-size: 5rem;
+  }
+}
+
+/* LG or bigger*/
+
+@media (min-width: 720px) {
+
+  .score>h1 {
+    font-size: 40vh;
+  }
+}

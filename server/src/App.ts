@@ -1,14 +1,14 @@
 import express, { Express } from "express";
 import { EnvironmentVariables } from "./Utilities/EnvironmentVariables";
-import { TournamentManagerController } from "./APIs/TournamentManagementController";
+import { TournamentManagerController } from "./Controllers/TournamentManagementController";
 import { ViteProxyMiddleware } from "./MiddleWare/ProxyMiddleware";
 import { Server } from "socket.io";
 import { TournamentSocketAPI } from "@common/SocketAPIs/TournamentAPI";
-import { TeamController } from "./APIs/TeamController";
-import { MatchController } from "./APIs/MatchController";
+import { TeamController } from "./Controllers/TeamController";
+import { MatchController } from "./Controllers/MatchController";
 import path from 'path';
 import session, { MemoryStore, SessionOptions } from "express-session";
-import { AuthController } from "./APIs/AuthController";
+import { AuthController } from "./Controllers/AuthController";
 import { TeamManager } from "./Managers/TeamManager";
 import { TournamentManager } from "./Managers/TournamentManager";
 import { generateToken, generateTokenSync } from "./Utilities/Crypto";

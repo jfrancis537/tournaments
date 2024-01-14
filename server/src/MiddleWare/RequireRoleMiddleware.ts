@@ -1,6 +1,6 @@
 import { User } from "@common/Models/User";
 import { RequestHandler } from "express";
-import { AuthSession } from "../APIs/AuthController";
+import { AuthSession } from "../Controllers/AuthController";
 import { EnvironmentVariables } from "../Utilities/EnvironmentVariables";
 
 type RoleType = User['role'];

@@ -17,7 +17,6 @@ import { UserContext } from "../Contexts/UserContext";
 import { DateTime } from "luxon";
 import { Add, AssignmentInd, EventAvailable, EventBusy } from "@mui/icons-material";
 import { Authenticated } from "../Components/Authenticated";
-import { useNavigation } from "../Hooks/UseNavigation";
 
 enum TabName {
   Active = 'active',
@@ -50,10 +49,7 @@ export const HomePage: React.FC = () => {
 
   function renderTournament(tournament: Tournament) {
 
-    let registrationOpen = (tournament.registrationOpenDate ?
-      tournament.registrationOpenDate <= DateTime.now() :
-      tournament.state === TournamentState.RegistrationOpen) &&
-      tournament.state <= TournamentState.RegistrationOpen;
+    let registrationOpen = Tournament.isRegistrationOpen(tournament);
 
     const allowManagement = !!user && user.role === 'admin';
 
@@ -64,16 +60,17 @@ export const HomePage: React.FC = () => {
         <Typography level="title-lg">{tournament.name}</Typography>
         <Divider />
         <CardContent>
-
           <List>
-            <ListItem>
-              <ListItemDecorator>
-                <AssignmentInd />
-              </ListItemDecorator>
-              <Typography>
-                {TournamentState.toStatusString(tournament!.state, tournament!.registrationOpenDate)}
-              </Typography>
-            </ListItem>
+            {tournament.state < TournamentState.Running && (
+              <ListItem>
+                <ListItemDecorator>
+                  <AssignmentInd />
+                </ListItemDecorator>
+                <Typography>
+                  {TournamentState.toStatusString(tournament!.state, tournament!.registrationOpenDate)}
+                </Typography>
+              </ListItem>
+            )}
             <ListItem>
               <ListItemDecorator>
                 <EventAvailable color='success' />
@@ -88,17 +85,19 @@ export const HomePage: React.FC = () => {
             </ListItem>
           </List>
         </CardContent>
-        <Divider />
         {(registrationOpen || allowManagement) && (
-          <ButtonGroup variant="solid" color="primary" sx={{
-            justifyContent: 'flex-end'
-          }}>
-            {registrationOpen &&
-              <Button>Register</Button>}
-            {allowManagement &&
-              <Button onClick={navigateTo(`${tournamentUrl(tournament.id)}/manage`)}>Manage</Button>
-            }
-          </ButtonGroup>
+          <>
+            <Divider />
+            <ButtonGroup variant="solid" color="primary" sx={{
+              justifyContent: 'flex-end'
+            }}>
+              {registrationOpen &&
+                <Button onClick={navigateTo(`${tournamentUrl(tournament.id)}/register`)}>Register</Button>}
+              {allowManagement &&
+                <Button onClick={navigateTo(`${tournamentUrl(tournament.id)}/manage`)}>Manage</Button>
+              }
+            </ButtonGroup>
+          </>
         )}
       </Card>
     )

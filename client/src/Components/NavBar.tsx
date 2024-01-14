@@ -65,7 +65,7 @@ export const NavBar: React.FC = () => {
         <Box>
           <Typography level='h4'>{import.meta.env.VITE_APP_TITLE}</Typography>
         </Box>
-        <Box>
+        <Box sx={{display: 'flex'}}>
           <NavBarButton url='/'>Home</NavBarButton>
           {renderUserOrLogin()}
         </Box>

@@ -90,6 +90,7 @@ namespace AuthController {
         resp.status(200).json(responseBody);
         break;
       case RegistrationResult.FAILED_USER_EXISTS:
+      case RegistrationResult.FAILED_EMAIL_EXISTS:
       case RegistrationResult.FAILED_BAD_PASSWORD:
       case RegistrationResult.FAILED_BAD_EMAIL:
       case RegistrationResult.FAILED_BAD_USERNAME:

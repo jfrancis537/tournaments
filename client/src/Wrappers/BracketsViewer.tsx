@@ -4,6 +4,7 @@ import url from 'brackets-viewer/dist/brackets-viewer.min.js?url'
 import { Database } from 'brackets-manager';
 import { useEffect, useState } from 'react';
 import { Match } from 'brackets-model';
+import { Box } from '@mui/joy';
 
 type BracketsViewer = typeof globalThis.bracketsViewer;
 
@@ -55,7 +56,17 @@ export const BracketsViewer: React.FC<BracketViewerProps> = (props) => {
   }
 
   function render() {
-    return <div id="bracket_container" className="brackets-viewer" />
+    return (
+      <Box sx={{
+        height: "100%",
+        width: "100%",
+        overflow: "scroll",
+        display: 'flex',
+        justifyContent: 'center'
+      }}>
+        <div id="bracket_container" className="brackets-viewer" />
+      </Box>
+    )
   }
 
   return render();

@@ -58,8 +58,6 @@ namespace TournamentManagerController {
         return;
       }
 
-
-
       switch(body.state)
       {
         case TournamentState.RegistrationOpen:

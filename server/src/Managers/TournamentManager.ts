@@ -42,7 +42,7 @@ class TournamentManager {
     }
 
     // TODO remove this line.
-    Demo.run(tournament);
+    // Demo.run(tournament);
 
     this.tournaments.set(tournament.id, tournament);
     TournamentSocketAPI.ontournamentcreated.invoke(tournament);
@@ -79,8 +79,7 @@ class TournamentManager {
 
   public async setTournamentSeeded(id: string) {
     const tournament = this.tournaments.get(id);
-    if(!tournament)
-    {
+    if (!tournament) {
       return false;
     }
     tournament.playersSeeded = true;
@@ -100,7 +99,57 @@ class TournamentManager {
   // That screen will be brought up by the on click function so there should 
   // be access to all of these parameters.
 
-  public async forfeit(teamId: number, match: Match) {
+  public async selectWinner(tournamentId: string, teamId: number, matchId: number) {
+
+    const match = await this.getMatch(tournamentId, matchId);
+
+    if (!match) {
+      return false;
+    }
+
+    if (match.opponent1!.id === teamId) {
+      await this.manager.update.match({
+        id: match.id,
+        opponent1: {
+          result: 'win',
+          score: match.opponent1!.score
+        },
+        opponent2: {
+          result: 'loss',
+          score: match.opponent2!.score
+        }
+      });
+      TournamentSocketAPI.onmatchupdated.invoke(match);
+      this.save();
+      return true;
+    } else if (match.opponent2!.id === teamId) {
+      await this.manager.update.match({
+        id: match.id,
+        opponent1: {
+          result: 'loss',
+          score: match.opponent1!.score
+        },
+        opponent2: {
+          result: 'win',
+          score: match.opponent2!.score
+        }
+      });
+      TournamentSocketAPI.onmatchupdated.invoke(match);
+      this.save();
+      return true;
+    }
+    return false;
+  }
+
+  public async forfeit(tournamentId: string, teamId: number, matchId: number) {
+
+    const match = await this.getMatch(tournamentId, matchId);
+
+    if (!match) {
+      return false;
+    }
+
+
     if (match.opponent1!.id === teamId) {
       await this.manager.update.match({
         id: match.id,
@@ -175,28 +224,37 @@ class TournamentManager {
   /**
    * This function does not check that the team id provided is matched to an opponent in this match.
    */
-  public async updateScore(teamId: number, match: Match, newScore: number) {
+  public async updateScore(tournamentId: string, teamId: number, matchId: number, delta: number) {
+
+    const match = await this.getMatch(tournamentId, matchId);
+    if (!match) {
+      throw new Error('Score was updated on a match that does not exist.');
+    }
+
     if (match.status !== Status.Running) {
       throw new Error('Score was updated on a match that was not running.');
     }
+
     if (match.opponent1!.id === teamId) {
+      const currentScore = match.opponent1!.score ?? 0;
       await this.manager.storage.update('match', {
         id: match.id
       }, {
         opponent1: {
           id: match.opponent1!.id,
-          score: newScore
+          score: currentScore + delta
         },
       });
       TournamentSocketAPI.onmatchupdated.invoke(match);
       this.save();
     } else {
+      const currentScore = match.opponent2!.score ?? 0;
       await this.manager.storage.update('match', {
         id: match.id
       }, {
         opponent2: {
           id: match.opponent2!.id,
-          score: newScore
+          score: currentScore + delta
         },
       });
     }
@@ -213,37 +271,6 @@ class TournamentManager {
     TournamentSocketAPI.onmatchupdated.invoke(updated!);
     this.save();
     return success;
-  }
-
-  public async selectWinner(teamId: number, match: Match) {
-    if (match.opponent1!.id === teamId) {
-      await this.manager.update.match({
-        id: match.id,
-        opponent1: {
-          result: 'win'
-        },
-        opponent2: {
-          result: 'loss'
-        }
-      });
-      TournamentSocketAPI.onmatchupdated.invoke(match);
-      this.save();
-      return true;
-    } else if (match.opponent2!.id === teamId) {
-      await this.manager.update.match({
-        id: match.id,
-        opponent1: {
-          result: 'loss'
-        },
-        opponent2: {
-          result: 'win'
-        }
-      });
-      TournamentSocketAPI.onmatchupdated.invoke(match);
-      this.save();
-      return true;
-    }
-    return false;
   }
 
   public async declareDraw(teamId: number, match: Match) {

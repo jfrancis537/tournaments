@@ -1,6 +1,6 @@
 import { Route, Switch } from 'wouter';
 import { TournamentViewer } from './Pages/TournamentPage/TournamentViewer';
-import { MatchPage } from './Pages/MatchPage';
+import { MatchPage } from './Pages/MatchPage/MatchPage';
 import { NotFound } from './Pages/NotFound';
 import { NEW_TOURNAMENT_ID } from './Utilities/RouteUtils';
 import { TournamentCreator } from './Pages/TournamentPage/TournamentCreator';
@@ -18,6 +18,7 @@ import { TournamentManagment } from './Pages/TournamentPage/TournamentManagement
 import { Snackbar, Typography, useColorScheme } from '@mui/joy';
 import { ConfirmRegistration } from './Pages/ConfirmRegistration';
 import { useSocketState } from './Managers/SocketManager';
+import { TournamentRegistration } from './Pages/TournamentPage/TournamentRegistration';
 
 export const App: React.FC = () => {
 
@@ -87,6 +88,16 @@ export const App: React.FC = () => {
                 )
               }
               return <TournamentViewer tournamentId={params.id} />
+            }}
+          </Route>
+          <Route path='/tournament/:id/register'>
+            {(params) => {
+              if (params.id === NEW_TOURNAMENT_ID) {
+                return (
+                  <NotFound />
+                )
+              }
+              return <TournamentRegistration tournamentId={params.id} />
             }}
           </Route>
           <AuthenticatedRoute roles={['admin']} path='/tournament/:id/manage'>

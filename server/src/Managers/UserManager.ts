@@ -32,6 +32,10 @@ class UserManager {
       return RegistrationResult.FAILED_BAD_EMAIL;
     }
 
+    if (await Database.instance.findUser({ email: request.email }) !== undefined) {
+      return RegistrationResult.FAILED_EMAIL_EXISTS;
+    }
+
     const salt = crypto.randomBytes(32).toString('hex');
     const hash = this.generateHash(request.password, salt);
     try {
@@ -47,7 +51,6 @@ class UserManager {
 
       const confirmUrl = `https://${EnvironmentVariables.HOST}/account/confirm/${record.registrationToken!}`;
       const body = RegistrationConfirmationTemplate(confirmUrl);
-      console.log('About to send email')
 
       // TODO Do something when the email is successfully sent
       MailManager.sendEmail({
@@ -63,7 +66,6 @@ class UserManager {
 
       return RegistrationResult.SUCCESS;
     } catch (err) {
-      console.log(err);
       if (err instanceof DatabaseError) {
         switch (err.type) {
           case DatabaseErrorType.ExistingRecord:

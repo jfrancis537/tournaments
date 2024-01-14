@@ -8,8 +8,7 @@ export namespace MatchAPIConstants {
   }
 
   export interface WinnerUpdate {
-    winnerId: number,
-    match: Match
+    winnerId: number
   }
 
   export const SELECT_WINNER = (tournamentId = ':tid',matchId = ':mid') => {
@@ -17,8 +16,7 @@ export namespace MatchAPIConstants {
   }
 
   export interface ForfeitUpdate {
-    forfeitId: number,
-    match: Match
+    forfeitId: number
   }
 
   export const FORFEIT = (tournamentId = ':tid',matchId = ':mid') => {
@@ -27,12 +25,13 @@ export namespace MatchAPIConstants {
 
   export interface ScoreUpdate {
     teamId: number;
-    score: number;
-    match: Match;
+    delta: number;
   }
 
-  export const UPDATE_SCORE = (tournamentId = ':tid',matchId = ':mid') => {
-    return `/${tournamentId}/match/update/${matchId}/score`
+  export function UPDATE_SCORE(): '/:tid/match/update/:mid/score';
+  export function UPDATE_SCORE(tournamentId: string, matchId: string): string; 
+  export function UPDATE_SCORE(tournamentId = ':tid',matchId = ':mid') {
+    return `/${tournamentId}/match/update/${matchId}/score`;
   }
 
   export interface StateUpdate {

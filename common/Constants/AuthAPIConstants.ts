@@ -3,15 +3,18 @@ export enum RegistrationResult {
   FAILED_USER_EXISTS,
   FAILED_BAD_PASSWORD,
   FAILED_BAD_EMAIL,
+  FAILED_EMAIL_EXISTS,
   FAILED_BAD_USERNAME,
   FAILED_UNK,
 }
 
 export namespace RegistrationResult {
   export function toClientErrorMessage(result: RegistrationResult) {
-    switch(result) {
+    switch (result) {
       case RegistrationResult.FAILED_USER_EXISTS:
         return 'A user with that username already exists.'
+      case RegistrationResult.FAILED_EMAIL_EXISTS:
+        return 'A user with that email already exists.'
       case RegistrationResult.FAILED_BAD_PASSWORD:
         return 'Password does not meet requirements.'
       case RegistrationResult.FAILED_BAD_EMAIL:

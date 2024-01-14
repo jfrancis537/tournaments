@@ -68,18 +68,34 @@ export class JsonDatabase implements Database {
     return clone(this.data.users[username]);
   }
 
-  public async confirmUser(token: string): Promise<UserRecord> {
-    for(const username in this.data.users)
-    {
+  public async findUser(filter: Partial<UserRecord>): Promise<UserRecord | undefined> {
+    for (const username in this.data.users) {
       const user = this.data.users[username];
-      if(user.registrationToken === token)
-      {
+      let found = true;
+      for (const str in filter) {
+        const key = str as keyof typeof filter;
+        if (filter[key] !== user[key]) {
+          found = false;
+          break;
+        }
+      }
+      if (found) {
+        return clone(user);
+      }
+    }
+    return undefined;
+  }
+
+  public async confirmUser(token: string): Promise<UserRecord> {
+    for (const username in this.data.users) {
+      const user = this.data.users[username];
+      if (user.registrationToken === token) {
         user.registrationToken = undefined;
         await this.save();
         return clone(user);
       }
     }
-    throw new DatabaseError('No user with specified registration token exists.',DatabaseErrorType.MissingRecord);
+    throw new DatabaseError('No user with specified registration token exists.', DatabaseErrorType.MissingRecord);
   }
 
   public async addUser(user: UserRecord): Promise<UserRecord> {

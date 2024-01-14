@@ -13,10 +13,9 @@ export enum TournamentState {
 
 export namespace TournamentState {
   export function toStatusString(state: TournamentState, registrationOpenDate?: DateTime) {
-    switch(state) {
+    switch (state) {
       case TournamentState.New:
-        if(registrationOpenDate)
-        {
+        if (registrationOpenDate) {
           return `Registration opens on: ${registrationOpenDate.toFormat('DD')}`
         }
         return 'Registration is not open yet.';
@@ -66,6 +65,23 @@ export namespace Tournament {
       stages: data.stages,
       stageSettings: data.stageSettings,
       playersSeeded: !!data.playersSeeded
+    }
+  }
+
+  export function isRegistrationOpen(tournament: Tournament): boolean {
+    switch (tournament.state) {
+      case TournamentState.New:
+        if (tournament.registrationOpenDate && tournament.registrationOpenDate <= DateTime.now()) {
+          return true;
+        } else {
+          return false;
+        }
+      case TournamentState.RegistrationOpen:
+        return true;
+      case TournamentState.RegistrationClosed:
+      case TournamentState.Running:
+      case TournamentState.Complete:
+        return false;
     }
   }
 }

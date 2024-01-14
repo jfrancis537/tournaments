@@ -1,0 +1,19 @@
+.button-container {
+  display: flex;
+  flex-direction: row !important;
+}
+
+.button-container>button {
+  flex: 1 !important;
+  margin: 0px 1rem;
+  margin-top: 1rem;
+}
+
+.error-container {
+  margin-top: 1rem;
+}
+
+.error-container>p {
+  border-radius: 10px;
+  justify-content: space-between;
+}

@@ -1,4 +1,4 @@
-import { UserRecord } from "@common/Models/User";
+import { User, UserRecord } from "@common/Models/User";
 import { EnvironmentVariables } from "../Utilities/EnvironmentVariables";
 import { DataTypes, ValueToArray } from "brackets-manager";
 import { Tournament } from "@common/Models/Tournament";
@@ -22,6 +22,7 @@ export interface Database {
   getUser(username: string): Promise<UserRecord>;
   addUser(user: UserRecord): Promise<UserRecord>;
   updateUser(username: string, details: Partial<Omit<UserRecord, 'username'>>): Promise<UserRecord>;
+  findUser(user: Partial<UserRecord>): Promise<UserRecord | undefined>;
   confirmUser(token: string): Promise<UserRecord>;
   
   setTournamentData(data: TournamentData): Promise<void>;

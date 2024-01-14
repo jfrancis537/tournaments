@@ -109,8 +109,8 @@ export const AccountRegistration: React.FC = () => {
   function renderComplete() {
     return (
       <Container maxWidth='sm' sx={{ height: '100%' }}>
-        <Card className={pageStyles.card}>
-          <CardContent className={pageStyles["card-content"]}>
+        <Card>
+          <CardContent>
             <Typography level="title-lg">Registration Started!</Typography>
             <Typography level="body-md">Check your email for a confirmation link.</Typography>
           </CardContent>

@@ -19,11 +19,7 @@ namespace MatchController {
   router.put(MatchAPIConstants.SELECT_WINNER(), RequireRole('admin'),
     async (req, resp) => {
       const body: MatchAPIConstants.WinnerUpdate = req.body;
-      if (Number(req.params.mid) !== body.match.id) {
-        resp.sendStatus(400);
-        return;
-      }
-      const success = await TournamentManager.instance.selectWinner(body.winnerId, body.match);
+      const success = await TournamentManager.instance.selectWinner(req.params.tid, body.winnerId, Number(req.params.mid));
       if (!success) {
         // TODO check if this is the correct code to send.
         resp.sendStatus(404);
@@ -35,11 +31,7 @@ namespace MatchController {
   router.put(MatchAPIConstants.FORFEIT(), RequireRole('admin'),
     async (req, resp) => {
       const body: MatchAPIConstants.ForfeitUpdate = req.body;
-      if (Number(req.params.mid) !== body.match.id) {
-        resp.sendStatus(400);
-        return;
-      }
-      const success = await TournamentManager.instance.forfeit(body.forfeitId, body.match);
+      const success = await TournamentManager.instance.forfeit(req.params.tid, body.forfeitId, Number(req.params.mid));
       if (!success) {
         // TODO check if this is the correct code to send.
         resp.sendStatus(404);
@@ -51,11 +43,8 @@ namespace MatchController {
   router.put(MatchAPIConstants.UPDATE_SCORE(), RequireRole('admin'),
     async (req, resp) => {
       const body: MatchAPIConstants.ScoreUpdate = req.body;
-      if (Number(req.params.mid) !== body.match.id) {
-        resp.sendStatus(400);
-        return;
-      }
-      const success = await TournamentManager.instance.updateScore(body.teamId, body.match, body.score);
+
+      const success = await TournamentManager.instance.updateScore(req.params.tid, body.teamId, Number(req.params.mid), body.delta);
       if (!success) {
         // TODO check if this is the correct code to send.
         resp.sendStatus(404);
