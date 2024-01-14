@@ -7,7 +7,6 @@ const clone = rfdc();
 
 export class MemoryDatabase implements Database {
 
-
   private readonly userStorage = new Map<string, UserRecord>;
   private tournamentData: TournamentData = {
     bracketsData: {
@@ -37,7 +36,11 @@ export class MemoryDatabase implements Database {
     return clone(this.userStorage.get(username)!);
   }
 
-  confirmUser(token: string): Promise<UserRecord> {
+  public async confirmUser(token: string): Promise<UserRecord> {
+    throw new Error("Method not implemented.");
+  }
+
+  public async findUser(user: Partial<UserRecord>): Promise<UserRecord | undefined> {
     throw new Error("Method not implemented.");
   }
 
