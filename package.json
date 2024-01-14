@@ -6,7 +6,8 @@
   "scripts": {
     "dev:frontend": "vite serve ./client",
     "dev:backend": "TSX_TSCONFIG_PATH=./server/tsconfig.json tsx --env-file server/.env.dev --watch ./server/src/index.ts",
-    "dev": "concurrently 'yarn:dev:frontend' 'yarn:dev:backend'",
+    "dev:backend_typecheck": "tsc --project ./server/tsconfig.json --noEmit --watch",
+    "dev": "concurrently 'yarn:dev:frontend' 'yarn:dev:backend' 'yarn:dev:backend_typecheck'",
     "tsgen": "tcm client/src",
     "build:frontend": "tsc --project ./client/tsconfig.json && vite build ./client",
     "build:backend": "rm -rf ./server/dist && tsc --project ./server/tsconfig.json && tsc-alias -p ./server/tsconfig.json && rollup --config ./server/rollup.config.mjs",

@@ -16,7 +16,8 @@ class Demo {
     TeamManager.instance.registerTeam({
       tournamentId: tid,
       name: `Team ${num}`,
-      players: 1,
+      players: [],
+      contactEmail: ''
     });
   }
 }
