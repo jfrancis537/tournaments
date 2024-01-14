@@ -11,6 +11,25 @@ export enum TournamentState {
   Complete
 }
 
+export namespace TournamentState {
+  export function toStatusString(state: TournamentState, registrationOpenDate?: DateTime) {
+    switch(state) {
+      case TournamentState.New:
+        if(registrationOpenDate)
+        {
+          return `Registration opens on: ${registrationOpenDate.toFormat('DD')}`
+        }
+        return 'Registration is not open yet.';
+      case TournamentState.RegistrationOpen:
+        return 'Registration is open.'
+      case TournamentState.RegistrationClosed:
+      case TournamentState.Running:
+      case TournamentState.Complete:
+        return "Registration is closed."
+    }
+  }
+}
+
 export interface Tournament {
   id: string;
   name: string;

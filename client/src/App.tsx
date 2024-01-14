@@ -1,4 +1,4 @@
-import { Route, Switch, useLocation } from 'wouter';
+import { Route, Switch } from 'wouter';
 import { TournamentViewer } from './Pages/TournamentPage/TournamentViewer';
 import { MatchPage } from './Pages/MatchPage';
 import { NotFound } from './Pages/NotFound';
@@ -7,10 +7,7 @@ import { TournamentCreator } from './Pages/TournamentPage/TournamentCreator';
 import { AccountRegistration } from './Pages/AccountRegistration';
 import { Login } from './Pages/Login';
 import { HomePage } from './Pages/HomePage';
-import { TournamentAPI } from './APIs/TournamentAPI';
-import { DateTime } from 'luxon';
-import { Tournament } from '@common/Models/Tournament';
-import React, { useContext, useEffect, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { UserContext } from './Contexts/UserContext';
 import { User } from '@common/Models/User';
 import { AuthAPI } from './APIs/AuthAPI';
@@ -21,37 +18,6 @@ import { TournamentManagment } from './Pages/TournamentPage/TournamentManagement
 import { Snackbar, Typography, useColorScheme } from '@mui/joy';
 import { ConfirmRegistration } from './Pages/ConfirmRegistration';
 import { useSocketState } from './Managers/SocketManager';
-
-
-const DemoComponent: React.FC = () => {
-  const [, setLocation] = useLocation();
-  const { user } = useContext(UserContext);
-  return (
-    <>
-      <button onClick={async () => {
-        const promises: Promise<Tournament>[] = [];
-        for (let i = 0; i < 5; i++) {
-          promises.push(
-            TournamentAPI.createNewTournament({
-              name: `Sample Tournament ${i}`,
-              startDate: DateTime.now(),
-              endDate: DateTime.now().plus({ days: i + 1 }),
-              registrationOpenDate: DateTime.now().minus({ hour: 1 }),
-              stages: [
-                'double_elimination'
-              ],
-              stageSettings: [
-                { seedOrdering: ['natural'], grandFinal: 'double' },
-              ],
-              playersSeeded: false
-            }));
-        }
-        await Promise.all(promises);
-        setLocation('/');
-      }}>Generate Tournaments</button>
-    </>
-  )
-}
 
 export const App: React.FC = () => {
 
@@ -101,9 +67,6 @@ export const App: React.FC = () => {
         <Switch>
           <Route path='/'>
             <HomePage />
-          </Route>
-          <Route path='/demo'>
-            <DemoComponent />
           </Route>
           <Route path='/account/register'>
             <AccountRegistration />

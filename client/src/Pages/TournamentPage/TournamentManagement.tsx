@@ -1,5 +1,4 @@
-import { Database as BracketsDatabase } from "brackets-manager";
-import { Button, Container, Typography } from "@mui/joy";
+import { Box, Button, Card, CardContent, CircularProgress, Container, Divider, List, ListItem, ListItemDecorator, Typography } from "@mui/joy";
 import { useEffect, useState } from "react";
 import { TournamentAPI } from "../../APIs/TournamentAPI";
 import { tournamentUrl } from "../../Utilities/RouteUtils";
@@ -9,6 +8,11 @@ import { Tournament, TournamentState } from "@common/Models/Tournament";
 import { NotFound } from "../NotFound";
 import { TournamentSocketAPI } from "@common/SocketAPIs/TournamentAPI";
 import { DateTime } from "luxon";
+import { AssignmentInd, EventBusy, EventAvailable, Person } from "@mui/icons-material";
+import { TeamAPI } from "../../APIs/TeamAPI";
+import { Team } from "@common/Models/Team";
+
+import pageStyles from './TournamentManagement.module.css';
 
 interface TournamentManagmentProps {
   tournamentId: string;
@@ -18,9 +22,11 @@ export const TournamentManagment: React.FC<TournamentManagmentProps> = (props) =
 
   const navigateToAssigning = useNavigation(`${tournamentUrl(props.tournamentId)}/assigning`);
   const [tournament, setTournament] = useState<Tournament>();
+  const [teams, setTeams] = useState<Team[]>();
   const [loadingState, setLoadingState] = useState<LoadState>(LoadState.LOADING);
 
   useEffect(() => {
+    //TODO Add update for teams here.
     TournamentSocketAPI.ontournamentstateupdated.addListener(tournamentStateChanged);
     return () => {
       TournamentSocketAPI.ontournamentstateupdated.removeListener(tournamentStateChanged);
@@ -29,6 +35,7 @@ export const TournamentManagment: React.FC<TournamentManagmentProps> = (props) =
 
   useEffect(() => {
     tournamentStateChanged();
+    TeamAPI.getTeams(props.tournamentId).then(setTeams);
   }, [props.tournamentId]);
 
   async function tournamentStateChanged(t?: Tournament) {
@@ -84,6 +91,18 @@ export const TournamentManagment: React.FC<TournamentManagmentProps> = (props) =
     }
   }
 
+  function renderPlayerCount() {
+    if (teams !== undefined) {
+      return (
+        <Typography>{teams.length}</Typography>
+      )
+    } else {
+      return (
+        <CircularProgress size="sm" />
+      )
+    }
+  }
+
   function render() {
     switch (loadingState) {
       case LoadState.LOADING:
@@ -96,10 +115,45 @@ export const TournamentManagment: React.FC<TournamentManagmentProps> = (props) =
         );
       case LoadState.COMPLETE:
         return (
-          <Container disableGutters maxWidth='sm'>
-            <Typography level="title-lg">Tournament Settings</Typography>
-            <Typography level="body-md">{tournament!.name}</Typography>
-            {renderTournamentControls()}
+          <Container maxWidth='sm'>
+            <Card>
+              <Typography level="title-lg">{tournament!.name}</Typography>
+              <Divider />
+              <CardContent>
+                <List>
+                  <ListItem>
+                    <ListItemDecorator>
+                      <Person color="primary"/>
+                    </ListItemDecorator>
+                    {renderPlayerCount()}
+                  </ListItem>
+                  <ListItem>
+                    <ListItemDecorator>
+                      <AssignmentInd />
+                    </ListItemDecorator>
+                    <Typography>
+                      {TournamentState.toStatusString(tournament!.state, tournament!.registrationOpenDate)}
+                    </Typography>
+                  </ListItem>
+                  <ListItem>
+                    <ListItemDecorator>
+                      <EventAvailable color='success'/>
+                    </ListItemDecorator>
+                    <Typography>{tournament!.startDate.toFormat('DD')}</Typography>
+                  </ListItem>
+                  <ListItem>
+                    <ListItemDecorator>
+                      <EventBusy htmlColor="#cf4343"/>
+                    </ListItemDecorator>
+                    <Typography>{tournament!.endDate.toFormat('DD')}</Typography>
+                  </ListItem>
+                </List>
+              </CardContent>
+              <Divider />
+              <CardContent className={pageStyles["button-container"]}>
+                {renderTournamentControls()}
+              </CardContent>
+            </Card>
           </Container>
         );
     }

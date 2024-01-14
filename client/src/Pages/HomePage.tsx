@@ -1,7 +1,7 @@
 import {
   Box,
   Button, ButtonGroup, Card, CardContent,
-  CircularProgress, Container, Grid, Typography
+  CircularProgress, Container, Divider, Grid, List, ListItem, ListItemDecorator, Typography
 } from "@mui/joy";
 import { LoadState } from "../Utilities/LoadState";
 import { useContext, useEffect, useState } from "react";
@@ -15,7 +15,7 @@ import mobileHelper from '../Styles/mobilehelper.module.css';
 import { classes } from "../Styles/StyleHelper";
 import { UserContext } from "../Contexts/UserContext";
 import { DateTime } from "luxon";
-import { Add } from "@mui/icons-material";
+import { Add, AssignmentInd, EventAvailable, EventBusy } from "@mui/icons-material";
 import { Authenticated } from "../Components/Authenticated";
 import { useNavigation } from "../Hooks/UseNavigation";
 
@@ -61,21 +61,45 @@ export const HomePage: React.FC = () => {
       <Card key={tournament.id} onClick={() => {
         setLocation(tournamentUrl(tournament.id));
       }}>
+        <Typography level="title-lg">{tournament.name}</Typography>
+        <Divider />
         <CardContent>
-          <Typography level="title-lg">{tournament.name}</Typography>
-          <Typography level="body-sm">{tournament.startDate.toFormat('DDD')}</Typography>
-          {(registrationOpen || allowManagement) && (
-            <ButtonGroup variant="solid" color="primary" sx={{
-              justifyContent: 'flex-end'
-            }}>
-              {registrationOpen &&
-                <Button>Register</Button>}
-              {allowManagement &&
-                <Button onClick={navigateTo(`${tournamentUrl(tournament.id)}/manage`)}>Manage</Button>
-              }
-            </ButtonGroup>
-          )}
+
+          <List>
+            <ListItem>
+              <ListItemDecorator>
+                <AssignmentInd />
+              </ListItemDecorator>
+              <Typography>
+                {TournamentState.toStatusString(tournament!.state, tournament!.registrationOpenDate)}
+              </Typography>
+            </ListItem>
+            <ListItem>
+              <ListItemDecorator>
+                <EventAvailable color='success' />
+              </ListItemDecorator>
+              <Typography>{tournament!.startDate.toFormat('DD')}</Typography>
+            </ListItem>
+            <ListItem>
+              <ListItemDecorator>
+                <EventBusy htmlColor="#cf4343" />
+              </ListItemDecorator>
+              <Typography>{tournament!.endDate.toFormat('DD')}</Typography>
+            </ListItem>
+          </List>
         </CardContent>
+        <Divider />
+        {(registrationOpen || allowManagement) && (
+          <ButtonGroup variant="solid" color="primary" sx={{
+            justifyContent: 'flex-end'
+          }}>
+            {registrationOpen &&
+              <Button>Register</Button>}
+            {allowManagement &&
+              <Button onClick={navigateTo(`${tournamentUrl(tournament.id)}/manage`)}>Manage</Button>
+            }
+          </ButtonGroup>
+        )}
       </Card>
     )
   }
@@ -124,10 +148,10 @@ export const HomePage: React.FC = () => {
   function renderNoTournaments() {
     return (
       <Container maxWidth="md" className={pageStyles["page-container"]}>
-      <Box className={pageStyles["centered-content"]}>
-        <Typography level="title-lg">No Tournaments available</Typography>
-      </Box>
-    </Container>
+        <Box className={pageStyles["centered-content"]}>
+          <Typography level="title-lg">No Tournaments available</Typography>
+        </Box>
+      </Container>
     );
   }
 
