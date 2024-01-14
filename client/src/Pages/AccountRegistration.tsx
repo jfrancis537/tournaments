@@ -1,11 +1,18 @@
 import { useState } from "react"
 import { AuthAPI } from "../APIs/AuthAPI";
-import { AuthAPIConstants, RegistrationResult } from "@common/Constants/AuthAPIConstants";
+import { RegistrationResult } from "@common/Constants/AuthAPIConstants";
 import { useLocation } from "wouter";
-import { Button, Container, FormControl, FormLabel, Input, Sheet } from "@mui/joy";
+import { Box, Button, Container, FormControl, FormLabel, IconButton, Input, Sheet, Typography } from "@mui/joy";
 
 import pageStyles from './AccountRegistration.module.css';
 import { Validators } from "@common/Utilities/Validators";
+import { Close } from "@mui/icons-material";
+
+enum RegistrationState {
+  Error,
+  Composing,
+  Complete
+}
 
 export const AccountRegistration: React.FC = () => {
 
@@ -13,8 +20,8 @@ export const AccountRegistration: React.FC = () => {
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [email, setEmail] = useState('');
-
-  const [_, setLocation] = useLocation();
+  const [errorMessage, setErrorMessage] = useState('');
+  const [state, setState] = useState(RegistrationState.Composing);
 
   function buttonIsEnabled(): boolean {
     return !!username && !!password && !!email && password === confirmPassword;
@@ -28,15 +35,18 @@ export const AccountRegistration: React.FC = () => {
     });
 
     if (reason.result !== RegistrationResult.SUCCESS) {
-      alert(RegistrationResult.toClientErrorMessage(reason.result));
+      setErrorMessage(RegistrationResult.toClientErrorMessage(reason.result));
+      setState(RegistrationState.Error);
       return;
     }
-
-    setLocation('/');
-
   }
 
-  function render() {
+  function dismissError() {
+    setErrorMessage('');
+    setState(RegistrationState.Composing);
+  }
+
+  function renderComposing() {
     return (
       <Container maxWidth='md' sx={{
         height: '100%'
@@ -66,9 +76,34 @@ export const AccountRegistration: React.FC = () => {
             <Button variant='solid' disabled={!buttonIsEnabled()} onClick={register}>Register</Button>
           </FormControl>
         </Sheet>
-
+        <Box className={pageStyles["error-container"]}>
+          {state === RegistrationState.Error && (
+            <Typography
+              variant="soft"
+              color="danger"
+              fontSize="sm"
+              sx={{ '--Typography-gap': '0.5rem', p: 1 }}
+              endDecorator={(
+                <IconButton color="danger" size="sm" onClick={dismissError}>
+                  <Close />
+                </IconButton>
+              )}
+            >
+              {errorMessage}
+            </Typography>
+          )}
+        </Box>
       </Container>
     )
+  }
+
+  function render() {
+    switch (state) {
+      case RegistrationState.Error:
+      case RegistrationState.Composing:
+        return renderComposing();
+      case RegistrationState.Complete:
+    }
   }
 
   return render();

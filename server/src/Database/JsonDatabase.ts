@@ -2,8 +2,9 @@ import rfdc from "rfdc";
 import fs from 'fs';
 import path from 'path';
 import { writeFile } from 'fs/promises'
-import { Database, TeamData, TournamentData, UserRecord } from "./Database";
+import { Database, TeamData, TournamentData } from "./Database";
 import { DatabaseError, DatabaseErrorType } from "./DatabaseError";
+import { UserRecord } from "@common/Models/User";
 
 const clone = rfdc();
 
@@ -66,6 +67,21 @@ export class JsonDatabase implements Database {
     }
     return clone(this.data.users[username]);
   }
+
+  public async confirmUser(token: string): Promise<UserRecord> {
+    for(const username in this.data.users)
+    {
+      const user = this.data.users[username];
+      if(user.registrationToken === token)
+      {
+        user.registrationToken = undefined;
+        await this.save();
+        return clone(user);
+      }
+    }
+    throw new DatabaseError('No user with specified registration token exists.',DatabaseErrorType.MissingRecord);
+  }
+
   public async addUser(user: UserRecord): Promise<UserRecord> {
     if (!this.hasUser(user.username)) {
       throw new DatabaseError(`User with username: ${user.username} already exists`, DatabaseErrorType.MissingRecord);

@@ -1,4 +1,4 @@
-import { AuthAPIConstants, LoginResult, RegistrationResult } from "@common/Constants/AuthAPIConstants";
+import { AuthAPIConstants, ConfirmAccountResult, LoginResult, RegistrationResult } from "@common/Constants/AuthAPIConstants";
 import { User } from "@common/Models/User";
 import express, { Router } from "express";
 import { Session } from "express-session";
@@ -99,6 +99,31 @@ namespace AuthController {
       case RegistrationResult.FAILED_UNK:
         resp.status(500).json(responseBody);
         break;
+    }
+  });
+
+  router.post(AuthAPIConstants.CONFIRM, async (req, resp) => {
+    const body = req.body as AuthAPIConstants.ConfirmAccountRequest;
+    if (!body) {
+      // Send bad request if no body.
+      resp.sendStatus(400);
+      return;
+    }
+
+    const result = await UserManager.instance.confirmUser(body.token);
+    const bodyToSend: AuthAPIConstants.ConfirmAccountResponse = {
+      result
+    }
+    switch (result) {
+      case ConfirmAccountResult.SUCCESS:
+        resp.status(200).json(bodyToSend);
+        return;
+      case ConfirmAccountResult.NO_SUCH_USER:
+        resp.status(400).json(bodyToSend);
+        return;
+      case ConfirmAccountResult.SERVER_ERROR:
+        resp.status(500).json(bodyToSend);
+        return;
     }
   });
 

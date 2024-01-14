@@ -1,0 +1,15 @@
+.container {
+  flex: 1;
+}
+
+.card {
+  height: 50%;
+  margin-top: 25%;
+}
+
+.card-content {
+  display: flex;
+  flex-flow: column;
+  justify-content: center;
+  align-items: center;
+}

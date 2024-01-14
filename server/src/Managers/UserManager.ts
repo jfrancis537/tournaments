@@ -1,12 +1,16 @@
-import { AuthAPIConstants, LoginResult, RegistrationResult } from "@common/Constants/AuthAPIConstants";
+import crypto from 'crypto';
+
+import RegistrationConfirmationTemplate from '../Templates/RegistrationConfirmation';
+
+import { AuthAPIConstants, ConfirmAccountResult, LoginResult, RegistrationResult } from "@common/Constants/AuthAPIConstants";
 import { Lazy } from "@common/Utilities/Lazy";
 import { Database } from "../Database/Database";
 import { DatabaseError, DatabaseErrorType } from "../Database/DatabaseError";
-import crypto from 'crypto';
 import { DateTime } from "luxon";
 import { User } from "@common/Models/User";
 import { Validators } from "@common/Utilities/Validators";
 import { EnvironmentVariables } from "../Utilities/EnvironmentVariables";
+import { MailManager } from "./MailManager";
 
 class UserManager {
 
@@ -30,17 +34,35 @@ class UserManager {
     const salt = crypto.randomBytes(32).toString('hex');
     const hash = this.generateHash(request.password, salt);
     try {
-      Database.instance.addUser({
+      const record = await Database.instance.addUser({
         username: request.username,
         email: request.email,
         createdDate: DateTime.now().toString(),
         role: EnvironmentVariables.IS_DEVELOPMENT ? 'admin' : 'user',
         hash,
         salt,
-        state: 'pending'
+        registrationToken: await this.generateToken()
       });
+
+      const confirmUrl = `https://${EnvironmentVariables.HOST}/account/confirm/${record.registrationToken!}`;
+      const body = RegistrationConfirmationTemplate(confirmUrl);
+      console.log('About to send email')
+
+      // TODO Do something when the email is successfully sent
+      MailManager.sendEmail({
+        sender: EnvironmentVariables.EMAIL_SENDER,
+        to: record.email,
+        subject: 'Confirm Registration',
+        html: body
+      }).then(success => {
+        if (!success) {
+          console.error('Failed to send an email to: ' + record.email);
+        }
+      });
+
       return RegistrationResult.SUCCESS;
     } catch (err) {
+      console.log(err);
       if (err instanceof DatabaseError) {
         switch (err.type) {
           case DatabaseErrorType.ExistingRecord:
@@ -59,6 +81,10 @@ class UserManager {
     try {
       const user = await Database.instance.getUser(request.username);
       if (!user) {
+        return [LoginResult.INVALID_CREDENTIALS, undefined];
+      }
+      // Users with a registration code are pending.
+      if (user.registrationToken) {
         return [LoginResult.INVALID_CREDENTIALS, undefined];
       }
       const hashToCheck = this.generateHash(request.password, user.salt);
@@ -81,8 +107,32 @@ class UserManager {
 
   }
 
+  public async confirmUser(token: string) {
+    try {
+      await Database.instance.confirmUser(token);
+      return ConfirmAccountResult.SUCCESS;
+    } catch (err) {
+      if (err instanceof DatabaseError) {
+        return ConfirmAccountResult.NO_SUCH_USER;
+      } else {
+        return ConfirmAccountResult.SERVER_ERROR;
+      }
+    }
+  }
+
   private generateHash(password: string, salt: string) {
     return crypto.pbkdf2Sync(password, salt, 10000, 512, 'sha512').toString('base64');
+  }
+
+  private async generateToken(): Promise<string> {
+    return new Promise((resolve, reject) => {
+      crypto.randomBytes(48, (err, buf) => {
+        if (err) {
+          reject(err);
+        }
+        resolve(buf.toString('hex'));
+      });
+    })
   }
 }
 

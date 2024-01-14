@@ -1,10 +1,12 @@
 import rfdc from "rfdc";
-import { Database, TeamData, TournamentData, UserRecord } from "./Database";
+import { Database, TeamData, TournamentData } from "./Database";
 import { DatabaseError, DatabaseErrorType } from "./DatabaseError";
+import { UserRecord } from "@common/Models/User";
 
 const clone = rfdc();
 
 export class MemoryDatabase implements Database {
+
 
   private readonly userStorage = new Map<string, UserRecord>;
   private tournamentData: TournamentData = {
@@ -34,6 +36,11 @@ export class MemoryDatabase implements Database {
     }
     return clone(this.userStorage.get(username)!);
   }
+
+  confirmUser(token: string): Promise<UserRecord> {
+    throw new Error("Method not implemented.");
+  }
+
   public async addUser(user: UserRecord): Promise<UserRecord> {
     if (this.userStorage.has(user.username)) {
       throw new DatabaseError(`User with username: ${user.username} already exists`, DatabaseErrorType.MissingRecord);

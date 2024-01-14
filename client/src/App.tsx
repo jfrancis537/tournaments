@@ -19,6 +19,7 @@ import { SeedAssignmentTool } from './Pages/TournamentPage/SeedAssignmentTool';
 import { AuthenticatedRoute } from './Components/AuthenticatedRoute';
 import { TournamentManagment } from './Pages/TournamentPage/TournamentManagement';
 import { useColorScheme } from '@mui/joy';
+import { ConfirmRegistration } from './Pages/ConfirmRegistration';
 
 
 const DemoComponent: React.FC = () => {
@@ -54,7 +55,7 @@ const DemoComponent: React.FC = () => {
 export const App: React.FC = () => {
 
   const [user, setUser] = useState<User>();
-  const {setMode} = useColorScheme();
+  const { setMode } = useColorScheme();
 
   useEffect(() => {
     AuthAPI.getCurrentUser().then(setUser);
@@ -74,6 +75,11 @@ export const App: React.FC = () => {
           </Route>
           <Route path='/account/register'>
             <AccountRegistration />
+          </Route>
+          <Route path='/account/confirm/:token'>
+            {(params) => (
+              <ConfirmRegistration token={params.token} />
+            )}
           </Route>
           <Route path='/account/login'>
             <Login />

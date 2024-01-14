@@ -1,6 +1,6 @@
 declare const styles: {
+  readonly "card": string;
   readonly "error-container": string;
-  readonly "sheet": string;
 };
 export = styles;
 

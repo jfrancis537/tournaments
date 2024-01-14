@@ -1,4 +1,4 @@
-import { AuthAPIConstants, RegistrationResult } from "@common/Constants/AuthAPIConstants";
+import { AuthAPIConstants, ConfirmAccountResult, RegistrationResult } from "@common/Constants/AuthAPIConstants";
 import { User } from "@common/Models/User";
 import { HttpStatusError } from "../Errors/HttpStatusError";
 
@@ -48,6 +48,23 @@ export namespace AuthAPI {
       }
     });
     return await resp.json() as AuthAPIConstants.AccountRegistrationResponse;
+  }
+
+  export async function confirmAccount(token: string) {
+    const body: AuthAPIConstants.ConfirmAccountRequest = {
+      token
+    };
+    const resp = await fetch(`${AuthAPIConstants.BASE_PATH}${AuthAPIConstants.CONFIRM}`, {
+      method: 'POST',
+      body: JSON.stringify(body),
+      headers: {
+        'Content-Type': 'application/json'
+      }
+    });
+
+    const result = (await resp.json()) as AuthAPIConstants.ConfirmAccountResponse;
+
+    return result.result;
   }
 
   export async function getCurrentUser() {

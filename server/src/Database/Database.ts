@@ -1,19 +1,11 @@
-import { User } from "@common/Models/User";
+import { UserRecord } from "@common/Models/User";
 import { EnvironmentVariables } from "../Utilities/EnvironmentVariables";
-import { MemoryDatabase } from "./MemoryDatabase";
 import { DataTypes, ValueToArray } from "brackets-manager";
 import { Tournament } from "@common/Models/Tournament";
 import { Team } from "@common/Models/Team";
 import { JsonDatabase } from "./JsonDatabase";
 
 type ArrayMap<K,V> = [K,V][];
-
-export interface UserRecord extends User{
-  salt: string;
-  hash: string;
-  createdDate: string;
-  state: 'pending' | '';
-}
 
 export interface TournamentData {
   bracketsData: ValueToArray<DataTypes>;
@@ -30,6 +22,7 @@ export interface Database {
   getUser(username: string): Promise<UserRecord>;
   addUser(user: UserRecord): Promise<UserRecord>;
   updateUser(username: string, details: Partial<Omit<UserRecord, 'username'>>): Promise<UserRecord>;
+  confirmUser(token: string): Promise<UserRecord>;
   
   setTournamentData(data: TournamentData): Promise<void>;
   getTournamentData(): Promise<TournamentData>

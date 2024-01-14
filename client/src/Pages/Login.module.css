@@ -1,0 +1,13 @@
+.error-container {
+  margin-top: 1rem;
+  width: 100%;
+}
+
+.error-container > p {
+  border-radius: 10px;
+  justify-content: space-between;
+}
+
+.card > div > *:not(:first-child){
+  margin-top: 1rem;
+}

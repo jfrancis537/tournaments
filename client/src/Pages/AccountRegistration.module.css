@@ -1,8 +1,17 @@
 .sheet {
   padding: 1rem;
-  border-radius: 1rem;
+  border-radius: 10px;
 }
 
 .sheet button {
   margin-top: 1rem;
+}
+
+.error-container {
+  margin-top: 2rem;
+}
+
+.error-container > p {
+  border-radius: 10px;
+  justify-content: space-between;
 }

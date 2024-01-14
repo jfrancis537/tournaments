@@ -32,6 +32,12 @@ export enum LoginResult {
   SERVER_ERROR
 }
 
+export enum ConfirmAccountResult {
+  SUCCESS,
+  NO_SUCH_USER,
+  SERVER_ERROR,
+}
+
 export namespace AuthAPIConstants {
   export const BASE_PATH = '/api/v1/auth';
 
@@ -46,12 +52,21 @@ export namespace AuthAPIConstants {
     email: string,
   }
 
+  export interface ConfirmAccountRequest {
+    token: string;
+  }
+
   export interface AccountRegistrationResponse {
     result: RegistrationResult;
+  }
+
+  export interface ConfirmAccountResponse {
+    result: ConfirmAccountResult
   }
 
   export const LOGIN = '/login';
   export const LOGOUT = '/logout';
   export const REGISTER = '/register';
+  export const CONFIRM = '/confirm'
   export const CURRENT_USER = '/get/user'
 }
