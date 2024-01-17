@@ -2,10 +2,19 @@ import rfdc from "rfdc";
 import { Database, TeamData, TournamentData } from "./Database";
 import { DatabaseError, DatabaseErrorType } from "./DatabaseError";
 import { UserRecord } from "@common/Models/User";
+import { MatchMetadata } from "@common/Models/MatchMetadata";
 
 const clone = rfdc();
 
 export class MemoryDatabase implements Database {
+  getMatchMetadata(tournamentId: string): Promise<MatchMetadata[]>;
+  getMatchMetadata(tournamentId: string, matchId: number): Promise<MatchMetadata>;
+  getMatchMetadata(tournamentId: unknown, matchId?: unknown): Promise<MatchMetadata[]> | Promise<MatchMetadata> {
+    throw new Error("Method not implemented.");
+  }
+  addMatchMetadata(metadata: MatchMetadata): Promise<void> {
+    throw new Error("Method not implemented.");
+  }
 
   private readonly userStorage = new Map<string, UserRecord>;
   private tournamentData: TournamentData = {

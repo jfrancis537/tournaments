@@ -4,6 +4,7 @@ import { DataTypes, ValueToArray } from "brackets-manager";
 import { Tournament } from "@common/Models/Tournament";
 import { Team } from "@common/Models/Team";
 import { JsonDatabase } from "./JsonDatabase";
+import { MatchMetadata } from "@common/Models/MatchMetadata";
 
 type ArrayMap<K,V> = [K,V][];
 
@@ -17,6 +18,7 @@ export interface TeamData {
   tournamentToTeams: ArrayMap<string,string[]>;
 }
 
+
 export interface Database {
   hasUser(username: string): Promise<boolean>;
   getUser(username: string): Promise<UserRecord>;
@@ -27,6 +29,10 @@ export interface Database {
   
   setTournamentData(data: TournamentData): Promise<void>;
   getTournamentData(): Promise<TournamentData>
+
+  addMatchMetadata(metadata: MatchMetadata): Promise<void>;
+  getMatchMetadata(tournamentId: string): Promise<MatchMetadata[]>
+  getMatchMetadata(tournamentId: string, matchId: number): Promise<MatchMetadata>
 
   setTeamData(data: TeamData): Promise<void>;
   getTeamData(): Promise<TeamData>;

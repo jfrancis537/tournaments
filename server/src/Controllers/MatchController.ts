@@ -3,6 +3,10 @@ import { TournamentManager } from '../Managers/TournamentManager';
 import { MatchAPIConstants } from '@common/Constants/MatchAPIConstants';
 import { Match } from 'brackets-model';
 import { RequireRole } from '../MiddleWare/RequireRoleMiddleware';
+import { Database } from '../Database/Database';
+import { DatabaseError, DatabaseErrorType } from '../Database/DatabaseError';
+import { MatchMetadata } from '@common/Models/MatchMetadata';
+import { TournamentSocketAPI } from '@common/SocketAPIs/TournamentAPI';
 
 namespace MatchController {
   export const path = MatchAPIConstants.BASE_PATH;
@@ -14,6 +18,46 @@ namespace MatchController {
     } else {
       resp.sendStatus(404);
     }
+  });
+
+  router.get(MatchAPIConstants.GET_ALL_MATCH_METADATA(), async (req, resp) => {
+    try {
+      const data = await Database.instance.getMatchMetadata(req.params.tid);
+      resp.json(data);
+      return;
+    } catch (err) {
+      if (err instanceof DatabaseError && err.type === DatabaseErrorType.MissingRecord) {
+        resp.sendStatus(404);
+        return;
+      }
+      console.log(err);
+      resp.sendStatus(500);
+    }
+  });
+
+  router.get(MatchAPIConstants.GET_MATCH_METADATA(), async (req, resp) => {
+    try {
+      const data = await Database.instance.getMatchMetadata(req.params.tid, Number(req.params.mid));
+      resp.json(data);
+      return;
+    } catch (err) {
+      if (err instanceof DatabaseError && err.type === DatabaseErrorType.MissingRecord) {
+        resp.sendStatus(404);
+        return;
+      }
+      resp.sendStatus(500);
+    }
+  });
+
+  router.put(MatchAPIConstants.ADD_MATCH_METADATA(),RequireRole('admin') ,async (req, resp) => {
+    const metadata: MatchMetadata = req.body;
+    if (metadata.matchId !== Number(req.params.mid) || metadata.tournamentId !== req.params.tid) {
+      resp.sendStatus(400);
+    }
+
+    await Database.instance.addMatchMetadata(metadata);
+    TournamentSocketAPI.onmatchmetadataupdated.invoke(metadata);
+    resp.sendStatus(201);
   });
 
   router.put(MatchAPIConstants.SELECT_WINNER(), RequireRole('admin'),

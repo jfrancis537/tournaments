@@ -1,3 +1,4 @@
+import { TeamSocketAPI } from "@common/SocketAPIs/TeamAPI";
 import { TournamentSocketAPI } from "@common/SocketAPIs/TournamentAPI";
 import { Action } from "@common/Utilities/Action";
 import { autobind } from "@common/Utilities/Decorators";
@@ -35,6 +36,7 @@ class SocketManager {
     this.socket_.on('connect', this.onconnected);
     this.socket_.on('disconnect', this.ondisconnected);
     TournamentSocketAPI.initialize(this.socket_);
+    TeamSocketAPI.initialize(this.socket_);
   }
 }
 

@@ -11,7 +11,8 @@ import session, { MemoryStore, SessionOptions } from "express-session";
 import { AuthController } from "./Controllers/AuthController";
 import { TeamManager } from "./Managers/TeamManager";
 import { TournamentManager } from "./Managers/TournamentManager";
-import { generateToken, generateTokenSync } from "./Utilities/Crypto";
+import { generateTokenSync } from "./Utilities/Crypto";
+import { TeamSocketAPI } from "@common/SocketAPIs/TeamAPI";
 
 class App {
 
@@ -86,6 +87,7 @@ class App {
     });
     // Initialize APIs
     TournamentSocketAPI.initialize(this.socket);
+    TeamSocketAPI.initialize(this.socket);
   }
 }
 

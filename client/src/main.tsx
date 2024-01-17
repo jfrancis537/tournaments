@@ -4,7 +4,7 @@ import { App } from './App.tsx'
 import { SocketManager } from './Managers/SocketManager.ts'
 
 import './global.css'
-import { CssVarsProvider, extendTheme, useColorScheme } from '@mui/joy/styles';
+import { CssVarsProvider } from '@mui/joy/styles';
 import CssBaseline from '@mui/joy/CssBaseline';
 
 

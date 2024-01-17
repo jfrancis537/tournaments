@@ -1,4 +1,10 @@
-import { Box, Button, Card, CardContent, CircularProgress, Container, Divider, List, ListItem, ListItemDecorator, Typography } from "@mui/joy";
+import {
+  Box,
+  Button, Card, CardContent,
+  CircularProgress, Container, Divider,
+  IconButton,
+  List, ListItem, ListItemDecorator, Typography
+} from "@mui/joy";
 import { useEffect, useState } from "react";
 import { TournamentAPI } from "../../APIs/TournamentAPI";
 import { tournamentUrl } from "../../Utilities/RouteUtils";
@@ -8,11 +14,13 @@ import { Tournament, TournamentState } from "@common/Models/Tournament";
 import { NotFound } from "../NotFound";
 import { TournamentSocketAPI } from "@common/SocketAPIs/TournamentAPI";
 import { DateTime } from "luxon";
-import { AssignmentInd, EventBusy, EventAvailable, Person } from "@mui/icons-material";
+import { AssignmentInd, EventBusy, EventAvailable, Person, DeleteForeverOutlined } from "@mui/icons-material";
 import { TeamAPI } from "../../APIs/TeamAPI";
 import { Team } from "@common/Models/Team";
 
 import pageStyles from './TournamentManagement.module.css';
+import { useLocation } from "wouter";
+import { TeamSocketAPI } from "@common/SocketAPIs/TeamAPI";
 
 interface TournamentManagmentProps {
   tournamentId: string;
@@ -24,21 +32,48 @@ export const TournamentManagment: React.FC<TournamentManagmentProps> = (props) =
   const [tournament, setTournament] = useState<Tournament>();
   const [teams, setTeams] = useState<Team[]>();
   const [loadingState, setLoadingState] = useState<LoadState>(LoadState.LOADING);
+  const [, setLocation] = useLocation();
 
   useEffect(() => {
-    //TODO Add update for teams here.
+    TeamSocketAPI.onteamcreated.addListener(handleTeamCreated);
+    return () => {
+      TeamSocketAPI.onteamcreated.removeListener(handleTeamCreated);
+    }
+  }, [teams])
+
+  useEffect(() => {
     TournamentSocketAPI.ontournamentstateupdated.addListener(tournamentStateChanged);
     TournamentSocketAPI.ontournamentstarted.addListener(tournamentStateChanged);
+    TournamentSocketAPI.ontournamentdeleted.addListener(handleTournamentDeleted);
+
     return () => {
       TournamentSocketAPI.ontournamentstateupdated.removeListener(tournamentStateChanged);
       TournamentSocketAPI.ontournamentstarted.removeListener(tournamentStateChanged);
+      TournamentSocketAPI.ontournamentdeleted.removeListener(handleTournamentDeleted);
     }
   }, []);
 
   useEffect(() => {
     tournamentStateChanged();
-    TeamAPI.getTeams(props.tournamentId).then(setTeams);
+    TeamAPI.getTeams(props.tournamentId).then(setTeams).catch(() => setTeams([]));
   }, [props.tournamentId]);
+
+
+  function handleTeamCreated(team: Team) {
+    if (team.tournamentId === props.tournamentId) {
+      if (teams) {
+        setTeams([...teams, team]);
+      } else {
+        setTeams([team]);
+      }
+    }
+  }
+
+  function handleTournamentDeleted(id: string) {
+    if (props.tournamentId === id) {
+      setLocation('/');
+    }
+  }
 
   async function tournamentStateChanged(t?: Tournament) {
     if (!t) {
@@ -70,25 +105,36 @@ export const TournamentManagment: React.FC<TournamentManagmentProps> = (props) =
       case TournamentState.RegistrationOpen:
         return (
           <Button
-            onClick={() => TournamentAPI.setTournamentState(tournament!.id, TournamentState.RegistrationClosed)}
+            onClick={() => TournamentAPI.setTournamentState(tournament!.id, TournamentState.Seeding)}
           >
             Close Registration
           </Button>
         )
-      case TournamentState.RegistrationClosed:
+      case TournamentState.Seeding:
         return (
           <>
             <Button
               disabled={!tournament?.playersSeeded}
-              onClick={() => TournamentAPI.startTournament(props.tournamentId)}
+              onClick={() => TournamentAPI.setTournamentState(props.tournamentId, TournamentState.Finalizing)}
             >
-              Start
+              Lock
             </Button>
             <Button onClick={navigateToAssigning}>Assign Players</Button>
           </>
         );
-      case TournamentState.Running:
-        // TODO have controls for when the tournament is running
+      case TournamentState.Finalizing:
+        return (
+          <>
+          <Button
+            onClick={() => TournamentAPI.startTournament(props.tournamentId)}
+          >
+            Start
+          </Button>
+          <Button>Set Match Details</Button>
+        </>
+        )
+      case TournamentState.Active:
+      // TODO have controls for when the tournament is running
       case TournamentState.Complete:
         return null;
     }
@@ -106,6 +152,10 @@ export const TournamentManagment: React.FC<TournamentManagmentProps> = (props) =
     }
   }
 
+  async function deleteTournament() {
+    await TournamentAPI.deleteTournament(props.tournamentId);
+  }
+
   function render() {
     switch (loadingState) {
       case LoadState.LOADING:
@@ -117,16 +167,24 @@ export const TournamentManagment: React.FC<TournamentManagmentProps> = (props) =
           <NotFound />
         );
       case LoadState.COMPLETE:
+
+        const controls = renderTournamentControls();
+
         return (
           <Container maxWidth='sm'>
             <Card>
-              <Typography level="title-lg">{tournament!.name}</Typography>
+              <Box className={pageStyles["title-container"]}>
+                <Typography level="title-lg">{tournament!.name}</Typography>
+                <IconButton onClick={deleteTournament}>
+                  <DeleteForeverOutlined htmlColor="#cf4343" />
+                </IconButton>
+              </Box>
               <Divider />
               <CardContent>
                 <List>
                   <ListItem>
                     <ListItemDecorator>
-                      <Person color="primary"/>
+                      <Person color="primary" />
                     </ListItemDecorator>
                     {renderPlayerCount()}
                   </ListItem>
@@ -135,27 +193,31 @@ export const TournamentManagment: React.FC<TournamentManagmentProps> = (props) =
                       <AssignmentInd />
                     </ListItemDecorator>
                     <Typography>
-                      {TournamentState.toStatusString(tournament!.state, tournament!.registrationOpenDate)}
+                      {TournamentState.toRegistrationStatusString(tournament!.state, tournament!.registrationOpenDate)}
                     </Typography>
                   </ListItem>
                   <ListItem>
                     <ListItemDecorator>
-                      <EventAvailable color='success'/>
+                      <EventAvailable color='success' />
                     </ListItemDecorator>
                     <Typography>{tournament!.startDate.toFormat('DD')}</Typography>
                   </ListItem>
                   <ListItem>
                     <ListItemDecorator>
-                      <EventBusy htmlColor="#cf4343"/>
+                      <EventBusy htmlColor="#cf4343" />
                     </ListItemDecorator>
                     <Typography>{tournament!.endDate.toFormat('DD')}</Typography>
                   </ListItem>
                 </List>
               </CardContent>
-              <Divider />
-              <CardContent className={pageStyles["button-container"]}>
-                {renderTournamentControls()}
-              </CardContent>
+              {!!controls && (
+                <>
+                  <Divider />
+                  <CardContent className={pageStyles["button-container"]}>
+                    {controls}
+                  </CardContent>
+                </>
+              )}
             </Card>
           </Container>
         );

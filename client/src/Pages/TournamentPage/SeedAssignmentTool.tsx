@@ -8,6 +8,7 @@ import { Box, Button, Card, CardContent, Container, Divider, Grid, Sheet } from 
 import { v4 as uuid } from "uuid";
 import { useLocation } from "wouter";
 import { tournamentUrl } from "../../Utilities/RouteUtils";
+import { TournamentSocketAPI } from "@common/SocketAPIs/TournamentAPI";
 
 interface SeedAssignmentToolProps {
   tournamentId: string;
@@ -21,7 +22,18 @@ export const SeedAssignmentTool: React.FC<SeedAssignmentToolProps> = (props) => 
 
   useEffect(() => {
     TeamAPI.getTeams(props.tournamentId).then(setTeams);
+
+    TournamentSocketAPI.ontournamentdeleted.addListener(handleTournamentDeleted);
+    return () => {
+      TournamentSocketAPI.ontournamentdeleted.removeListener(handleTournamentDeleted);
+    }
   }, [props.tournamentId])
+
+  function handleTournamentDeleted(id: string) {
+    if (props.tournamentId === id) {
+      setLocation('/');
+    }
+  }
 
   async function acceptSeeding(teamIds: (string | undefined)[]) {
     await TeamAPI.assignSeedNumbers(props.tournamentId, teamIds);

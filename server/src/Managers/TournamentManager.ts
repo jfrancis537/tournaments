@@ -9,7 +9,6 @@ import { Lazy } from "@common/Utilities/Lazy";
 import { nextPowerOf2 } from "@common/Utilities/Math";
 import { TournamentSocketAPI } from "@common/SocketAPIs/TournamentAPI";
 import { SocketAction } from "@common/Utilities/SocketAction";
-import { Demo } from "../TournamentDemo";
 import { Database } from "../Database/Database";
 
 class TournamentManager {
@@ -50,28 +49,52 @@ class TournamentManager {
     return tournament;
   }
 
+  public async deleteTournament(id: string) {
+    await this.manager.delete.tournament(id);
+    this.tournaments.delete(id);
+    TournamentSocketAPI.ontournamentdeleted.invoke(id);
+    await this.save();
+  }
+
   public async openRegistration(id: string) {
     await this.setTournamentState(id, TournamentState.RegistrationOpen, TournamentSocketAPI.ontournamentstateupdated);
   }
 
   public async closeRegistration(id: string) {
-    await this.setTournamentState(id, TournamentState.RegistrationClosed, TournamentSocketAPI.ontournamentstateupdated);
+    await this.setTournamentState(id, TournamentState.Seeding, TournamentSocketAPI.ontournamentstateupdated);
   }
 
   public async completeTournament(id: string) {
     await this.setTournamentState(id, TournamentState.Complete, TournamentSocketAPI.ontournamentstateupdated);
   }
 
-  public async startTournament(id: string) {
+  public async finalizeTournament(id: string) {
     const tournament = this.tournaments.get(id);
-    if (tournament && tournament.state < TournamentState.Running) {
+    // Only start allow finalization after the seeds have been assigned.
+    if (tournament && tournament.state === TournamentState.Seeding) {
       for (let i = 0; i < tournament.stages.length; i++) {
         const stage = tournament.stages[i];
         const settings = tournament.stageSettings[i];
         await this.createStage(tournament, stage, settings);
       }
       // Save occurs here.
-      this.setTournamentState(id, TournamentState.Running, TournamentSocketAPI.ontournamentstarted);
+      this.setTournamentState(id, TournamentState.Finalizing, TournamentSocketAPI.ontournamentstateupdated);
+      return true;
+    }
+    return false;
+  }
+
+  public async startTournament(id: string) {
+    const tournament = this.tournaments.get(id);
+    // Only start allow starting the tournament once it's finalized.
+    if (tournament && tournament.state === TournamentState.Finalizing) {
+      for (let i = 0; i < tournament.stages.length; i++) {
+        const stage = tournament.stages[i];
+        const settings = tournament.stageSettings[i];
+        await this.createStage(tournament, stage, settings);
+      }
+      // Save occurs here.
+      this.setTournamentState(id, TournamentState.Active, TournamentSocketAPI.ontournamentstarted);
       return true;
     }
     return false;

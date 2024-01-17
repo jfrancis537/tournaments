@@ -1,7 +1,13 @@
+.title-container {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
 .button-container {
   flex-direction: row !important;
 }
 
-.button-container > button {
+.button-container>button {
   flex: 1 !important;
 }

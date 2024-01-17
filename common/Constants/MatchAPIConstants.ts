@@ -7,6 +7,24 @@ export namespace MatchAPIConstants {
     return `/${tournamentId}/match/get/${matchId}`;
   }
 
+  export function GET_MATCH_METADATA(tournamentId: string,matchId: string): string
+  export function GET_MATCH_METADATA(): '/:tid/match/get/metadata/:mid'
+  export function GET_MATCH_METADATA(tournamentId = ':tid',matchId = ':mid') {
+    return `/${tournamentId}/match/get/metadata/${matchId}`;
+  }
+
+  export function GET_ALL_MATCH_METADATA(tournamentId: string): string
+  export function GET_ALL_MATCH_METADATA(): '/:tid/get/all/metadata'
+  export function GET_ALL_MATCH_METADATA(tournamentId = ':tid') {
+    return `/${tournamentId}/get/all/metadata`;
+  }
+
+  export function ADD_MATCH_METADATA(tournamentId: string,matchId: string): string
+  export function ADD_MATCH_METADATA(): '/:tid/match/set/:mid/metadata'
+  export function ADD_MATCH_METADATA(tournamentId = ':tid',matchId = ':mid') {
+    return `/${tournamentId}/match/set/${matchId}/metadata`;
+  }
+
   export interface WinnerUpdate {
     winnerId: number
   }

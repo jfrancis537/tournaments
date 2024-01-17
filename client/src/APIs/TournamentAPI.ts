@@ -63,6 +63,17 @@ export namespace TournamentAPI {
     }
   }
 
+  export async function deleteTournament(id: string) {
+    const resp = await fetch(`${TournamentAPIConstants.BASE_PATH}${TournamentAPIConstants.DELETE_TOURNAMENT(id)}`,{
+      method: 'DELETE'
+    });
+
+    if(!resp.ok)
+    {
+      throw new HttpStatusError("Error occured while deleting tournament.", resp.status);
+    }
+  }
+
   export async function createNewTournament(options: TournamentOptions) {
     const resp = await fetch(`${TournamentAPIConstants.BASE_PATH}${TournamentAPIConstants.CREATE_TOURNAMENT()}`,{
       body: JSON.stringify(options),

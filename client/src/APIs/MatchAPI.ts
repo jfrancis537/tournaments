@@ -1,6 +1,7 @@
 import { MatchAPIConstants } from "@common/Constants/MatchAPIConstants";
-import { Match, ParticipantResult, Status } from "brackets-model";
+import { Match, Status } from "brackets-model";
 import { HttpStatusError } from "../Errors/HttpStatusError";
+import { MatchMetadata } from "@common/Models/MatchMetadata";
 
 
 export namespace MatchAPI {
@@ -10,6 +11,53 @@ export namespace MatchAPI {
       return (await resp.json()) as Match;
     } else {
       throw new HttpStatusError("Failed to get match.", resp.status);
+    }
+  }
+
+  // Not all matches have metadata do undefined is a correct return type.
+  export async function getMatchMetadata(tournamentId: string, matchId: number): Promise<MatchMetadata | undefined> {
+
+    const resp = await fetch(
+      `${MatchAPIConstants.BASE_PATH}${MatchAPIConstants.GET_MATCH_METADATA(tournamentId, matchId.toString())}`
+    );
+
+    if (resp.ok) {
+      return (await resp.json()) as MatchMetadata;
+    } else if (resp.status === 404) {
+      return undefined;
+    } else {
+      throw new HttpStatusError("Failed to get match metadata.", resp.status);
+    }
+  }
+
+  export async function getAllMatchMetadata(tournamentId: string): Promise<MatchMetadata[] | undefined> {
+
+    const resp = await fetch(
+      `${MatchAPIConstants.BASE_PATH}${MatchAPIConstants.GET_ALL_MATCH_METADATA(tournamentId)}`
+    );
+
+    if (resp.ok) {
+      return (await resp.json()) as MatchMetadata[];
+    } else if (resp.status === 404) {
+      return undefined;
+    } else {
+      throw new HttpStatusError("Failed to get match metadata.", resp.status);
+    }
+  }
+
+  export async function addMatchMetadata(metadata: MatchMetadata) {
+    const resp = await fetch(
+      `${MatchAPIConstants.BASE_PATH}${MatchAPIConstants.ADD_MATCH_METADATA(metadata.tournamentId, metadata.matchId.toString())}`
+      , {
+        method: 'PUT',
+        body: JSON.stringify(metadata),
+        headers: {
+          'Content-Type': 'application/json'
+        }
+      });
+
+    if (!resp.ok) {
+      throw new HttpStatusError("Failed to add match metadata.", resp.status);
     }
   }
 

@@ -28,6 +28,11 @@ export namespace TournamentAPIConstants {
   export function SET_STATE(id = ':id') {
     return `/set/state/${id}`;
   }
+  export function DELETE_TOURNAMENT(id: string): string;
+  export function DELETE_TOURNAMENT(): '/delete/:id';
+  export function DELETE_TOURNAMENT(id = ':id') {
+    return `/delete/${id}`;
+  }
 
   export const CREATE_TOURNAMENT = () => {
     return `/create`

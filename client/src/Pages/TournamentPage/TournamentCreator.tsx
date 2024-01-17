@@ -136,7 +136,7 @@ export const TournamentCreator: React.FC<TournamentCreatorProps> = (props) => {
           <Select value={mode} onChange={(_, v) => setMode(v!)}>
             {stageTypes.map(st => {
               return (
-                <Option key={st} value={st} onSelect={console.log}>{
+                <Option key={st} value={st}>{
                   st.split('_').map(word => word[0].toLocaleUpperCase() + word.substring(1)).join(' ')
                 }</Option>
               )

@@ -5,13 +5,19 @@ import { writeFile } from 'fs/promises'
 import { Database, TeamData, TournamentData } from "./Database";
 import { DatabaseError, DatabaseErrorType } from "./DatabaseError";
 import { UserRecord } from "@common/Models/User";
+import { MatchMetadata } from "@common/Models/MatchMetadata";
 
 const clone = rfdc();
 
 interface JsonDatabaseSchema {
-  users: { [id: string]: UserRecord },
-  tournamentData: TournamentData,
-  teamData: TeamData
+  users: { [id: string]: UserRecord };
+  tournamentData: TournamentData;
+  teamData: TeamData;
+  matchMetadata: {
+    [tid: string]: {
+      [mid: number]: MatchMetadata
+    }
+  };
 }
 
 export class JsonDatabase implements Database {
@@ -27,9 +33,14 @@ export class JsonDatabase implements Database {
     if (!this.storage) {
       try {
         if (fs.existsSync(this.pathName)) {
-          this.storage = JSON.parse(fs.readFileSync(this.pathName, 'utf-8'));
-        } else {
+          let loaded: JsonDatabaseSchema | {};
+          try {
+            loaded = JSON.parse(fs.readFileSync(this.pathName, 'utf-8'));
+          } catch {
+            loaded = {};
+          }
           this.storage = {
+            matchMetadata: {},
             teamData: {
               teams: [],
               tournamentToTeams: []
@@ -45,8 +56,11 @@ export class JsonDatabase implements Database {
               },
               tournaments: []
             },
-            users: {}
+            users: {},
+            // Add loaded properties at the end to ensure that loaded properties overwrite the schema.
+            ...loaded,
           }
+        } else {
           fs.writeFileSync(this.pathName, JSON.stringify(this.storage), 'utf-8');
         }
 
@@ -120,6 +134,37 @@ export class JsonDatabase implements Database {
   }
   public async getTournamentData(): Promise<TournamentData> {
     return this.data.tournamentData;
+  }
+
+  public async addMatchMetadata(metadata: MatchMetadata): Promise<void> {
+    let inTournament = this.data.matchMetadata[metadata.tournamentId];
+    if(!inTournament)
+    {
+      inTournament = {};
+      this.data.matchMetadata[metadata.tournamentId] = inTournament;
+    }
+
+    inTournament[metadata.matchId] = clone(metadata);
+    await this.save();
+  }
+
+  public async getMatchMetadata(tournamentId: string): Promise<MatchMetadata[]>
+  public async getMatchMetadata(tournamentId: string, matchId: number): Promise<MatchMetadata>
+  public async getMatchMetadata(tournamentId: string, matchId?: number): Promise<MatchMetadata | MatchMetadata[]> {
+    const forTournament = this.data.matchMetadata[tournamentId];
+    if (!forTournament) {
+      throw new DatabaseError('No metadata exists for tournament with id: ' + tournamentId, DatabaseErrorType.MissingRecord);
+    }
+    if (matchId === undefined) {
+      return Object.values(forTournament);
+    }
+
+    const metadata = forTournament[matchId];
+    if (!metadata) {
+      throw new DatabaseError(`match: ${matchId} does not have metadata for tournament: ${tournamentId}`
+        , DatabaseErrorType.MissingRecord);
+    }
+    return metadata;
   }
 
   public async setTeamData(data: TeamData): Promise<void> {

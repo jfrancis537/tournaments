@@ -43,9 +43,11 @@
   margin: 0px 1rem;
 }
 
-.start-button {
-  grid-column: 0;
+.start-edit-button-container {
+  grid-column: 2;
   justify-self: center;
+  width: 100%;
+  justify-content: center;
 }
 
 .back-button {

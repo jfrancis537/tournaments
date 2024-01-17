@@ -5,7 +5,7 @@ declare const styles: {
   readonly "page-box": string;
   readonly "score": string;
   readonly "score-sections": string;
-  readonly "start-button": string;
+  readonly "start-edit-button-container": string;
   readonly "team-heading-container": string;
   readonly "team-section": string;
   readonly "team-section-container": string;

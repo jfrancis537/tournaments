@@ -6,13 +6,14 @@ export type TournamentOptions = Omit<Omit<Tournament, 'id'>, 'state'>;
 export enum TournamentState {
   New,
   RegistrationOpen,
-  RegistrationClosed,
-  Running,
+  Seeding,
+  Finalizing,
+  Active,
   Complete
 }
 
 export namespace TournamentState {
-  export function toStatusString(state: TournamentState, registrationOpenDate?: DateTime) {
+  export function toRegistrationStatusString(state: TournamentState, registrationOpenDate?: DateTime) {
     switch (state) {
       case TournamentState.New:
         if (registrationOpenDate) {
@@ -21,8 +22,9 @@ export namespace TournamentState {
         return 'Registration is not open yet.';
       case TournamentState.RegistrationOpen:
         return 'Registration is open.'
-      case TournamentState.RegistrationClosed:
-      case TournamentState.Running:
+      case TournamentState.Seeding:
+      case TournamentState.Finalizing:
+      case TournamentState.Active:
       case TournamentState.Complete:
         return "Registration is closed."
     }
@@ -78,8 +80,9 @@ export namespace Tournament {
         }
       case TournamentState.RegistrationOpen:
         return true;
-      case TournamentState.RegistrationClosed:
-      case TournamentState.Running:
+      case TournamentState.Seeding:
+      case TournamentState.Finalizing:
+      case TournamentState.Active:
       case TournamentState.Complete:
         return false;
     }

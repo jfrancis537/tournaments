@@ -5,6 +5,7 @@ import { Database, TeamData } from "../Database/Database";
 import { TeamAPIConstants } from "@common/Constants/TeamAPIConstants";
 import { TournamentManager } from "./TournamentManager";
 import { Tournament, TournamentState } from "@common/Models/Tournament";
+import { TeamSocketAPI } from "@common/SocketAPIs/TeamAPI";
 
 type TeamOptions = Omit<Omit<Team, 'id'>, 'seedNumber'>
 
@@ -30,23 +31,41 @@ class TeamManager {
     return this.teams.get(id);
   }
 
+  public async deleteTeams(tournamentId: string) {
+    const teamIds = this.tournamentToTeams.get(tournamentId);
+    if (!teamIds) {
+      return false;
+    }
+
+    this.tournamentToTeams.delete(tournamentId);
+
+    for (const id of teamIds) {
+      const team = this.teams.get(id);
+      if (team) {
+        this.teams.delete(id);
+      }
+    }
+
+    await this.save();
+    return true;
+  }
+
   public async registerTeam(options: TeamOptions): Promise<[TeamAPIConstants.TeamRegistrationResult, Team | undefined]> {
     if (!this.tournamentToTeams.has(options.tournamentId)) {
       this.tournamentToTeams.set(options.tournamentId, []);
     }
     const tournament = TournamentManager.instance.getTournament(options.tournamentId)
-    if(!tournament)
-    {
+    if (!tournament) {
       return [TeamAPIConstants.TeamRegistrationResult.NO_SUCH_TOURNAMENT, undefined]
     } else {
-      if(!Tournament.isRegistrationOpen(tournament))
-      {
+      if (!Tournament.isRegistrationOpen(tournament)) {
         return [TeamAPIConstants.TeamRegistrationResult.REGISTRATION_CLOSED, undefined]
       }
     }
 
     for (const existing of this.teams.values()) {
-      if (existing.contactEmail === options.contactEmail) {
+      if (existing.contactEmail === options.contactEmail &&
+        existing.tournamentId === options.tournamentId) {
         return [TeamAPIConstants.TeamRegistrationResult.INVALID_EMAIL, undefined]
       }
     }
@@ -59,10 +78,16 @@ class TeamManager {
     this.teams.set(team.id, team);
     const teams = this.tournamentToTeams.get(options.tournamentId)!;
     teams.push(team.id);
+
+    TeamSocketAPI.onteamcreated.invoke(team);
+
     await this.save();
     return [TeamAPIConstants.TeamRegistrationResult.SUCCESS, team];
   }
 
+  /**
+   * This function assigns non-temporary seed numbers.
+   */
   public async assignSeedNumbers(toAssign: [string, number | undefined][]) {
     for (const [id, seed] of toAssign) {
       const team = this.teams.get(id);
@@ -70,6 +95,7 @@ class TeamManager {
         throw new Error(`Team with id: ${id} does not exist.`);
       }
       team.seedNumber = seed;
+      TeamSocketAPI.onteamseednumberassigned.invoke(team);
     }
     await this.save();
   }

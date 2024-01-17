@@ -14,9 +14,9 @@ import pageStyles from './HomePage.module.css';
 import mobileHelper from '../Styles/mobilehelper.module.css';
 import { classes } from "../Styles/StyleHelper";
 import { UserContext } from "../Contexts/UserContext";
-import { DateTime } from "luxon";
 import { Add, AssignmentInd, EventAvailable, EventBusy } from "@mui/icons-material";
 import { Authenticated } from "../Components/Authenticated";
+import { TournamentSocketAPI } from "@common/SocketAPIs/TournamentAPI";
 
 enum TabName {
   Active = 'active',
@@ -28,8 +28,9 @@ export const HomePage: React.FC = () => {
 
   const [loadState, setLoadState] = useState(LoadState.LOADING);
   const [tournaments, setTournaments] = useState<Tournament[]>([]);
-  const [tab, setTab] = useState(TabName.Upcoming);
+  const [tab, setTab] = useState(TabName.Active);
   const [, setLocation] = useLocation();
+
   const { user } = useContext(UserContext);
 
   useEffect(() => {
@@ -38,6 +39,37 @@ export const HomePage: React.FC = () => {
       setLoadState(LoadState.COMPLETE);
     }).catch(() => setLoadState(LoadState.FAILED));
   }, []);
+
+  useEffect(() => {
+    TournamentSocketAPI.ontournamentcreated.addListener(handleTournamentCreated);
+    TournamentSocketAPI.ontournamentdeleted.addListener(handleTournamentDeleted);
+    TournamentSocketAPI.ontournamentstateupdated.addListener(handleTournamentStateChanged);
+    TournamentSocketAPI.ontournamentstarted.addListener(handleTournamentStateChanged);
+    return () => {
+      TournamentSocketAPI.ontournamentcreated.removeListener(handleTournamentCreated);
+      TournamentSocketAPI.ontournamentdeleted.removeListener(handleTournamentDeleted);
+      TournamentSocketAPI.ontournamentstateupdated.removeListener(handleTournamentStateChanged);
+      TournamentSocketAPI.ontournamentstarted.removeListener(handleTournamentStateChanged);
+    }
+  }, [tournaments]);
+
+
+
+  function handleTournamentCreated(tournament: Tournament) {
+    setTournaments([...tournaments, tournament]);
+  }
+
+  function handleTournamentDeleted(id: string) {
+    setTournaments(tournaments.filter(t => t.id !== id));
+  }
+
+  function handleTournamentStateChanged(tournament: Tournament) {
+    const index = tournaments.findIndex(t => tournament.id === t.id);
+    // Replace in the current list
+    tournaments[index] = tournament;
+    // Copy to a new list for react.
+    setTournaments([...tournaments]);
+  }
 
   function navigateTo(location: string) {
     return (event: React.MouseEvent) => {
@@ -61,13 +93,13 @@ export const HomePage: React.FC = () => {
         <Divider />
         <CardContent>
           <List>
-            {tournament.state < TournamentState.Running && (
+            {tournament.state < TournamentState.Active && (
               <ListItem>
                 <ListItemDecorator>
                   <AssignmentInd />
                 </ListItemDecorator>
                 <Typography>
-                  {TournamentState.toStatusString(tournament!.state, tournament!.registrationOpenDate)}
+                  {TournamentState.toRegistrationStatusString(tournament!.state, tournament!.registrationOpenDate)}
                 </Typography>
               </ListItem>
             )}
@@ -105,7 +137,7 @@ export const HomePage: React.FC = () => {
 
   function renderActive(all: Tournament[]) {
     const tournamentsToRender = all.filter((t) => {
-      return t.state === TournamentState.Running
+      return t.state === TournamentState.Active
     });
     return (
       <div className={pageStyles["column-content"]}>
@@ -116,7 +148,7 @@ export const HomePage: React.FC = () => {
 
   function renderUpcoming(all: Tournament[]) {
     const tournamentsToRender = all.filter((t) => {
-      return t.state < TournamentState.Running
+      return t.state < TournamentState.Active
     });
     return (
       <div className={pageStyles["column-content"]}>

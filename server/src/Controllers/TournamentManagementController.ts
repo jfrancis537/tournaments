@@ -3,24 +3,25 @@ import express, { Router } from 'express';
 import { TournamentManager } from '../Managers/TournamentManager';
 import { Tournament, TournamentOptions, TournamentState } from '@common/Models/Tournament';
 import { RequireRole } from '../MiddleWare/RequireRoleMiddleware';
+import { TeamManager } from '../Managers/TeamManager';
 
 namespace TournamentManagerController {
   export const path = TournamentAPIConstants.BASE_PATH;
   export const router = express.Router();
 
-  router.get(TournamentAPIConstants.GET_ALL_TOURNAMENTS, async (req,resp) => {
+  router.get(TournamentAPIConstants.GET_ALL_TOURNAMENTS, async (req, resp) => {
     const data = TournamentManager.instance.getTournaments();
     resp.status(200).json(data);
   });
 
-  router.get(TournamentAPIConstants.GET_TOURNAMENT(), async (req,resp) => {
+  router.get(TournamentAPIConstants.GET_TOURNAMENT(), async (req, resp) => {
     const data = TournamentManager.instance.getTournament(req.params.id);
-    if(!data) {
+    if (!data) {
       resp.sendStatus(404);
       return;
     }
     resp.json(data);
-    
+
   });
 
   router.get(TournamentAPIConstants.GET_TOURNAMENT_DATA(), async (req, resp) => {
@@ -42,31 +43,38 @@ namespace TournamentManagerController {
       }
     });
 
-    router.post(TournamentAPIConstants.SET_STATE(), RequireRole('admin'),
+  router.post(TournamentAPIConstants.SET_STATE(), RequireRole('admin'),
     async (req, resp) => {
       const body: TournamentAPIConstants.SetTournamentStateRequest = (req.body);
       const tournament = TournamentManager.instance.getTournament(req.params.id);
-      if(!tournament)
-      {
+      if (!tournament) {
         resp.sendStatus(404);
         return;
       }
 
-      if(tournament.state >= body.state)
-      {
+      if (tournament.state >= body.state) {
         resp.sendStatus(400);
         return;
       }
 
-      switch(body.state)
-      {
+      switch (body.state) {
+        case TournamentState.New:
+          // State can't be reset to new.
+          resp.sendStatus(400);
+          break;
         case TournamentState.RegistrationOpen:
           await TournamentManager.instance.openRegistration(tournament.id);
           break;
-        case TournamentState.RegistrationClosed:
+        case TournamentState.Seeding:
           await TournamentManager.instance.closeRegistration(tournament.id);
           break;
-        case TournamentState.Running:
+        case TournamentState.Finalizing:
+          const success = await TournamentManager.instance.finalizeTournament(tournament.id);
+          if (!success) {
+            resp.sendStatus(400);
+          }
+          break;
+        case TournamentState.Active:
           // This should be done via start tournament.
           resp.sendStatus(400);
           return;
@@ -75,6 +83,19 @@ namespace TournamentManagerController {
           break;
       }
       resp.sendStatus(200);
+    });
+
+  router.delete(TournamentAPIConstants.DELETE_TOURNAMENT(), RequireRole('admin'),
+    async (req, resp) => {
+      const tournament = TournamentManager.instance.getTournament(req.params.id);
+      if (!tournament) {
+        resp.sendStatus(404);
+        return;
+      }
+
+      await TournamentManager.instance.deleteTournament(req.params.id);
+      await TeamManager.instance.deleteTeams(req.params.id);
+      resp.sendStatus(204);
     });
 
   router.put(TournamentAPIConstants.CREATE_TOURNAMENT(), RequireRole('admin'),
