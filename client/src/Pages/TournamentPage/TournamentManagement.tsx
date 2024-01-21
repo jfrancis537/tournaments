@@ -21,6 +21,7 @@ import { Team } from "@common/Models/Team";
 import pageStyles from './TournamentManagement.module.css';
 import { useLocation } from "wouter";
 import { TeamSocketAPI } from "@common/SocketAPIs/TeamAPI";
+import { useSocketState } from "../../Managers/SocketManager";
 
 interface TournamentManagmentProps {
   tournamentId: string;
@@ -29,17 +30,25 @@ interface TournamentManagmentProps {
 export const TournamentManagment: React.FC<TournamentManagmentProps> = (props) => {
 
   const navigateToAssigning = useNavigation(`${tournamentUrl(props.tournamentId)}/assigning`);
+  const navigateToTournament = useNavigation(`${tournamentUrl(props.tournamentId)}`);
   const [tournament, setTournament] = useState<Tournament>();
   const [teams, setTeams] = useState<Team[]>();
   const [loadingState, setLoadingState] = useState<LoadState>(LoadState.LOADING);
   const [, setLocation] = useLocation();
+  const socketState = useSocketState();
+
+  useEffect(() => {
+    if (socketState === 'reconnected') {
+      initalize();
+    }
+  }, [socketState]);
 
   useEffect(() => {
     TeamSocketAPI.onteamcreated.addListener(handleTeamCreated);
     return () => {
       TeamSocketAPI.onteamcreated.removeListener(handleTeamCreated);
     }
-  }, [teams])
+  }, [teams]);
 
   useEffect(() => {
     TournamentSocketAPI.ontournamentstateupdated.addListener(tournamentStateChanged);
@@ -53,10 +62,13 @@ export const TournamentManagment: React.FC<TournamentManagmentProps> = (props) =
     }
   }, []);
 
-  useEffect(() => {
+  useEffect(initalize, [props.tournamentId]);
+
+
+  function initalize() {
     tournamentStateChanged();
     TeamAPI.getTeams(props.tournamentId).then(setTeams).catch(() => setTeams([]));
-  }, [props.tournamentId]);
+  }
 
 
   function handleTeamCreated(team: Team) {
@@ -130,7 +142,7 @@ export const TournamentManagment: React.FC<TournamentManagmentProps> = (props) =
           >
             Start
           </Button>
-          <Button>Set Match Details</Button>
+          <Button onClick={navigateToTournament}>Set Match Details</Button>
         </>
         )
       case TournamentState.Active:

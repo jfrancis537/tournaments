@@ -2,17 +2,28 @@ import rfdc from "rfdc";
 import fs from 'fs';
 import path from 'path';
 import { writeFile } from 'fs/promises'
-import { Database, TeamData, TournamentData } from "./Database";
+import { Database } from "./Database";
 import { DatabaseError, DatabaseErrorType } from "./DatabaseError";
 import { UserRecord } from "@common/Models/User";
 import { MatchMetadata } from "@common/Models/MatchMetadata";
+import { Team } from "@common/Models/Team";
+import { SerializedTournament, Tournament } from "@common/Models/Tournament";
+import { Database as BracketsDatabase } from "brackets-manager";
+
+/**
+ * 
+ * NEXT THIS IS TO FIGURE OUT REGISTRATION EMAILS FOR TOURNAMENT REGISTRATION.
+ * 
+ */
 
 const clone = rfdc();
 
 interface JsonDatabaseSchema {
+  version: string,
   users: { [id: string]: UserRecord };
-  tournamentData: TournamentData;
-  teamData: TeamData;
+  tournaments: { [id: string]: SerializedTournament };
+  bracketData: BracketsDatabase;
+  teamData: { [tid: string]: { [id: string]: Team } };
   matchMetadata: {
     [tid: string]: {
       [mid: number]: MatchMetadata
@@ -29,32 +40,41 @@ export class JsonDatabase implements Database {
     this.pathName = path.resolve(pathName);
   }
 
+  public async setBracketData(data: BracketsDatabase): Promise<void> {
+    this.data.bracketData = data;
+  }
+  public async getBracketData(): Promise<BracketsDatabase> {
+    return this.data.bracketData;
+  }
+
+
   private get data(): JsonDatabaseSchema {
     if (!this.storage) {
       try {
         if (fs.existsSync(this.pathName)) {
-          let loaded: JsonDatabaseSchema | {};
+          let loaded: JsonDatabaseSchema | { version?: string };
           try {
             loaded = JSON.parse(fs.readFileSync(this.pathName, 'utf-8'));
+            // TODO remove in the future once version is always there.
+            if (loaded.version === undefined) {
+              loaded = {};
+            }
           } catch {
             loaded = {};
           }
           this.storage = {
+            version: "1.1",
             matchMetadata: {},
             teamData: {
-              teams: [],
-              tournamentToTeams: []
             },
-            tournamentData: {
-              bracketsData: {
-                group: [],
-                match: [],
-                match_game: [],
-                round: [],
-                stage: [],
-                participant: []
-              },
-              tournaments: []
+            tournaments: {},
+            bracketData: {
+              group: [],
+              match: [],
+              match_game: [],
+              round: [],
+              stage: [],
+              participant: []
             },
             users: {},
             // Add loaded properties at the end to ensure that loaded properties overwrite the schema.
@@ -120,6 +140,7 @@ export class JsonDatabase implements Database {
     await this.save();
     return await this.getUser(user.username);
   }
+
   public async updateUser(username: string, update: Partial<Omit<UserRecord, "username">>): Promise<UserRecord> {
     const user = await this.getUser(username);
     Object.assign(user, update);
@@ -128,23 +149,101 @@ export class JsonDatabase implements Database {
     return this.getUser(user.username);
   }
 
-  public async setTournamentData(data: TournamentData): Promise<void> {
-    this.data.tournamentData = data;
-    await this.save();
+  public async getTournament(tournamentId: string): Promise<Tournament> {
+    const tournament = this.data.tournaments[tournamentId];
+    if(!tournament)
+    {
+      throw new DatabaseError(`No tournament with id: ${tournamentId}`, DatabaseErrorType.MissingRecord);
+    }
+    return Tournament.Deserialize(tournament);
   }
-  public async getTournamentData(): Promise<TournamentData> {
-    return this.data.tournamentData;
+  
+  public async getAllTournaments(): Promise<Tournament[]> {
+    return Object.values(this.data.tournaments).map(Tournament.Deserialize);
+  }
+
+  public async addTournament(tournament: Tournament): Promise<Tournament> {
+    const existing = this.data.tournaments[tournament.id];
+    if(existing)
+    {
+      throw new DatabaseError('A tournament with that id already exists',DatabaseErrorType.ExistingRecord);
+    }
+    this.data.tournaments[tournament.id] = Tournament.Serialize(tournament);
+    await this.save();
+    return this.getTournament(tournament.id);
+  }
+
+  public async updateTournament(tournamentId: string, tournament: Partial<Omit<Tournament, "id">>): Promise<Tournament> {
+    const existing = this.data.tournaments[tournamentId];
+    if(!existing)
+    {
+      throw new DatabaseError(`No tournament with id: ${tournamentId}`, DatabaseErrorType.MissingRecord);
+    }
+    
+    Object.assign(existing,tournament);
+    await this.save();
+    return Tournament.Deserialize(existing);
+  }
+
+  public async deleteTournament(tournamentId: string): Promise<void> {
+    delete this.data.tournaments[tournamentId];
+    await this.save();
   }
 
   public async addMatchMetadata(metadata: MatchMetadata): Promise<void> {
     let inTournament = this.data.matchMetadata[metadata.tournamentId];
-    if(!inTournament)
-    {
+    if (!inTournament) {
       inTournament = {};
       this.data.matchMetadata[metadata.tournamentId] = inTournament;
     }
 
     inTournament[metadata.matchId] = clone(metadata);
+    await this.save();
+  }
+
+  public async addTeam(team: Team): Promise<Team> {
+    let tournamentTeams = this.data.teamData[team.tournamentId];
+    if (!tournamentTeams) {
+      tournamentTeams = {
+        [team.id]: clone(team)
+      }
+      this.data.teamData[team.tournamentId] = tournamentTeams;
+      await this.save();
+      return clone(team);
+    } else {
+      const existing = tournamentTeams[team.id];
+      if (!existing) {
+        tournamentTeams[team.id] = clone(team);
+        await this.save();
+        return clone(team);
+      } else {
+        throw new DatabaseError('Team with this id already exists.', DatabaseErrorType.ExistingRecord);
+      }
+    }
+  }
+
+  public async getTeam(id: string): Promise<Team> {
+    for (const tournamentId in this.data.teamData) {
+      const tournamentTeams = this.data.teamData[tournamentId];
+      const team = tournamentTeams[id];
+      if (team) {
+        return team;
+      }
+    }
+    throw new DatabaseError('Team with this id does not exist.', DatabaseErrorType.MissingRecord);
+  }
+
+  public async getTeams(tournamentId: string): Promise<Team[]> {
+    const tournamentTeams = this.data.teamData[tournamentId];
+    if (tournamentTeams) {
+      return Object.values(tournamentTeams);
+    } else {
+      return [];
+    }
+  }
+
+  public async deleteTeams(tournamentId: string): Promise<void> {
+    delete this.data.teamData[tournamentId];
     await this.save();
   }
 
@@ -167,16 +266,8 @@ export class JsonDatabase implements Database {
     return metadata;
   }
 
-  public async setTeamData(data: TeamData): Promise<void> {
-    this.data.teamData = data;
-    await this.save();
-  }
-  public async getTeamData(): Promise<TeamData> {
-    return this.data.teamData;
-  }
-
   private async save() {
-    await writeFile(this.pathName, JSON.stringify(this.data), 'utf-8')
+    await writeFile(this.pathName, JSON.stringify(this.data,undefined,' '), 'utf-8')
   }
 
 }

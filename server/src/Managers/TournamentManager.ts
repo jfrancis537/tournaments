@@ -10,23 +10,27 @@ import { nextPowerOf2 } from "@common/Utilities/Math";
 import { TournamentSocketAPI } from "@common/SocketAPIs/TournamentAPI";
 import { SocketAction } from "@common/Utilities/SocketAction";
 import { Database } from "../Database/Database";
+import { DatabaseError, DatabaseErrorType } from "../Database/DatabaseError";
+import { MemoryDatabaseShim } from "../Database/MemoryDatabaseShim";
 
 class TournamentManager {
 
   private readonly storage: CrudInterface;
   private readonly manager: BracketsManager;
-  private tournaments: Map<string, Tournament>;
 
   constructor() {
-    this.storage = new InMemoryDatabase();
+    this.storage = new MemoryDatabaseShim(new InMemoryDatabase(), async () => {
+      await Database.instance.setBracketData(await this.manager.export());
+    });
     this.manager = new BracketsManager(this.storage);
-    this.tournaments = new Map();
-
-    //@ts-ignore
-    globalThis['manager'] = this.manager;
   }
 
-  public createNewTournament(options: TournamentOptions) {
+  public async populateBracketData() {
+    const data = await Database.instance.getBracketData();
+    this.manager.import(data);
+  }
+
+  public async createNewTournament(options: TournamentOptions) {
     const tournament: Tournament = {
       id: uuid(),
       name: options.name,
@@ -40,20 +44,15 @@ class TournamentManager {
       playersSeeded: options.playersSeeded
     }
 
-    // TODO remove this line.
-    // Demo.run(tournament);
-
-    this.tournaments.set(tournament.id, tournament);
+    await Database.instance.addTournament(tournament);
     TournamentSocketAPI.ontournamentcreated.invoke(tournament);
-    this.save();
     return tournament;
   }
 
   public async deleteTournament(id: string) {
     await this.manager.delete.tournament(id);
-    this.tournaments.delete(id);
+    await Database.instance.deleteTournament(id);
     TournamentSocketAPI.ontournamentdeleted.invoke(id);
-    await this.save();
   }
 
   public async openRegistration(id: string) {
@@ -69,7 +68,7 @@ class TournamentManager {
   }
 
   public async finalizeTournament(id: string) {
-    const tournament = this.tournaments.get(id);
+    const tournament = await this.getTournament(id);
     // Only start allow finalization after the seeds have been assigned.
     if (tournament && tournament.state === TournamentState.Seeding) {
       for (let i = 0; i < tournament.stages.length; i++) {
@@ -85,14 +84,9 @@ class TournamentManager {
   }
 
   public async startTournament(id: string) {
-    const tournament = this.tournaments.get(id);
+    const tournament = await this.getTournament(id);
     // Only start allow starting the tournament once it's finalized.
     if (tournament && tournament.state === TournamentState.Finalizing) {
-      for (let i = 0; i < tournament.stages.length; i++) {
-        const stage = tournament.stages[i];
-        const settings = tournament.stageSettings[i];
-        await this.createStage(tournament, stage, settings);
-      }
       // Save occurs here.
       this.setTournamentState(id, TournamentState.Active, TournamentSocketAPI.ontournamentstarted);
       return true;
@@ -101,21 +95,29 @@ class TournamentManager {
   }
 
   public async setTournamentSeeded(id: string) {
-    const tournament = this.tournaments.get(id);
-    if (!tournament) {
+    try {
+      Database.instance.updateTournament(id, {
+        playersSeeded: true
+      });
+    } catch {
       return false;
     }
-    tournament.playersSeeded = true;
-    await this.save();
     return true;
   }
 
-  public getTournaments() {
-    return [...this.tournaments.values()]
+  public async getTournaments() {
+    return await Database.instance.getAllTournaments();
   }
 
-  public getTournament(id: string) {
-    return this.tournaments.get(id);
+  public async getTournament(id: string) {
+    try {
+      return await Database.instance.getTournament(id);
+    } catch (err) {
+      if (err instanceof DatabaseError && err.type === DatabaseErrorType.MissingRecord) {
+        return undefined;
+      }
+      throw err;
+    }
   }
 
   // All of the following public commands are called from the match view / settings screen. 
@@ -143,7 +145,6 @@ class TournamentManager {
         }
       });
       TournamentSocketAPI.onmatchupdated.invoke(match);
-      this.save();
       return true;
     } else if (match.opponent2!.id === teamId) {
       await this.manager.update.match({
@@ -158,7 +159,6 @@ class TournamentManager {
         }
       });
       TournamentSocketAPI.onmatchupdated.invoke(match);
-      this.save();
       return true;
     }
     return false;
@@ -184,7 +184,6 @@ class TournamentManager {
         }
       });
       TournamentSocketAPI.onmatchupdated.invoke(match);
-      this.save();
       return true;
     } else if (match.opponent2!.id === teamId) {
       await this.manager.update.match({
@@ -196,7 +195,6 @@ class TournamentManager {
           forfeit: true
         }
       });
-      this.save();
       TournamentSocketAPI.onmatchupdated.invoke(match);
       return true;
     }
@@ -241,7 +239,6 @@ class TournamentManager {
 
     const updated = await this.getMatch(tournamentId, match.id as number);
     TournamentSocketAPI.onmatchstarted.invoke(updated!);
-    this.save();
   }
 
   /**
@@ -269,7 +266,6 @@ class TournamentManager {
         },
       });
       TournamentSocketAPI.onmatchupdated.invoke(match);
-      this.save();
     } else {
       const currentScore = match.opponent2!.score ?? 0;
       await this.manager.storage.update('match', {
@@ -282,7 +278,6 @@ class TournamentManager {
       });
     }
     TournamentSocketAPI.onmatchupdated.invoke(match);
-    this.save();
     return true;
   }
 
@@ -292,7 +287,6 @@ class TournamentManager {
     }, update);
     const updated = await this.getMatch(tournamentId, matchId);
     TournamentSocketAPI.onmatchupdated.invoke(updated!);
-    this.save();
     return success;
   }
 
@@ -319,11 +313,10 @@ class TournamentManager {
       });
     }
     TournamentSocketAPI.onmatchupdated.invoke(match);
-    this.save();
   }
 
   public async getTournamentData(id: string): Promise<[Tournament, BracketsDatabase] | undefined> {
-    const tournament = this.tournaments.get(id);
+    const tournament = await this.getTournament(id);
     if (tournament) {
       return [tournament, await this.manager.get.tournamentData(id)];
     } else {
@@ -351,7 +344,7 @@ class TournamentManager {
   private async createStage(tournament: Readonly<Tournament>, stageType: Readonly<StageType>, settings: StageSettings) {
 
     // Get the teams for the tournament
-    let unorderedTeams = TeamManager.instance.getTeams(tournament.id);
+    let unorderedTeams = await TeamManager.instance.getTeams(tournament.id);
     if (!unorderedTeams) {
       return;
     }
@@ -390,33 +383,24 @@ class TournamentManager {
         const team = teams[i];
         return [team.id, participant.id as number];
       }));
-    await this.save();
   }
 
   private async setTournamentState(id: string, state: TournamentState, actionToFire?: SocketAction<Tournament>) {
-    const tournament = this.tournaments.get(id);
-    if (tournament) {
-      tournament.state = state;
+    try {
+      const tournament = await Database.instance.updateTournament(id, {
+        state: state
+      });
       if (actionToFire) {
         actionToFire.invoke(tournament);
       }
+      return true;
+    } catch (err) {
+      if(err instanceof DatabaseError && err.type === DatabaseErrorType.MissingRecord) {
+        return false;
+      }
+      throw err;
     }
-    await this.save();
-  }
 
-  private async save() {
-    const data = await this.manager.export();
-    const tournaments = [...this.tournaments];
-    await Database.instance.setTournamentData({
-      tournaments,
-      bracketsData: data
-    });
-  }
-
-  public async load() {
-    const data = await Database.instance.getTournamentData();
-    await this.manager.import(data.bracketsData);
-    this.tournaments = new Map(data.tournaments);
   }
 
 }

@@ -6,18 +6,6 @@ import { Team } from "@common/Models/Team";
 import { JsonDatabase } from "./JsonDatabase";
 import { MatchMetadata } from "@common/Models/MatchMetadata";
 
-type ArrayMap<K,V> = [K,V][];
-
-export interface TournamentData {
-  bracketsData: ValueToArray<DataTypes>;
-  tournaments: [string,Tournament][];
-}
-
-export interface TeamData {
-  teams: ArrayMap<string,Team>;
-  tournamentToTeams: ArrayMap<string,string[]>;
-}
-
 
 export interface Database {
   hasUser(username: string): Promise<boolean>;
@@ -26,20 +14,28 @@ export interface Database {
   updateUser(username: string, details: Partial<Omit<UserRecord, 'username'>>): Promise<UserRecord>;
   findUser(user: Partial<UserRecord>): Promise<UserRecord | undefined>;
   confirmUser(token: string): Promise<UserRecord>;
-  
-  setTournamentData(data: TournamentData): Promise<void>;
-  getTournamentData(): Promise<TournamentData>
+
+  getTournament(tournamentId: string): Promise<Tournament>;
+  getAllTournaments(): Promise<Tournament[]>
+  addTournament(tournament: Tournament): Promise<Tournament>;
+  updateTournament(tournamentId: string,tournament: Partial<Omit<Tournament,'id'>>): Promise<Tournament>;
+  deleteTournament(tournamentId: string): Promise<void>;
 
   addMatchMetadata(metadata: MatchMetadata): Promise<void>;
   getMatchMetadata(tournamentId: string): Promise<MatchMetadata[]>
   getMatchMetadata(tournamentId: string, matchId: number): Promise<MatchMetadata>
 
-  setTeamData(data: TeamData): Promise<void>;
-  getTeamData(): Promise<TeamData>;
+  setBracketData(data: ValueToArray<DataTypes>): Promise<void>;
+  getBracketData(): Promise<ValueToArray<DataTypes>>;
+
+  addTeam(team: Team): Promise<Team>;
+  getTeam(id: string): Promise<Team>;
+  getTeams(tournamentId: string): Promise<Team[]>
+  deleteTeams(tournamentId: string): Promise<void>;
 }
 
 export namespace Database {
 
-  export const instance = EnvironmentVariables.IS_DEVELOPMENT ? new JsonDatabase(`${process.env.HOME}/Desktop/database.json`) : new JsonDatabase("./database.json");
+  export const instance: Database = EnvironmentVariables.IS_DEVELOPMENT ? new JsonDatabase(`${process.env.HOME}/Desktop/database.json`) : new JsonDatabase("./database.json");
 
 }

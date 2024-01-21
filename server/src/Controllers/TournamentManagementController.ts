@@ -10,12 +10,12 @@ namespace TournamentManagerController {
   export const router = express.Router();
 
   router.get(TournamentAPIConstants.GET_ALL_TOURNAMENTS, async (req, resp) => {
-    const data = TournamentManager.instance.getTournaments();
+    const data = await TournamentManager.instance.getTournaments();
     resp.status(200).json(data);
   });
 
   router.get(TournamentAPIConstants.GET_TOURNAMENT(), async (req, resp) => {
-    const data = TournamentManager.instance.getTournament(req.params.id);
+    const data = await TournamentManager.instance.getTournament(req.params.id);
     if (!data) {
       resp.sendStatus(404);
       return;
@@ -46,7 +46,7 @@ namespace TournamentManagerController {
   router.post(TournamentAPIConstants.SET_STATE(), RequireRole('admin'),
     async (req, resp) => {
       const body: TournamentAPIConstants.SetTournamentStateRequest = (req.body);
-      const tournament = TournamentManager.instance.getTournament(req.params.id);
+      const tournament = await TournamentManager.instance.getTournament(req.params.id);
       if (!tournament) {
         resp.sendStatus(404);
         return;
@@ -87,7 +87,7 @@ namespace TournamentManagerController {
 
   router.delete(TournamentAPIConstants.DELETE_TOURNAMENT(), RequireRole('admin'),
     async (req, resp) => {
-      const tournament = TournamentManager.instance.getTournament(req.params.id);
+      const tournament = await TournamentManager.instance.getTournament(req.params.id);
       if (!tournament) {
         resp.sendStatus(404);
         return;
@@ -101,7 +101,7 @@ namespace TournamentManagerController {
   router.put(TournamentAPIConstants.CREATE_TOURNAMENT(), RequireRole('admin'),
     async (req, resp) => {
       const options: TournamentOptions = Tournament.Deserialize(req.body);
-      const t = TournamentManager.instance.createNewTournament(options);
+      const t = await TournamentManager.instance.createNewTournament(options);
       resp.status(201).json(t);
     });
 }

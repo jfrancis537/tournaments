@@ -66,7 +66,6 @@ export const BracketsViewer: React.FC<BracketViewerProps> = (props) => {
     if(!hit) {
       newState.push(newData);
     }
-    console.log(newData,metadata,newState);
     setMetadata(newState);
   }
 

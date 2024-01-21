@@ -21,8 +21,8 @@ export const SeedAssignmentTool: React.FC<SeedAssignmentToolProps> = (props) => 
   const [, setLocation] = useLocation();
 
   useEffect(() => {
+    // Don't list for team changes since this page should only be visited when no more registrations are allowed.
     TeamAPI.getTeams(props.tournamentId).then(setTeams);
-
     TournamentSocketAPI.ontournamentdeleted.addListener(handleTournamentDeleted);
     return () => {
       TournamentSocketAPI.ontournamentdeleted.removeListener(handleTournamentDeleted);

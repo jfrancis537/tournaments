@@ -71,8 +71,7 @@ class App {
 
   public async start() {
     // Load data
-    await TournamentManager.instance.load();
-    await TeamManager.instance.load();
+    await TournamentManager.instance.populateBracketData();
     // Start Http server.
     const server = this.expressApp.listen(EnvironmentVariables.PORT, () => {
       console.log("Server listening on port", EnvironmentVariables.PORT);

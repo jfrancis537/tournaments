@@ -6,7 +6,7 @@ import { useEffect, useState } from "react";
 import { Socket, io } from "socket.io-client";
 
 
-type SocketState = 'initial' | 'connected' | 'disconnected'
+type SocketState = 'initial' | 'reconnected' | 'disconnected'
 
 const onconnectionchanged = new Action<SocketState>();
 
@@ -28,7 +28,7 @@ class SocketManager {
   @autobind
   async onconnected() {
     if (this.connectionWasLost) {
-      onconnectionchanged.invoke('connected');
+      onconnectionchanged.invoke('reconnected');
     }
   }
 
@@ -41,6 +41,7 @@ class SocketManager {
 }
 
 export const useSocketState = () => {
+  
   const [state,setState] = useState<SocketState>('initial');
 
   useEffect(() => {

@@ -70,6 +70,10 @@ export namespace Tournament {
     }
   }
 
+  export function Serialize(data: Tournament): SerializedTournament {
+    return JSON.parse(JSON.stringify(data));
+  }
+
   export function isRegistrationOpen(tournament: Tournament): boolean {
     switch (tournament.state) {
       case TournamentState.New:

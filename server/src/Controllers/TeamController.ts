@@ -61,9 +61,9 @@ namespace TeamController {
     }
   });
 
-  router.get(TeamAPIConstants.GET_TEAMS(), (req, resp) => {
+  router.get(TeamAPIConstants.GET_TEAMS(), async (req, resp) => {
     const tournamentId = req.params.id;
-    const teams = TeamManager.instance.getTeams(tournamentId);
+    const teams = await TeamManager.instance.getTeams(tournamentId);
     if (!teams) {
       resp.sendStatus(404);
       return;

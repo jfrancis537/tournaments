@@ -13,6 +13,7 @@ import { Authenticated } from "../../Components/Authenticated";
 import { MatchMetadataModal } from "../MatchPage/MatchMetadataDialog";
 import { MatchMetadata } from "@common/Models/MatchMetadata";
 import { MatchAPI } from "../../APIs/MatchAPI";
+import { useSocketState } from "../../Managers/SocketManager";
 
 interface TournamentPageProps {
   tournamentId: string;
@@ -24,7 +25,8 @@ export const TournamentViewer: React.FC<TournamentPageProps> = (props) => {
   const [loadingState, setLoadingState] = useState<LoadState>(LoadState.LOADING);
   const [tournamentData, setTournamentData] = useState<BracketsDatabase>();
   const [tournament, setTournament] = useState<Tournament>();
-  const [matchToEdit, setMatchToEdit] = useState<Match>()
+  const [matchToEdit, setMatchToEdit] = useState<Match>();
+  const socketState = useSocketState();
   const [, setLocation] = useLocation();
 
   const { user } = useContext(UserContext);
@@ -51,6 +53,12 @@ export const TournamentViewer: React.FC<TournamentPageProps> = (props) => {
   useEffect(() => {
     tournamentStateChanged();
   }, [props.tournamentId]);
+
+  useEffect(() => {
+    if (socketState === 'reconnected') {
+      tournamentStateChanged();
+    }
+  }, [socketState]);
 
   function renderNotStarted() {
     return <h1>Tournament not started yet.</h1>
@@ -97,7 +105,7 @@ export const TournamentViewer: React.FC<TournamentPageProps> = (props) => {
                     tournamentId={props.tournamentId}
                     onAccept={onMetadataChanged}
                     onClose={() => setMatchToEdit(undefined)}
-                    onCancel={() => {}}
+                    onCancel={() => { }}
                   />
                 </Authenticated>
               )}

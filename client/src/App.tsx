@@ -45,8 +45,8 @@ export const App: React.FC = () => {
 
   function renderConnectionNotification() {
 
-    const color = socketState === 'connected' ? 'success' : 'danger';
-    const message = socketState === 'connected' ? 'Successfully reconnected.' : 'Connection lost, functionality may be limited.';
+    const color = socketState === 'reconnected' ? 'success' : 'danger';
+    const message = socketState === 'reconnected' ? 'Successfully reconnected.' : 'Connection lost, functionality may be limited.';
 
     return (
       <Snackbar

@@ -17,6 +17,7 @@ import { UserContext } from "../Contexts/UserContext";
 import { Add, AssignmentInd, EventAvailable, EventBusy } from "@mui/icons-material";
 import { Authenticated } from "../Components/Authenticated";
 import { TournamentSocketAPI } from "@common/SocketAPIs/TournamentAPI";
+import { useSocketState } from "../Managers/SocketManager";
 
 enum TabName {
   Active = 'active',
@@ -29,6 +30,7 @@ export const HomePage: React.FC = () => {
   const [loadState, setLoadState] = useState(LoadState.LOADING);
   const [tournaments, setTournaments] = useState<Tournament[]>([]);
   const [tab, setTab] = useState(TabName.Active);
+  const socketState = useSocketState();
   const [, setLocation] = useLocation();
 
   const { user } = useContext(UserContext);
@@ -39,6 +41,15 @@ export const HomePage: React.FC = () => {
       setLoadState(LoadState.COMPLETE);
     }).catch(() => setLoadState(LoadState.FAILED));
   }, []);
+
+  useEffect(() => {
+    if (socketState === 'reconnected') {
+      TournamentAPI.getAllTournaments().then((tournaments) => {
+        setTournaments(tournaments);
+        setLoadState(LoadState.COMPLETE);
+      }).catch(() => setLoadState(LoadState.FAILED));
+    }
+  }, [socketState]);
 
   useEffect(() => {
     TournamentSocketAPI.ontournamentcreated.addListener(handleTournamentCreated);
