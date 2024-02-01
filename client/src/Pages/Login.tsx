@@ -19,13 +19,13 @@ import {
 import PersonIcon from '@mui/icons-material/Person';
 import Key from '@mui/icons-material/Key';
 import { UserContext } from "../Contexts/UserContext";
-import { Close } from "@mui/icons-material";
+import { Close, Email } from "@mui/icons-material";
 
 import pageStyles from './Login.module.css';
 
 export const Login: React.FC = () => {
 
-  const [username, setUsername] = useState('');
+  const [email, setUsername] = useState('');
   const [password, setPassword] = useState('');
 
   const [errorMessage, setErrorMessage] = useState('');
@@ -51,7 +51,7 @@ export const Login: React.FC = () => {
 
   async function login() {
     try {
-      const loggedInUser = await AuthAPI.login(username, password);
+      const loggedInUser = await AuthAPI.login(email, password);
       setUser(loggedInUser);
       setLocation('/');
     } catch (err) {
@@ -84,11 +84,11 @@ export const Login: React.FC = () => {
             <CardContent>
               <FormControl>
                 <Input
-                  startDecorator={<PersonIcon />}
+                  startDecorator={<Email />}
                   type='text'
-                  value={username}
+                  value={email}
                   onChange={handleUsernameChanged}
-                  placeholder='Username'
+                  placeholder='Email'
                 />
               </FormControl>
               <FormControl>

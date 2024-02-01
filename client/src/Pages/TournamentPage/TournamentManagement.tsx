@@ -16,12 +16,12 @@ import { TournamentSocketAPI } from "@common/SocketAPIs/TournamentAPI";
 import { DateTime } from "luxon";
 import { AssignmentInd, EventBusy, EventAvailable, Person, DeleteForeverOutlined } from "@mui/icons-material";
 import { TeamAPI } from "../../APIs/TeamAPI";
-import { Team } from "@common/Models/Team";
 
 import pageStyles from './TournamentManagement.module.css';
 import { useLocation } from "wouter";
 import { TeamSocketAPI } from "@common/SocketAPIs/TeamAPI";
 import { useSocketState } from "../../Managers/SocketManager";
+import { RegistrationData } from "@common/Models/RegistrationData";
 
 interface TournamentManagmentProps {
   tournamentId: string;
@@ -32,7 +32,7 @@ export const TournamentManagment: React.FC<TournamentManagmentProps> = (props) =
   const navigateToAssigning = useNavigation(`${tournamentUrl(props.tournamentId)}/assigning`);
   const navigateToTournament = useNavigation(`${tournamentUrl(props.tournamentId)}`);
   const [tournament, setTournament] = useState<Tournament>();
-  const [teams, setTeams] = useState<Team[]>();
+  const [registrations, setRegistrations] = useState<RegistrationData[]>();
   const [loadingState, setLoadingState] = useState<LoadState>(LoadState.LOADING);
   const [, setLocation] = useLocation();
   const socketState = useSocketState();
@@ -44,11 +44,11 @@ export const TournamentManagment: React.FC<TournamentManagmentProps> = (props) =
   }, [socketState]);
 
   useEffect(() => {
-    TeamSocketAPI.onteamcreated.addListener(handleTeamCreated);
+    TeamSocketAPI.onregistrationcreated.addListener(handleTeamRegistered);
     return () => {
-      TeamSocketAPI.onteamcreated.removeListener(handleTeamCreated);
+      TeamSocketAPI.onregistrationcreated.removeListener(handleTeamRegistered);
     }
-  }, [teams]);
+  }, [registrations]);
 
   useEffect(() => {
     TournamentSocketAPI.ontournamentstateupdated.addListener(tournamentStateChanged);
@@ -67,16 +67,16 @@ export const TournamentManagment: React.FC<TournamentManagmentProps> = (props) =
 
   function initalize() {
     tournamentStateChanged();
-    TeamAPI.getTeams(props.tournamentId).then(setTeams).catch(() => setTeams([]));
+    TeamAPI.getRegistrations(props.tournamentId).then(setRegistrations).catch(() => setRegistrations([]));
   }
 
 
-  function handleTeamCreated(team: Team) {
-    if (team.tournamentId === props.tournamentId) {
-      if (teams) {
-        setTeams([...teams, team]);
+  function handleTeamRegistered(regData: RegistrationData) {
+    if (regData.tournamentId === props.tournamentId) {
+      if (registrations) {
+        setRegistrations([...registrations, regData]);
       } else {
-        setTeams([team]);
+        setRegistrations([regData]);
       }
     }
   }
@@ -117,10 +117,22 @@ export const TournamentManagment: React.FC<TournamentManagmentProps> = (props) =
       case TournamentState.RegistrationOpen:
         return (
           <Button
-            onClick={() => TournamentAPI.setTournamentState(tournament!.id, TournamentState.Seeding)}
+            onClick={() => TournamentAPI.setTournamentState(tournament!.id, TournamentState.RegistrationConfirmation)}
           >
             Close Registration
           </Button>
+        )
+      case TournamentState.RegistrationConfirmation:
+        return (
+          <>
+            <Button
+              onClick={() => TournamentAPI.setTournamentState(props.tournamentId, TournamentState.Seeding)}
+            >
+              Confirm Registrations
+            </Button>
+            <Button onClick={() => {}}>Approve Registrations</Button>
+            <Button onClick={() => {}}>Assign Teams</Button>
+          </>
         )
       case TournamentState.Seeding:
         return (
@@ -137,13 +149,13 @@ export const TournamentManagment: React.FC<TournamentManagmentProps> = (props) =
       case TournamentState.Finalizing:
         return (
           <>
-          <Button
-            onClick={() => TournamentAPI.startTournament(props.tournamentId)}
-          >
-            Start
-          </Button>
-          <Button onClick={navigateToTournament}>Set Match Details</Button>
-        </>
+            <Button
+              onClick={() => TournamentAPI.startTournament(props.tournamentId)}
+            >
+              Start
+            </Button>
+            <Button onClick={navigateToTournament}>Set Match Details</Button>
+          </>
         )
       case TournamentState.Active:
       // TODO have controls for when the tournament is running
@@ -153,9 +165,9 @@ export const TournamentManagment: React.FC<TournamentManagmentProps> = (props) =
   }
 
   function renderPlayerCount() {
-    if (teams !== undefined) {
+    if (registrations !== undefined) {
       return (
-        <Typography>{teams.length}</Typography>
+        <Typography>{registrations.length}</Typography>
       )
     } else {
       return (

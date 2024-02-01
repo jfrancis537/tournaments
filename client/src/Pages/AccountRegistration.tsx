@@ -17,7 +17,6 @@ enum RegistrationState {
 
 export const AccountRegistration: React.FC = () => {
 
-  const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [email, setEmail] = useState('');
@@ -27,12 +26,11 @@ export const AccountRegistration: React.FC = () => {
   const goHome = useNavigation("/");
 
   function buttonIsEnabled(): boolean {
-    return !!username && !!password && !!email && password === confirmPassword;
+    return !!password && !!email && password === confirmPassword;
   }
 
   async function register() {
     const reason = await AuthAPI.register({
-      username,
       password,
       email
     });
@@ -60,13 +58,6 @@ export const AccountRegistration: React.FC = () => {
           <Typography level="h3">Register Account</Typography>
           <Divider />
           <CardContent>
-            <FormControl error={!!username ? !Validators.username(username) : false}>
-              <FormLabel>Username</FormLabel>
-              <Input
-                type='text'
-                value={username}
-                onChange={e => setUsername(e.currentTarget.value)} />
-            </FormControl>
             <FormControl error={(!!password ? !Validators.password(password) : false)}>
               <FormLabel>Password</FormLabel>
               <Input value={password} onChange={e => setPassword(e.currentTarget.value)} type='password' />

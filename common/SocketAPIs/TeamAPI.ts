@@ -1,15 +1,16 @@
+import { RegistrationData } from "../Models/RegistrationData";
 import { Team } from "../Models/Team";
 import { SocketAction, SocketLike } from "../Utilities/SocketAction";
 import { SocketName } from "../Utilities/SocketName";
 
 class TeamSocketAPI {
   private initialized = false;
-  private onteamcreated_?: SocketAction<Team>;
+  private onregistrationcreated_?: SocketAction<RegistrationData>;
   private onteamseednumberassigned_?: SocketAction<Team>;
 
   public initialize(socket: SocketLike) {
     // Team created
-    this.onteamcreated_ = new SocketAction(
+    this.onregistrationcreated_ = new SocketAction(
       SocketName.TeamCreated,
       socket
     );
@@ -23,11 +24,11 @@ class TeamSocketAPI {
     this.initialized = true;
   }
 
-  public get onteamcreated() {
+  public get onregistrationcreated() {
     if (!this.initialized) {
       throw new Error('API is not initialized');
     }
-    return this.onteamcreated_!;
+    return this.onregistrationcreated_!;
   }
 
   public get onteamseednumberassigned() {

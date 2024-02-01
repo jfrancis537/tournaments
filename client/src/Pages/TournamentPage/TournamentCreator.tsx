@@ -41,6 +41,7 @@ export const TournamentCreator: React.FC<TournamentCreatorProps> = (props) => {
   const [startDate, setStartDate] = useState<DateTime>(DateTime.invalid('No Value'));
   const [registrationDate, setRegistrationDate] = useState<DateTime>(DateTime.invalid('No Value'));
   const [endDate, setEndDate] = useState<DateTime>(DateTime.invalid('No Value'));
+  const [teamSize, setTeamSize] = useState<number>(1);
 
 
   const [, setLocation] = useLocation();
@@ -61,6 +62,11 @@ export const TournamentCreator: React.FC<TournamentCreatorProps> = (props) => {
 
   function handleRegistrationOpenDateChanged(event: React.ChangeEvent<HTMLInputElement>) {
     setRegistrationDate(DateTime.fromISO(event.currentTarget.value));
+  }
+
+  function handleTeamSizeChanged(event: React.ChangeEvent<HTMLInputElement>) {
+    const size = Number(event.currentTarget.value);
+    setTeamSize(size);
   }
 
   function getStageSettings(): StageSettings[] {
@@ -102,14 +108,19 @@ export const TournamentCreator: React.FC<TournamentCreatorProps> = (props) => {
         mode
       ],
       stageSettings: getStageSettings(),
-      playersSeeded: false
+      playersSeeded: false,
+      teamSize: teamSize
     });
     props.onAccept?.call(undefined, t);
     setLocation(HOME_PAGE_URL);
   }
 
   function canCreate() {
-    return startDate.isValid && endDate.isValid && name !== '' && (endDate.diff(startDate).toMillis() >= 0);
+    return startDate.isValid && 
+    endDate.isValid && 
+    name !== '' && 
+    (endDate.diff(startDate).toMillis() >= 0) &&
+    teamSize > 0;
   }
 
   function render() {
@@ -130,6 +141,10 @@ export const TournamentCreator: React.FC<TournamentCreatorProps> = (props) => {
         <FormControl>
           <FormLabel>Registration Open Date</FormLabel>
           <Input onChange={handleRegistrationOpenDateChanged} type="date" />
+        </FormControl>
+        <FormControl>
+          <FormLabel>Team Size</FormLabel>
+          <Input value={teamSize} onChange={handleTeamSizeChanged} type="number" />
         </FormControl>
         <FormControl>
           <FormLabel>Mode</FormLabel>

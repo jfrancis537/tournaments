@@ -9,6 +9,7 @@ import { MatchMetadata } from "@common/Models/MatchMetadata";
 import { Team } from "@common/Models/Team";
 import { SerializedTournament, Tournament } from "@common/Models/Tournament";
 import { Database as BracketsDatabase } from "brackets-manager";
+import { RegistrationData } from "@common/Models/RegistrationData";
 
 /**
  * 
@@ -23,6 +24,7 @@ interface JsonDatabaseSchema {
   users: { [id: string]: UserRecord };
   tournaments: { [id: string]: SerializedTournament };
   bracketData: BracketsDatabase;
+  registrations: { [tid: string]: { [email: string]: RegistrationData } }
   teamData: { [tid: string]: { [id: string]: Team } };
   matchMetadata: {
     [tid: string]: {
@@ -68,6 +70,7 @@ export class JsonDatabase implements Database {
             teamData: {
             },
             tournaments: {},
+            registrations: {},
             bracketData: {
               group: [],
               match: [],
@@ -91,20 +94,20 @@ export class JsonDatabase implements Database {
     return this.storage!;
   }
 
-  public async hasUser(username: string): Promise<boolean> {
-    return !!this.data.users[username]
+  public async hasUser(email: string): Promise<boolean> {
+    return !!this.data.users[email]
   }
 
-  public async getUser(username: string): Promise<UserRecord> {
-    if (!this.hasUser(username)) {
-      throw new DatabaseError(`Failed to get user with username: ${username}`, DatabaseErrorType.MissingRecord);
+  public async getUser(email: string): Promise<UserRecord> {
+    if (!this.hasUser(email)) {
+      throw new DatabaseError(`Failed to get user with email: ${email}`, DatabaseErrorType.MissingRecord);
     }
-    return clone(this.data.users[username]);
+    return clone(this.data.users[email]);
   }
 
   public async findUser(filter: Partial<UserRecord>): Promise<UserRecord | undefined> {
-    for (const username in this.data.users) {
-      const user = this.data.users[username];
+    for (const email in this.data.users) {
+      const user = this.data.users[email];
       let found = true;
       for (const str in filter) {
         const key = str as keyof typeof filter;
@@ -121,8 +124,8 @@ export class JsonDatabase implements Database {
   }
 
   public async confirmUser(token: string): Promise<UserRecord> {
-    for (const username in this.data.users) {
-      const user = this.data.users[username];
+    for (const email in this.data.users) {
+      const user = this.data.users[email];
       if (user.registrationToken === token) {
         user.registrationToken = undefined;
         await this.save();
@@ -133,40 +136,38 @@ export class JsonDatabase implements Database {
   }
 
   public async addUser(user: UserRecord): Promise<UserRecord> {
-    if (!this.hasUser(user.username)) {
-      throw new DatabaseError(`User with username: ${user.username} already exists`, DatabaseErrorType.MissingRecord);
+    if (!this.hasUser(user.email)) {
+      throw new DatabaseError(`User with email: ${user.email} already exists`, DatabaseErrorType.MissingRecord);
     }
-    this.data.users[user.username] = clone(user);
+    this.data.users[user.email] = clone(user);
     await this.save();
-    return await this.getUser(user.username);
+    return await this.getUser(user.email);
   }
 
-  public async updateUser(username: string, update: Partial<Omit<UserRecord, "username">>): Promise<UserRecord> {
-    const user = await this.getUser(username);
+  public async updateUser(email: string, update: Partial<Omit<UserRecord, "email">>): Promise<UserRecord> {
+    const user = await this.getUser(email);
     Object.assign(user, update);
-    this.data.users[user.username] = user;
+    this.data.users[user.email] = user;
     await this.save();
-    return this.getUser(user.username);
+    return this.getUser(user.email);
   }
 
   public async getTournament(tournamentId: string): Promise<Tournament> {
     const tournament = this.data.tournaments[tournamentId];
-    if(!tournament)
-    {
+    if (!tournament) {
       throw new DatabaseError(`No tournament with id: ${tournamentId}`, DatabaseErrorType.MissingRecord);
     }
     return Tournament.Deserialize(tournament);
   }
-  
+
   public async getAllTournaments(): Promise<Tournament[]> {
     return Object.values(this.data.tournaments).map(Tournament.Deserialize);
   }
 
   public async addTournament(tournament: Tournament): Promise<Tournament> {
     const existing = this.data.tournaments[tournament.id];
-    if(existing)
-    {
-      throw new DatabaseError('A tournament with that id already exists',DatabaseErrorType.ExistingRecord);
+    if (existing) {
+      throw new DatabaseError('A tournament with that id already exists', DatabaseErrorType.ExistingRecord);
     }
     this.data.tournaments[tournament.id] = Tournament.Serialize(tournament);
     await this.save();
@@ -175,12 +176,11 @@ export class JsonDatabase implements Database {
 
   public async updateTournament(tournamentId: string, tournament: Partial<Omit<Tournament, "id">>): Promise<Tournament> {
     const existing = this.data.tournaments[tournamentId];
-    if(!existing)
-    {
+    if (!existing) {
       throw new DatabaseError(`No tournament with id: ${tournamentId}`, DatabaseErrorType.MissingRecord);
     }
-    
-    Object.assign(existing,tournament);
+
+    Object.assign(existing, tournament);
     await this.save();
     return Tournament.Deserialize(existing);
   }
@@ -198,6 +198,11 @@ export class JsonDatabase implements Database {
     }
 
     inTournament[metadata.matchId] = clone(metadata);
+    await this.save();
+  }
+
+  public async deleteMatchMetadata(tournamentId: string): Promise<void> {
+    delete this.data.matchMetadata[tournamentId];
     await this.save();
   }
 
@@ -266,8 +271,60 @@ export class JsonDatabase implements Database {
     return metadata;
   }
 
+  public async addRegistration(reg: RegistrationData): Promise<RegistrationData> {
+    let tournamentRegistrations = this.data.registrations[reg.tournamentId];
+    if (!tournamentRegistrations) {
+      tournamentRegistrations = {
+        [reg.contactEmail]: clone(reg)
+      }
+      this.data.registrations[reg.tournamentId] = tournamentRegistrations;
+      await this.save();
+      return clone(reg);
+    } else {
+      const existing = tournamentRegistrations[reg.contactEmail];
+      if (!existing) {
+        tournamentRegistrations[reg.contactEmail] = clone(reg);
+        await this.save();
+        return clone(reg);
+      } else {
+        throw new DatabaseError('Registration with this email already exists.', DatabaseErrorType.ExistingRecord);
+      }
+    }
+  }
+  public async getRegistration(tournamentId: string, email: string): Promise<RegistrationData> {
+    const tournamentTeams = this.data.registrations[tournamentId];
+    const registration = tournamentTeams[email];
+    if (registration) {
+      return registration;
+    }
+    throw new DatabaseError('Team with this id does not exist.', DatabaseErrorType.MissingRecord);
+  }
+  public async getRegistrations(tournamentId: string): Promise<RegistrationData[]> {
+    const tournamentTeams = this.data.registrations[tournamentId];
+    if (tournamentTeams) {
+      return Object.values(tournamentTeams);
+    } else {
+      return [];
+    }
+  }
+
+  public async deleteRegistration(tournamentId: string, email: string): Promise<void> {
+    const tournamentRegistrations = this.data.registrations[tournamentId];
+    if (tournamentRegistrations) {
+
+      delete tournamentRegistrations[email];
+    }
+
+    await this.save();
+  }
+
+  public async deleteRegistrations(tournamentId: string): Promise<void> {
+    delete this.data.registrations[tournamentId];
+    await this.save();
+  }
+
   private async save() {
-    await writeFile(this.pathName, JSON.stringify(this.data,undefined,' '), 'utf-8')
+    await writeFile(this.pathName, JSON.stringify(this.data, undefined, ' '), 'utf-8')
   }
 
 }

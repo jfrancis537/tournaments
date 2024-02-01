@@ -1,0 +1,34 @@
+function schedule_matches(T, C, L):
+    // Sort tournaments by start date to prioritize earlier events
+    sort_tournaments_by_start_date(T)
+    
+    // Iterate through each tournament
+    for tournament in T:
+        // Sort matches within the tournament based on potential criteria (e.g., priority, ranking)
+        sort_matches(tournament->M)
+        
+        // Iterate through each match in the tournament
+        for match in tournament->M:
+            // Find an available time slot and court that meets the constraints
+            time_slot, court = find_available_slot(tournament, match, C, L)
+            
+            // If a suitable slot is found, assign it to the match
+            if time_slot and court:
+                match->time = time_slot
+                match->court = court
+            else:
+                // Handle unschedulable match (e.g., report error, attempt rescheduling)
+                handle_unschedulable_match(match)
+
+function find_available_slot(tournament, match, C, L):
+    // Iterate through available time slots within the tournament's duration
+    for time_slot in get_available_time_slots(tournament->ST, tournament->ET, L):
+        // Check for available courts at that time slot
+        available_courts = get_available_courts(C, time_slot)
+        
+        // If there's an available court, return the slot and court
+        if available_courts:
+            return time_slot, available_courts[0]  // Assign to first available court
+    
+    // If no suitable slot is found, return empty values
+    return None, None

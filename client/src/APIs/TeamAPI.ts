@@ -1,6 +1,7 @@
 import { TeamAPIConstants } from "@common/Constants/TeamAPIConstants";
 import { Team } from "@common/Models/Team";
 import { HttpStatusError } from "../Errors/HttpStatusError";
+import { RegistrationData } from "@common/Models/RegistrationData";
 
 export namespace TeamAPI {
 
@@ -14,6 +15,25 @@ export namespace TeamAPI {
     });
 
     return await response.json() as TeamAPIConstants.TeamRegistrationResponse;
+  }
+
+  export async function createRegistrationCode() {
+    const response = await fetch(`${TeamAPIConstants.BASE_PATH}${TeamAPIConstants.CREATE_REGISTRATION_CODE}`);
+    if(response.ok) {
+      return await response.json() as TeamAPIConstants.RegistrationCodeResponse;
+    } else {
+      throw new HttpStatusError("Failed to get registration code", response.status);
+    }
+  }
+
+  export async function getRegistrations(tournamentId: string): Promise<RegistrationData[]> {
+    const response = await fetch(`${TeamAPIConstants.BASE_PATH}${TeamAPIConstants.GET_REGISTRATIONS(tournamentId)}`);
+    if (response.ok) {
+      const data = await response.json() as RegistrationData[];
+      return data;
+    }
+
+    throw new HttpStatusError("Failed to get registrations", response.status);
   }
 
   export async function getTeams(tournamentId: string): Promise<Team[]> {

@@ -65,8 +65,12 @@ namespace TournamentManagerController {
         case TournamentState.RegistrationOpen:
           await TournamentManager.instance.openRegistration(tournament.id);
           break;
-        case TournamentState.Seeding:
+        case TournamentState.RegistrationConfirmation:
           await TournamentManager.instance.closeRegistration(tournament.id);
+          break;
+        case TournamentState.Seeding:
+          //await TournamentManager.instance.closeRegistration(tournament.id);
+          // THis will be where final registrations will be approved.
           break;
         case TournamentState.Finalizing:
           const success = await TournamentManager.instance.finalizeTournament(tournament.id);

@@ -5,13 +5,14 @@ import { Tournament } from "@common/Models/Tournament";
 import { Team } from "@common/Models/Team";
 import { JsonDatabase } from "./JsonDatabase";
 import { MatchMetadata } from "@common/Models/MatchMetadata";
+import { RegistrationData } from "@common/Models/RegistrationData";
 
 
 export interface Database {
-  hasUser(username: string): Promise<boolean>;
-  getUser(username: string): Promise<UserRecord>;
+  hasUser(email: string): Promise<boolean>;
+  getUser(email: string): Promise<UserRecord>;
   addUser(user: UserRecord): Promise<UserRecord>;
-  updateUser(username: string, details: Partial<Omit<UserRecord, 'username'>>): Promise<UserRecord>;
+  updateUser(email: string, details: Partial<Omit<UserRecord, 'email'>>): Promise<UserRecord>;
   findUser(user: Partial<UserRecord>): Promise<UserRecord | undefined>;
   confirmUser(token: string): Promise<UserRecord>;
 
@@ -22,6 +23,7 @@ export interface Database {
   deleteTournament(tournamentId: string): Promise<void>;
 
   addMatchMetadata(metadata: MatchMetadata): Promise<void>;
+  deleteMatchMetadata(tournamentId: string): Promise<void>;
   getMatchMetadata(tournamentId: string): Promise<MatchMetadata[]>
   getMatchMetadata(tournamentId: string, matchId: number): Promise<MatchMetadata>
 
@@ -32,6 +34,12 @@ export interface Database {
   getTeam(id: string): Promise<Team>;
   getTeams(tournamentId: string): Promise<Team[]>
   deleteTeams(tournamentId: string): Promise<void>;
+
+  addRegistration(reg: RegistrationData): Promise<RegistrationData>;
+  getRegistration(tournamentId: string, email: string): Promise<RegistrationData>;
+  getRegistrations(tournamentId: string): Promise<RegistrationData[]>;
+  deleteRegistrations(tournamentId: string): Promise<void>;
+  deleteRegistration(tournamentId: string, email: string): Promise<void>;
 }
 
 export namespace Database {

@@ -3,6 +3,7 @@ import express, { Router } from "express";
 import { TeamManager } from "../Managers/TeamManager";
 import { RequireRole } from "../MiddleWare/RequireRoleMiddleware";
 import { TournamentManager } from "../Managers/TournamentManager";
+import { generateRegistrationCode } from "../Utilities/Crypto";
 
 namespace TeamController {
   export const path = TeamAPIConstants.BASE_PATH;
@@ -31,12 +32,7 @@ namespace TeamController {
     const body: TeamAPIConstants.TeamRegistrationRequest = req.body;
     let result: TeamAPIConstants.TeamRegistrationResult;
     try {
-      const registration = await TeamManager.instance.registerTeam({
-        name: body.teamName,
-        contactEmail: body.contactEmail,
-        players: [],
-        tournamentId: req.params.id
-      });
+      const registration = await TeamManager.instance.registerTeam(req.params.id, body);
       result = registration[0];
     } catch (err) {
       result = TeamAPIConstants.TeamRegistrationResult.SERVER_ERROR;
@@ -59,6 +55,24 @@ namespace TeamController {
         resp.status(500).json(response);
         break;
     }
+  });
+
+  router.get(TeamAPIConstants.GET_REGISTRATIONS(), RequireRole('admin'), async (req, resp) => {
+    const tournamentId = req.params.id;
+    const registrations = await TeamManager.instance.getRegistrations(tournamentId);
+    if (!registrations) {
+      resp.sendStatus(404);
+      return;
+    }
+    resp.send(registrations);
+  });
+
+  router.get(TeamAPIConstants.CREATE_REGISTRATION_CODE, RequireRole('admin'), async (req,resp) => {
+    const body: TeamAPIConstants.RegistrationCodeResponse = {
+      code: await generateRegistrationCode()
+    }
+
+    resp.json(body);
   });
 
   router.get(TeamAPIConstants.GET_TEAMS(), async (req, resp) => {

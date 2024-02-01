@@ -40,7 +40,7 @@ export const NavBar: React.FC = () => {
             variant='plain'
             endDecorator={<Person />}
           >
-            {user.username}
+            {user.email}
           </MenuButton>
           <Menu>
             <MenuItem

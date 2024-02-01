@@ -1,16 +1,20 @@
 import {
   Container, FormControl, FormLabel, Input,
   Button, Card, Typography, Divider,
-  CardContent, Box, IconButton
+  CardContent, Box, IconButton, CircularProgress, RadioGroup, Radio
 } from "@mui/joy";
 
 import pageStyles from './TournamentRegistration.module.css';
 import { Validators } from "@common/Utilities/Validators";
-import { useState } from "react";
-import { Close } from "@mui/icons-material";
+import React, { useContext, useEffect, useState } from "react";
+import { Close, ContentCopy, CopyAll } from "@mui/icons-material";
 import { TeamAPI } from "../../APIs/TeamAPI";
 import { TeamAPIConstants } from "@common/Constants/TeamAPIConstants";
 import { useNavigation } from "../../Hooks/UseNavigation";
+import { UserContext } from "../../Contexts/UserContext";
+import { Tournament } from "@common/Models/Tournament";
+import { TournamentAPI } from "../../APIs/TournamentAPI";
+import { copy } from "../../Utilities/Clipboard";
 
 interface TournamentRegistrationProps {
   tournamentId: string;
@@ -22,14 +26,67 @@ enum RegistrationState {
   Complete
 }
 
+enum CodeChoice {
+  NONE = 'none',
+  NEW = 'new',
+  EXISTING = 'existing'
+}
+
+interface CodeState {
+  choice: CodeChoice,
+  code?: string,
+}
+
+const CODE_LENGTH = 5;
+
 export const TournamentRegistration: React.FC<TournamentRegistrationProps> = (props) => {
 
-  const [teamName, setTeamName] = useState('');
-  const [email, setEmail] = useState('');
+
+  const { user } = useContext(UserContext);
+
+  const [name, setName] = useState('');
+  const [email, setEmail] = useState(user?.email ?? '');
+  const [codeState, setCodeState] = useState<CodeState>({ choice: CodeChoice.NONE });
+  const [enteredCode, setEnteredCode] = useState('');
   const [state, setState] = useState(RegistrationState.Composing);
   const [errorMessage, setErrorMessage] = useState('');
+  const [tournament, setTournament] = useState<Tournament>();
+  const [waitingForCode, setWaitingForCode] = useState(false);
 
   const goHome = useNavigation("/");
+
+  useEffect(() => {
+    TournamentAPI.getTournament(props.tournamentId).then(t => setTournament(t));
+  }, [props.tournamentId]);
+
+  useEffect(() => {
+    setEmail(user?.email ?? '');
+  }, [user]);
+
+  async function handleCodeStateChanged(event: React.ChangeEvent<HTMLInputElement>) {
+    const choice = event.currentTarget.value as CodeChoice;
+    switch (choice) {
+      case CodeChoice.NONE:
+        setCodeState({
+          choice
+        });
+        break;
+      case CodeChoice.NEW:
+        setWaitingForCode(true);
+        const code = (await TeamAPI.createRegistrationCode()).code;
+        setCodeState({
+          choice,
+          code
+        });
+        setWaitingForCode(false);
+        break;
+      case CodeChoice.EXISTING:
+        setCodeState({
+          choice
+        });
+        break;
+    }
+  }
 
 
   function dismissError() {
@@ -37,11 +94,19 @@ export const TournamentRegistration: React.FC<TournamentRegistrationProps> = (pr
     setState(RegistrationState.Composing);
   }
 
-  async function register() {
+  function enteredCodeIsInValid() {
+    return codeState.choice === CodeChoice.EXISTING && enteredCode.length > 0 && enteredCode.length < 5;
+  }
 
+  function registerButtonEnabled() {
+    return !enteredCodeIsInValid() && name !== '' && Validators.email(email) && !waitingForCode;
+  }
+
+  async function register() {
     const result = await TeamAPI.register(props.tournamentId, {
-      teamName: teamName,
-      contactEmail: email
+      name: name,
+      contactEmail: email,
+      teamCode: codeState.choice === CodeChoice.EXISTING ? enteredCode : codeState.code
     });
     const ResultType = TeamAPIConstants.TeamRegistrationResult;
     switch (result.result) {
@@ -59,6 +124,7 @@ export const TournamentRegistration: React.FC<TournamentRegistrationProps> = (pr
   }
 
   function renderComposing(): JSX.Element {
+
     return (
       <Container maxWidth='sm' sx={{
         height: '100%'
@@ -68,22 +134,46 @@ export const TournamentRegistration: React.FC<TournamentRegistrationProps> = (pr
           <Divider />
           <CardContent>
             <FormControl error={false}>
-              <FormLabel>Team Name</FormLabel>
+              <FormLabel>Name</FormLabel>
               <Input
-                value={teamName}
-                onChange={e => setTeamName(e.target.value)}
+                value={name}
+                onChange={e => setName(e.target.value)}
                 type='text'
               />
             </FormControl>
             <FormControl error={!!email ? !Validators.email(email) : false}>
               <FormLabel>Email</FormLabel>
               <Input
+                value={email}
+                disabled={!!user}
                 type='email'
                 onChange={e => setEmail(e.target.value)}
               />
             </FormControl>
+            {tournament!.teamSize > 1 && (
+              <FormControl sx={{ marginTop: '1rem' }}>
+                <FormLabel>Team Information</FormLabel>
+                <RadioGroup value={codeState.choice} onChange={handleCodeStateChanged} size="sm">
+                  <Radio label="I don't have a team." value={CodeChoice.NONE} />
+                  <Radio label="My teammate gave me a code." value={CodeChoice.EXISTING} />
+                  <Radio label="I want to setup a new team." value={CodeChoice.NEW} />
+                </RadioGroup>
+              </FormControl>
+            )}
+            {codeState.choice === CodeChoice.EXISTING && (
+              <FormControl error={false}>
+                <FormLabel>Code</FormLabel>
+                <Input
+                  error={enteredCodeIsInValid()}
+                  value={enteredCode}
+                  onChange={e => setEnteredCode(e.currentTarget.value.toLocaleUpperCase())}
+                  type='text'
+                  slotProps={{ input: { maxLength: CODE_LENGTH } }}
+                />
+              </FormControl>
+            )}
             <Box className={pageStyles["button-container"]}>
-              <Button variant='solid' onClick={register}>Register</Button>
+              <Button disabled={!registerButtonEnabled()} variant='solid' onClick={register}>Register</Button>
               <Button variant='solid' onClick={goHome}>Cancel</Button>
             </Box>
           </CardContent>
@@ -115,15 +205,49 @@ export const TournamentRegistration: React.FC<TournamentRegistrationProps> = (pr
       <Container maxWidth='sm' sx={{ height: '100%' }}>
         <Card>
           <CardContent>
-            <Typography level="title-lg">Registration Confirmed!</Typography>
-            <Typography level="body-md">Check your email for your details.</Typography>
+            <Typography level="title-lg">Registration Submitted!</Typography>
+            <Typography level="body-md">You will get an email when your registration is confirmed.</Typography>
           </CardContent>
+          {codeState.choice === CodeChoice.NEW && (
+            <>
+              <Divider />
+              <CardContent>
+                <Box sx={{ display: 'flex', flexFlow: 'row', alignItems: 'center' }}>
+                  <Typography level="h2">{codeState.code}</Typography>
+                  <IconButton onClick={() => copy(codeState.code ?? '')} sx={{ marginLeft: '1rem' }}>
+                    <ContentCopy />
+                  </IconButton>
+                </Box>
+                <Typography level="body-md">
+                  Be sure to save this code and share it with your teammate. 
+                  If you lose it contact <a href="mailto:admin@kgpb.us">admin@kgpb.us</a>.
+                </Typography>
+              </CardContent>
+            </>
+          )}
         </Card>
       </Container>
     );
   }
 
+  function renderLoading() {
+    return (
+      <Container maxWidth='sm' sx={{ height: '100%' }}>
+        <Card>
+          <CardContent>
+            <CircularProgress size='lg' />
+          </CardContent>
+        </Card>
+      </Container>
+    )
+  }
+
   function render() {
+
+    if (!tournament) {
+      return renderLoading();
+    }
+
     switch (state) {
       case RegistrationState.Error:
       case RegistrationState.Composing:

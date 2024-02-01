@@ -1,10 +1,9 @@
+import { RegistrationData } from "../Models/RegistrationData";
+
 export namespace TeamAPIConstants {
   export const BASE_PATH = '/api/v1/team';
 
-  export interface TeamRegistrationRequest {
-    teamName: string,
-    contactEmail: string
-  }
+  export type TeamRegistrationRequest = Omit<Omit<Omit<RegistrationData,'id'>,'tournamentId'>, 'approved'>
 
   export enum TeamRegistrationResult {
     SUCCESS,
@@ -47,4 +46,15 @@ export namespace TeamAPIConstants {
   export const GET_TEAMS = (tournamentId = ':id') => {
     return `/get/teams/${tournamentId}`;
   }
+
+  export function GET_REGISTRATIONS(): '/get/registrations/:id'
+  export function GET_REGISTRATIONS(tournamentId: string): string
+  export function GET_REGISTRATIONS(tournamentId = ':id') {
+    return `/get/registrations/${tournamentId}`;
+  }
+
+  export interface RegistrationCodeResponse {
+    code: string;
+  }
+  export const CREATE_REGISTRATION_CODE = '/create/registration_code';
 }

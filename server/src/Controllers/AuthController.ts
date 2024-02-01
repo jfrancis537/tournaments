@@ -48,7 +48,7 @@ namespace AuthController {
     }
     // Verify Login details
     const body = req.body as AuthAPIConstants.LoginRequest;
-    if (body.password && body.username) {
+    if (body.password && body.email) {
       const [result, user] = await UserManager.instance.loginUser(body);
       if (result === LoginResult.SUCCESS) {
         authSession.user = user;
@@ -93,7 +93,6 @@ namespace AuthController {
       case RegistrationResult.FAILED_EMAIL_EXISTS:
       case RegistrationResult.FAILED_BAD_PASSWORD:
       case RegistrationResult.FAILED_BAD_EMAIL:
-      case RegistrationResult.FAILED_BAD_USERNAME:
         resp.status(400).json(responseBody);
         break;
       case RegistrationResult.FAILED_UNK:

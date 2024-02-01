@@ -16,16 +16,12 @@ import { generateToken } from '../Utilities/Crypto';
 class UserManager {
 
   public async registerUser(request: AuthAPIConstants.AccountRegistrationRequest) {
-    if (await Database.instance.hasUser(request.username)) {
+    if (await Database.instance.hasUser(request.email)) {
       return RegistrationResult.FAILED_USER_EXISTS;
     }
 
     if (!Validators.password(request.password)) {
       return RegistrationResult.FAILED_BAD_PASSWORD;
-    }
-
-    if (!Validators.username(request.username)) {
-      return RegistrationResult.FAILED_BAD_USERNAME;
     }
 
     if (!Validators.email(request.email)) {
@@ -40,7 +36,6 @@ class UserManager {
     const hash = this.generateHash(request.password, salt);
     try {
       const record = await Database.instance.addUser({
-        username: request.username,
         email: request.email,
         createdDate: DateTime.now().toString(),
         role: EnvironmentVariables.IS_DEVELOPMENT ? 'admin' : 'user',
@@ -82,7 +77,7 @@ class UserManager {
 
   public async loginUser(request: AuthAPIConstants.LoginRequest): Promise<[LoginResult, Readonly<User> | undefined]> {
     try {
-      const user = await Database.instance.getUser(request.username);
+      const user = await Database.instance.getUser(request.email);
       if (!user) {
         return [LoginResult.INVALID_CREDENTIALS, undefined];
       }
@@ -95,7 +90,6 @@ class UserManager {
         return [LoginResult.INVALID_CREDENTIALS, undefined];
       }
       return [LoginResult.SUCCESS, {
-        username: user.username,
         email: user.email,
         role: user.role
       }];

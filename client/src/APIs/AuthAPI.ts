@@ -3,9 +3,9 @@ import { User } from "@common/Models/User";
 import { HttpStatusError } from "../Errors/HttpStatusError";
 
 export namespace AuthAPI {
-  export async function login(username: string, password: string) {
+  export async function login(email: string, password: string) {
     const body: AuthAPIConstants.LoginRequest = {
-      username,
+      email,
       password
     }
     const resp = await fetch(`${AuthAPIConstants.BASE_PATH}${AuthAPIConstants.LOGIN}`, {

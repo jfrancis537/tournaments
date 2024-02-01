@@ -6,6 +6,7 @@ export type TournamentOptions = Omit<Omit<Tournament, 'id'>, 'state'>;
 export enum TournamentState {
   New,
   RegistrationOpen,
+  RegistrationConfirmation,
   Seeding,
   Finalizing,
   Active,
@@ -22,6 +23,7 @@ export namespace TournamentState {
         return 'Registration is not open yet.';
       case TournamentState.RegistrationOpen:
         return 'Registration is open.'
+      case TournamentState.RegistrationConfirmation:
       case TournamentState.Seeding:
       case TournamentState.Finalizing:
       case TournamentState.Active:
@@ -41,6 +43,7 @@ export interface Tournament {
   stages: StageType[];
   stageSettings: StageSettings[];
   playersSeeded: boolean;
+  teamSize: number;
 }
 
 export interface SerializedTournament {
@@ -53,6 +56,7 @@ export interface SerializedTournament {
   stages: StageType[];
   stageSettings: StageSettings[];
   playersSeeded: boolean;
+  teamSize: number;
 }
 
 export namespace Tournament {
@@ -66,7 +70,8 @@ export namespace Tournament {
       registrationOpenDate: data.registrationOpenDate ? DateTime.fromISO(data.registrationOpenDate) : undefined,
       stages: data.stages,
       stageSettings: data.stageSettings,
-      playersSeeded: !!data.playersSeeded
+      playersSeeded: !!data.playersSeeded,
+      teamSize: data.teamSize,
     }
   }
 
@@ -84,6 +89,7 @@ export namespace Tournament {
         }
       case TournamentState.RegistrationOpen:
         return true;
+      case TournamentState.RegistrationConfirmation:
       case TournamentState.Seeding:
       case TournamentState.Finalizing:
       case TournamentState.Active:

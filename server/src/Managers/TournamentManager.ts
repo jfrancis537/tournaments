@@ -41,7 +41,8 @@ class TournamentManager {
       registrationOpenDate: options.registrationOpenDate,
       stages: options.stages,
       stageSettings: options.stageSettings,
-      playersSeeded: options.playersSeeded
+      playersSeeded: options.playersSeeded,
+      teamSize: options.teamSize
     }
 
     await Database.instance.addTournament(tournament);
@@ -51,7 +52,10 @@ class TournamentManager {
 
   public async deleteTournament(id: string) {
     await this.manager.delete.tournament(id);
+    await this.manager.storage.delete('participant', { tournament_id: id });
     await Database.instance.deleteTournament(id);
+    await Database.instance.deleteMatchMetadata(id);
+    await Database.instance.deleteRegistrations(id);
     TournamentSocketAPI.ontournamentdeleted.invoke(id);
   }
 
@@ -60,7 +64,21 @@ class TournamentManager {
   }
 
   public async closeRegistration(id: string) {
+    await this.setTournamentState(id, TournamentState.RegistrationConfirmation, TournamentSocketAPI.ontournamentstateupdated);
+  }
+
+  public async finalizeRegistrations(id: string) {
     await this.setTournamentState(id, TournamentState.Seeding, TournamentSocketAPI.ontournamentstateupdated);
+    const tournament = await this.getTournament(id);
+    if (tournament && tournament.state === TournamentState.RegistrationConfirmation) {
+      const registrations = await Database.instance.getRegistrations(id);
+      for(const registration of registrations) {
+        if(registration.approved)
+        {
+          // TODO generate team
+        }
+      }
+    }
   }
 
   public async completeTournament(id: string) {
@@ -395,7 +413,7 @@ class TournamentManager {
       }
       return true;
     } catch (err) {
-      if(err instanceof DatabaseError && err.type === DatabaseErrorType.MissingRecord) {
+      if (err instanceof DatabaseError && err.type === DatabaseErrorType.MissingRecord) {
         return false;
       }
       throw err;
