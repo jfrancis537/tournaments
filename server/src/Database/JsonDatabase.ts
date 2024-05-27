@@ -83,7 +83,25 @@ export class JsonDatabase implements Database {
             // Add loaded properties at the end to ensure that loaded properties overwrite the schema.
             ...loaded,
           }
+          fs.writeFileSync(this.pathName, JSON.stringify(this.storage), 'utf-8');
         } else {
+          this.storage = {
+            version: "1.1",
+            matchMetadata: {},
+            teamData: {
+            },
+            tournaments: {},
+            registrations: {},
+            bracketData: {
+              group: [],
+              match: [],
+              match_game: [],
+              round: [],
+              stage: [],
+              participant: []
+            },
+            users: {},
+          }
           fs.writeFileSync(this.pathName, JSON.stringify(this.storage), 'utf-8');
         }
 
