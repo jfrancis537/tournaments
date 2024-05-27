@@ -38,6 +38,7 @@ export interface Database {
   addRegistration(reg: RegistrationData): Promise<RegistrationData>;
   getRegistration(tournamentId: string, email: string): Promise<RegistrationData>;
   getRegistrations(tournamentId: string): Promise<RegistrationData[]>;
+  updateRegistration(tournamentId: string, email: string, update: Partial<Omit<RegistrationData,'contactEmail'>>): Promise<RegistrationData>;
   deleteRegistrations(tournamentId: string): Promise<void>;
   deleteRegistration(tournamentId: string, email: string): Promise<void>;
 }

@@ -19,6 +19,8 @@ import { Snackbar, Typography, useColorScheme } from '@mui/joy';
 import { ConfirmRegistration } from './Pages/ConfirmRegistration';
 import { useSocketState } from './Managers/SocketManager';
 import { TournamentRegistration } from './Pages/TournamentPage/TournamentRegistration';
+import { RegistrationManagement } from './Pages/TournamentPage/RegistrationManagement';
+import { TeamAssignment } from './Pages/TournamentPage/TeamAssignment';
 
 export const App: React.FC = () => {
 
@@ -118,6 +120,26 @@ export const App: React.FC = () => {
                 )
               }
               return <SeedAssignmentTool tournamentId={params.id} />
+            }}
+          </AuthenticatedRoute>
+          <AuthenticatedRoute roles={['admin']} path='/tournament/:id/registration-approval'>
+            {(params) => {
+              if (params.id === NEW_TOURNAMENT_ID) {
+                return (
+                  <NotFound />
+                )
+              }
+              return <RegistrationManagement tournamentId={params.id} />
+            }}
+          </AuthenticatedRoute>
+          <AuthenticatedRoute roles={['admin']} path='/tournament/:id/team-assignment'>
+            {(params) => {
+              if (params.id === NEW_TOURNAMENT_ID) {
+                return (
+                  <NotFound />
+                )
+              }
+              return <TeamAssignment tournamentId={params.id}/>
             }}
           </AuthenticatedRoute>
           <Route path='/tournament/:tournamentId/match/:matchId'>

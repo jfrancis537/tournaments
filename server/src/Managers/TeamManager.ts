@@ -47,6 +47,22 @@ class TeamManager {
     }
   }
 
+  public async updateRegistration(tournamentId: string,contactEmail: string, update: Partial<Omit<RegistrationData,'contactEmail'>>) {
+    try {
+      const data = await Database.instance.updateRegistration(tournamentId, contactEmail, update);
+      TeamSocketAPI.onregistrationchanged.invoke(data);
+      return TeamAPIConstants.RegistrationUpdateResult.SUCCESS;
+    } catch (err) {
+      if(err instanceof DatabaseError) {
+        if(err.type === DatabaseErrorType.MissingRecord) {
+          return TeamAPIConstants.RegistrationUpdateResult.NO_SUCH_REGISTRATION;
+        }
+      }
+    }
+    return TeamAPIConstants.RegistrationUpdateResult.ERROR;
+
+  }
+
   public async deleteTeams(tournamentId: string) {
     await Database.instance.deleteTeams(tournamentId);
   }

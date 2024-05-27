@@ -292,13 +292,25 @@ export class JsonDatabase implements Database {
     }
   }
   public async getRegistration(tournamentId: string, email: string): Promise<RegistrationData> {
-    const tournamentTeams = this.data.registrations[tournamentId];
-    const registration = tournamentTeams[email];
+    const tournamentRegistrations = this.data.registrations[tournamentId];
+    const registration = tournamentRegistrations[email];
     if (registration) {
       return registration;
     }
     throw new DatabaseError('Team with this id does not exist.', DatabaseErrorType.MissingRecord);
   }
+
+  public async updateRegistration(
+    tournamentId: string,
+    email: string,
+    update: Partial<Omit<RegistrationData, "contactEmail">>): Promise<RegistrationData> {
+      const tournamentRegistrations = this.data.registrations[tournamentId];
+      const registration = tournamentRegistrations[email];
+      Object.assign(registration,update);
+      await this.save()
+      return clone(registration);
+  }
+
   public async getRegistrations(tournamentId: string): Promise<RegistrationData[]> {
     const tournamentTeams = this.data.registrations[tournamentId];
     if (tournamentTeams) {

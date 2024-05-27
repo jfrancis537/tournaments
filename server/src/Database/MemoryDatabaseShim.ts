@@ -49,12 +49,12 @@ export class MemoryDatabaseShim implements CrudInterface {
     } else {
       result = await this.memorydb.delete(table);
     }
-    await this.save();
+    await this.save(true);
     return result;
   }
 
   
-  private async save() {
+  private async save(force = false) {
     if(!this.pendingSave) {
       this.pendingSave = new Promise((resolve) => {
         setTimeout(() => {
@@ -62,7 +62,7 @@ export class MemoryDatabaseShim implements CrudInterface {
             this.pendingSave = undefined;
             resolve();
           });
-        },5);
+        },force ? 0 : 5);
       });
     }
   }

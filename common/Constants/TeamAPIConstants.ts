@@ -47,6 +47,12 @@ export namespace TeamAPIConstants {
     return `/get/teams/${tournamentId}`;
   }
 
+  export enum RegistrationUpdateResult {
+    SUCCESS,
+    ERROR,
+    NO_SUCH_REGISTRATION
+  }
+
   export function GET_REGISTRATIONS(): '/get/registrations/:id'
   export function GET_REGISTRATIONS(tournamentId: string): string
   export function GET_REGISTRATIONS(tournamentId = ':id') {
@@ -57,4 +63,19 @@ export namespace TeamAPIConstants {
     code: string;
   }
   export const CREATE_REGISTRATION_CODE = '/create/registration_code';
+
+  export const SET_REGISTRATION_APPROVAL = '/set/registration_approval';
+
+  export interface SetRegistrationApprovalRequest {
+    contactEmail: string,
+    approval: boolean,
+    tournamentId: string,
+  }
+
+  export const SET_REGISTRATION_CODES = '/set/registration_codes';
+
+  export interface SetRegistrationCodesRequest {
+    tournamentId: string,
+    registrations: RegistrationData[];
+  }
 }

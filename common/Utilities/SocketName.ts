@@ -12,4 +12,7 @@ export enum SocketName {
   // Teams
   TeamCreated = 'team_created',
   TeamSeedNumberAssigned = 'team_seednumber_assigned',
+
+  // Registration
+  RegistrationChanged = 'registration_changed'
 }

@@ -31,6 +31,8 @@ export const TournamentManagment: React.FC<TournamentManagmentProps> = (props) =
 
   const navigateToAssigning = useNavigation(`${tournamentUrl(props.tournamentId)}/assigning`);
   const navigateToTournament = useNavigation(`${tournamentUrl(props.tournamentId)}`);
+  const gotoRegistrationApproval = useNavigation(`${tournamentUrl(props.tournamentId)}/registration-approval`);
+  const gotoTeamAssignment = useNavigation(`${tournamentUrl(props.tournamentId)}/team-assignment`);
   const [tournament, setTournament] = useState<Tournament>();
   const [registrations, setRegistrations] = useState<RegistrationData[]>();
   const [loadingState, setLoadingState] = useState<LoadState>(LoadState.LOADING);
@@ -44,9 +46,9 @@ export const TournamentManagment: React.FC<TournamentManagmentProps> = (props) =
   }, [socketState]);
 
   useEffect(() => {
-    TeamSocketAPI.onregistrationcreated.addListener(handleTeamRegistered);
+    TeamSocketAPI.onregistrationcreated.addListener(handleNewRegistration);
     return () => {
-      TeamSocketAPI.onregistrationcreated.removeListener(handleTeamRegistered);
+      TeamSocketAPI.onregistrationcreated.removeListener(handleNewRegistration);
     }
   }, [registrations]);
 
@@ -71,7 +73,7 @@ export const TournamentManagment: React.FC<TournamentManagmentProps> = (props) =
   }
 
 
-  function handleTeamRegistered(regData: RegistrationData) {
+  function handleNewRegistration(regData: RegistrationData) {
     if (regData.tournamentId === props.tournamentId) {
       if (registrations) {
         setRegistrations([...registrations, regData]);
@@ -130,8 +132,8 @@ export const TournamentManagment: React.FC<TournamentManagmentProps> = (props) =
             >
               Confirm Registrations
             </Button>
-            <Button onClick={() => {}}>Approve Registrations</Button>
-            <Button onClick={() => {}}>Assign Teams</Button>
+            <Button onClick={gotoRegistrationApproval}>Approve Registrations</Button>
+            {tournament!.teamSize > 1 && <Button onClick={gotoTeamAssignment}>Assign Teams</Button>}
           </>
         )
       case TournamentState.Seeding:

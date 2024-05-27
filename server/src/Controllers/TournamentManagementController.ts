@@ -69,6 +69,7 @@ namespace TournamentManagerController {
           await TournamentManager.instance.closeRegistration(tournament.id);
           break;
         case TournamentState.Seeding:
+          await TournamentManager.instance.finalizeRegistrations(tournament.id);
           //await TournamentManager.instance.closeRegistration(tournament.id);
           // THis will be where final registrations will be approved.
           break;

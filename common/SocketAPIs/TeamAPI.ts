@@ -7,6 +7,7 @@ class TeamSocketAPI {
   private initialized = false;
   private onregistrationcreated_?: SocketAction<RegistrationData>;
   private onteamseednumberassigned_?: SocketAction<Team>;
+  private onregistrationchanged_?: SocketAction<RegistrationData>;
 
   public initialize(socket: SocketLike) {
     // Team created
@@ -18,6 +19,11 @@ class TeamSocketAPI {
     // Team seed number created
     this.onteamseednumberassigned_ = new SocketAction(
       SocketName.TeamSeedNumberAssigned,
+      socket
+    );
+
+    this.onregistrationchanged_ = new SocketAction(
+      SocketName.RegistrationChanged,
       socket
     );
 
@@ -36,6 +42,13 @@ class TeamSocketAPI {
       throw new Error('API is not initialized');
     }
     return this.onteamseednumberassigned_!;
+  }
+
+  public get onregistrationchanged() {
+    if (!this.initialized) {
+      throw new Error('API is not initialized');
+    }
+    return this.onregistrationcreated_!;
   }
 }
 

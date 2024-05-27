@@ -1,0 +1,19 @@
+.table-box {
+  margin-top: 1rem;
+}
+
+.table-box p {
+  margin-bottom: 1rem;
+}
+
+.table td {
+  text-align: center;
+}
+
+.container {
+  flex: 1;
+}
+
+.container .table th {
+  text-align: center;
+}

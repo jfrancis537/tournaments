@@ -36,6 +36,41 @@ export namespace TeamAPI {
     throw new HttpStatusError("Failed to get registrations", response.status);
   }
 
+  export async function setRegistrationApproval(tournamentId: string, contactEmail: string,approved: boolean) {
+    const body: TeamAPIConstants.SetRegistrationApprovalRequest = {
+      contactEmail,
+      approval: approved,
+      tournamentId
+    }
+
+    const response = await fetch(`${TeamAPIConstants.BASE_PATH}${TeamAPIConstants.SET_REGISTRATION_APPROVAL}`, {
+      body: JSON.stringify(body),
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      }
+    });
+
+    if(!response.ok) {
+      throw new HttpStatusError("Failed to set registration approval", response.status);
+    }
+  }
+
+  export async function assignRegistrationCodes(tournamentId: string, registrations: RegistrationData[]) {
+    const body: TeamAPIConstants.SetRegistrationCodesRequest = {
+      tournamentId,
+      registrations
+    };
+
+    const response = await fetch(`${TeamAPIConstants.BASE_PATH}${TeamAPIConstants.SET_REGISTRATION_CODES}`, {
+      body: JSON.stringify(body),
+      method: 'PUT',
+      headers: {
+        'Content-Type': 'application/json'
+      }
+    });
+  }
+
   export async function getTeams(tournamentId: string): Promise<Team[]> {
     const response = await fetch(`${TeamAPIConstants.BASE_PATH}${TeamAPIConstants.GET_TEAMS(tournamentId)}`);
     if (response.ok) {

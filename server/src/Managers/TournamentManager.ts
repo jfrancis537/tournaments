@@ -12,6 +12,11 @@ import { SocketAction } from "@common/Utilities/SocketAction";
 import { Database } from "../Database/Database";
 import { DatabaseError, DatabaseErrorType } from "../Database/DatabaseError";
 import { MemoryDatabaseShim } from "../Database/MemoryDatabaseShim";
+import { RegistrationData } from "@common/Models/RegistrationData";
+import { TeamAPIConstants } from "@common/Constants/TeamAPIConstants";
+import { EnvironmentVariables } from "../Utilities/EnvironmentVariables";
+import { MailManager } from "./MailManager";
+import TournamentRegistrationConfirmation from "../Templates/TournamentRegistrationConfirmation";
 
 class TournamentManager {
 
@@ -68,14 +73,61 @@ class TournamentManager {
   }
 
   public async finalizeRegistrations(id: string) {
-    await this.setTournamentState(id, TournamentState.Seeding, TournamentSocketAPI.ontournamentstateupdated);
     const tournament = await this.getTournament(id);
     if (tournament && tournament.state === TournamentState.RegistrationConfirmation) {
-      const registrations = await Database.instance.getRegistrations(id);
-      for(const registration of registrations) {
-        if(registration.approved)
+
+      // Filter out unapproved registrations.
+      const registrations = (await Database.instance.getRegistrations(id)).filter(r => r.approved);
+
+      if (tournament.teamSize > 1) {
+        registrations.sort((a, b) => {
+          return a.teamCode!.localeCompare(b.teamCode!);
+        });
+      }
+
+
+      const teams: RegistrationData[][] = [];
+      for (let i = 0; i < registrations.length; i += tournament.teamSize) {
+        const team = [];
+        for (let j = i; j < i + tournament.teamSize; j++) {
+          team.push(registrations[j]);
+        }
+        teams.push(team);
+      }
+
+
+      const confirmedTeams: Team[] = [];
+      for (const teamRegistrations of teams) {
+        const result = await TeamManager.instance.confirmTeamRegistration({
+          name: teamRegistrations.map(r => r.name).join(' & '),
+          players: teamRegistrations.map(r => ({
+            contactEmail: r.contactEmail,
+            name: r.name
+          })),
+          tournamentId: tournament.id
+        });
+        if(result[0] === TeamAPIConstants.TeamRegistrationResult.SUCCESS) {
+          confirmedTeams.push(result[1]!);
+        }
+      }
+      await this.setTournamentState(id, TournamentState.Seeding, TournamentSocketAPI.ontournamentstateupdated);
+      const confirmUrl = `https://${EnvironmentVariables.HOST}/tournament/${tournament.id}`;
+      const body = TournamentRegistrationConfirmation(tournament.name,confirmUrl);
+
+      for(const team of confirmedTeams)
+      {
+        for(const player of team.players)
         {
-          // TODO generate team
+          MailManager.sendEmail({
+            sender: EnvironmentVariables.EMAIL_SENDER,
+            to: player.contactEmail,
+            subject: 'Tournament Registration Confirmed.',
+            html: body
+          }).then(success => {
+            if (!success) {
+              console.error('Failed to send an email to: ' + player.contactEmail);
+            }
+          });
         }
       }
     }

@@ -1,0 +1,22 @@
+.page-container {
+  flex: 1;
+}
+
+.card-container {
+  flex-flow: row;
+  display: flex;
+  height: 80%;
+  margin-top: 1rem;
+}
+
+.card-container > div {
+  flex: 1;
+  margin: 0px 1rem;
+}
+
+.controls {
+  margin-top: 1rem;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
