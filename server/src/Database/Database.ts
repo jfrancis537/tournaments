@@ -46,6 +46,7 @@ export interface Database {
 
 export namespace Database {
 
-  export const instance: Database = EnvironmentVariables.ENABLE_PSQL ? new PostgresDatabase() : new JsonDatabase(`${process.env.HOME}/Desktop/database.json`);
+  export const instance: Database = EnvironmentVariables.ENABLE_PSQL ? new PostgresDatabase : 
+  new JsonDatabase(EnvironmentVariables.JSON_DB_PATH);
 
 }
