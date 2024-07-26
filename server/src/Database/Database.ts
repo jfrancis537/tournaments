@@ -6,6 +6,7 @@ import { Team } from "@common/Models/Team";
 import { JsonDatabase } from "./JsonDatabase";
 import { MatchMetadata } from "@common/Models/MatchMetadata";
 import { RegistrationData } from "@common/Models/RegistrationData";
+import { PostgresDatabase } from "./PostgresDatabase";
 
 
 export interface Database {
@@ -45,6 +46,6 @@ export interface Database {
 
 export namespace Database {
 
-  export const instance: Database = EnvironmentVariables.IS_DEVELOPMENT ? new JsonDatabase(`${process.env.HOME}/Desktop/database.json`) : new JsonDatabase("./database.json");
+  export const instance: Database = EnvironmentVariables.ENABLE_PSQL ? new PostgresDatabase() : new JsonDatabase(`${process.env.HOME}/Desktop/database.json`);
 
 }

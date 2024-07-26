@@ -62,7 +62,7 @@ export class MemoryDatabaseShim implements CrudInterface {
             this.pendingSave = undefined;
             resolve();
           });
-        },force ? 0 : 5);
+        },force ? 0 : 5000);
       });
     }
   }

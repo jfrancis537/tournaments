@@ -26,7 +26,8 @@
       "@common/*" : ["../common/*"]
     }
   },
-  "include": ["src","../common", "../server/src/Utilities/Crypto.ts"],
+  "include": ["src","../common"],
+  "exclude": ["../server"],
   "references": [{ "path": "../tsconfig.node.json" }]
   
 }

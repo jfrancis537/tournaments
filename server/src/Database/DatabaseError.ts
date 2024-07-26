@@ -1,6 +1,7 @@
 export enum DatabaseErrorType {
   MissingRecord,
   ExistingRecord,
+  Other,
 }
 
 export class DatabaseError extends Error{

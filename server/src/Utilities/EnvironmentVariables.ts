@@ -7,4 +7,6 @@ export namespace EnvironmentVariables {
   export const EMAIL_USERNAME = process.env.EMAIL_USERNAME!;
   export const EMAIL_PASSWORD = process.env.EMAIL_PASSWORD!;
   export const ENABLE_EMAIL = process.env.ENABLE_EMAIL !== 'no';
+  export const ENABLE_PSQL = process.env.ENABLE_PSQL !== 'no';
+  export const PSQL_PASSWORD = process.env.PSQL_PASSWORD;
 }

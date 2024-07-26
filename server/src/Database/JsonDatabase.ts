@@ -11,11 +11,6 @@ import { SerializedTournament, Tournament } from "@common/Models/Tournament";
 import { Database as BracketsDatabase } from "brackets-manager";
 import { RegistrationData } from "@common/Models/RegistrationData";
 
-/**
- * 
- * NEXT THIS IS TO FIGURE OUT REGISTRATION EMAILS FOR TOURNAMENT REGISTRATION.
- * 
- */
 
 const clone = rfdc();
 
