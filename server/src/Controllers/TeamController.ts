@@ -165,7 +165,7 @@ namespace TeamController {
     resp.send(registrations);
   });
 
-  router.get(TeamAPIConstants.CREATE_REGISTRATION_CODE, RequireRole('admin'), async (req, resp) => {
+  router.get(TeamAPIConstants.CREATE_REGISTRATION_CODE, async (req, resp) => {
     const body: TeamAPIConstants.RegistrationCodeResponse = {
       code: await generateRegistrationCode()
     }
