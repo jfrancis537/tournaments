@@ -10,4 +10,4 @@ export namespace EnvironmentVariables {
   export const ENABLE_PSQL = process.env.ENABLE_PSQL !== 'no';
   export const PSQL_PASSWORD = process.env.PSQL_PASSWORD;
   export const JSON_DB_PATH = process.env.JSON_DB_PATH ?? './database.json'
-}
+} 

@@ -136,7 +136,7 @@ export class PostgresDatabase implements Database {
     const result =
       await this.query<ColResult<Tables.Names.Users>, [string]>(
         `SELECT ${colNames.join(',')}
-       FROM ${Tables.Names}
+       FROM ${Tables.Names.Users}
        WHERE ${COLS.RegistrationToken} = $1;
       `,
         [token]
