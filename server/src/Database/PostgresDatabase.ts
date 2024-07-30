@@ -750,6 +750,7 @@ export class PostgresDatabase implements Database {
 
   private async query<T extends QueryResultRow, P extends any[] = Values<T>>(text: string, params?: P) {
     await this.ready;
+    console.log(text);
     return await this.pool.query<T>(text, params);
   }
 
