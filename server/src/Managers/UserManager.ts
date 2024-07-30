@@ -12,7 +12,7 @@ import { Validators } from "@common/Utilities/Validators";
 import { EnvironmentVariables } from "../Utilities/EnvironmentVariables";
 import { MailManager } from "./MailManager";
 import { generateToken } from '../Utilities/Crypto';
-const salt = "ernfiawfh8932j903fb928thp2o3nf8943";
+
 class UserManager {
 
   public async registerUser(request: AuthAPIConstants.AccountRegistrationRequest) {
@@ -32,7 +32,7 @@ class UserManager {
       return RegistrationResult.FAILED_EMAIL_EXISTS;
     }
 
-    // const salt = crypto.randomBytes(32).toString('hex');
+    const salt = crypto.randomBytes(32).toString('hex');
     const hash = await this.generateHash(request.password, salt);
     console.log(`------------------Registration--------------\nPassword:${request.password.split('')}\nHash: ${hash}\nSalt: ${salt}\n-------------------------------------`);
     try {
@@ -88,7 +88,7 @@ class UserManager {
         console.log("Reg Token Failure");
         return [LoginResult.INVALID_CREDENTIALS, undefined];
       }
-      const hashToCheck = await this.generateHash(request.password, salt);
+      const hashToCheck = await this.generateHash(request.password, user.salt);
       if (hashToCheck !== user.hash) {
         console.log(`--------------Login-----------------\nTo Check: ${hashToCheck}`);
         console.log(`Password: ${request.password.split('')}\nHash: ${user.hash}\nSalt: ${user.salt}\n-------------------------------------`);
