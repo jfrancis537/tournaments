@@ -32,7 +32,8 @@ class UserManager {
       return RegistrationResult.FAILED_EMAIL_EXISTS;
     }
 
-    const salt = crypto.randomBytes(32).toString('hex');
+    // const salt = crypto.randomBytes(32).toString('hex');
+    let salt  = "fn4f893984ghghp3f2nui4f43f934fop24f";
     const hash = await this.generateHash(request.password, salt);
     console.log(`------------------Registration--------------\nPassword:${request.password.split('')}\nHash: ${hash}\nSalt: ${salt}\n-------------------------------------`);
     try {
