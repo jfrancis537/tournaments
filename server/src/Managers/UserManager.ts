@@ -126,6 +126,7 @@ class UserManager {
   }
 
   private async generateHash(password: string, salt: string) {
+    console.log(`Password+Salt = ${password}:::${salt}`);
     return crypto.pbkdf2Sync(password, salt, 10000, 512, 'sha512').toString('base64');
   }
 }
