@@ -1,5 +1,5 @@
+import argon2 from 'argon2';
 import crypto from 'crypto';
-import bcrypt from 'bcrypt';
 
 import RegistrationConfirmationTemplate from '../Templates/RegistrationConfirmation';
 
@@ -33,7 +33,7 @@ class UserManager {
       return RegistrationResult.FAILED_EMAIL_EXISTS;
     }
 
-    const salt = await bcrypt.genSalt(32);
+    const salt = crypto.randomBytes(32).toString('hex');
     const hash = await this.generateHash(request.password, salt);
     console.log(`------------------Registration--------------\nPassword:${request.password}\nHash: ${hash}\nSalt: ${salt}\n-------------------------------------`);
     try {
@@ -126,7 +126,7 @@ class UserManager {
   }
 
   private async generateHash(password: string, salt: string) {
-    return await bcrypt.hash(password, salt);
+    return await argon2.hash(password + salt);
     // return crypto.pbkdf2Sync(password, salt, 10000, 512, 'sha512').toString('base64');
   }
 }
