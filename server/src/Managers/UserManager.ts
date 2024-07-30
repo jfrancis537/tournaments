@@ -1,4 +1,3 @@
-import argon2 from 'argon2';
 import crypto from 'crypto';
 
 import RegistrationConfirmationTemplate from '../Templates/RegistrationConfirmation';
@@ -126,8 +125,7 @@ class UserManager {
   }
 
   private async generateHash(password: string, salt: string) {
-    return await argon2.hash(password + salt);
-    // return crypto.pbkdf2Sync(password, salt, 10000, 512, 'sha512').toString('base64');
+    return crypto.pbkdf2Sync(password, salt, 10000, 512, 'sha512').toString('base64');
   }
 }
 
