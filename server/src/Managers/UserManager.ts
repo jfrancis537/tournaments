@@ -1,4 +1,5 @@
 import crypto from 'crypto';
+import bcrypt from 'bcrypt';
 
 import RegistrationConfirmationTemplate from '../Templates/RegistrationConfirmation';
 
@@ -32,8 +33,8 @@ class UserManager {
       return RegistrationResult.FAILED_EMAIL_EXISTS;
     }
 
-    const salt = crypto.randomBytes(32).toString('hex');
-    const hash = this.generateHash(request.password, salt);
+    const salt = await bcrypt.genSalt(32);
+    const hash = await this.generateHash(request.password, salt);
     console.log(`------------------Registration--------------\nPassword:${request.password}\nHash: ${hash}\nSalt: ${salt}\n-------------------------------------`);
     try {
       const record = await Database.instance.addUser({
@@ -88,7 +89,7 @@ class UserManager {
         console.log("Reg Token Failure");
         return [LoginResult.INVALID_CREDENTIALS, undefined];
       }
-      const hashToCheck = this.generateHash(request.password, user.salt);
+      const hashToCheck = await this.generateHash(request.password, user.salt);
       if (hashToCheck !== user.hash) {
         console.log(`--------------Login-----------------\nTo Check: ${hashToCheck}`);
         console.log(`${request.password}\nHash: ${user.hash}\nSalt: ${user.salt}\n-------------------------------------`);
@@ -124,8 +125,9 @@ class UserManager {
     }
   }
 
-  private generateHash(password: string, salt: string) {
-    return crypto.pbkdf2Sync(password, salt, 10000, 512, 'sha512').toString('utf-8');
+  private async generateHash(password: string, salt: string) {
+    return await bcrypt.hash(password, salt);
+    // return crypto.pbkdf2Sync(password, salt, 10000, 512, 'sha512').toString('base64');
   }
 }
 
