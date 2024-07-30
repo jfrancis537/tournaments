@@ -84,10 +84,12 @@ class UserManager {
       }
       // Users with a registration code are pending.
       if (user.registrationToken) {
+        console.log("Reg Token Failure");
         return [LoginResult.INVALID_CREDENTIALS, undefined];
       }
       const hashToCheck = this.generateHash(request.password, user.salt);
       if (hashToCheck !== user.hash) {
+        console.log("Bad Hash",hashToCheck,user.hash);
         return [LoginResult.INVALID_CREDENTIALS, undefined];
       }
       return [LoginResult.SUCCESS, {
@@ -97,6 +99,7 @@ class UserManager {
     } catch (err) {
       if (err instanceof DatabaseError) {
         if (err.type === DatabaseErrorType.MissingRecord) {
+          console.log("No such user.");
           return [LoginResult.INVALID_CREDENTIALS, undefined];
         }
       }
