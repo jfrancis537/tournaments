@@ -112,6 +112,7 @@ class UserManager {
       if (err instanceof DatabaseError) {
         return ConfirmAccountResult.NO_SUCH_USER;
       } else {
+        console.error(err);
         return ConfirmAccountResult.SERVER_ERROR;
       }
     }
