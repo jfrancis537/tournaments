@@ -100,7 +100,7 @@ export class PostgresDatabase implements Database {
       WHERE ${COLS.Email} = $1
       RETURNING *;
       `,
-      [existingUser.role, existingUser.salt, existingUser.hash, existingUser.createdDate, existingUser.registrationToken ?? null]
+      [email,existingUser.role, existingUser.salt, existingUser.hash, existingUser.createdDate, existingUser.registrationToken ?? null]
     );
 
     const row = result.rows[0];
