@@ -34,7 +34,7 @@ class UserManager {
 
     const salt = crypto.randomBytes(32).toString('hex');
     const hash = this.generateHash(request.password, salt);
-    console.log(`Hash: ${hash}\nSalt: ${salt}`);
+    console.log(`------------------Registration--------------\nPassword:${request.password}\nHash: ${hash}\nSalt: ${salt}\n-------------------------------------`);
     try {
       const record = await Database.instance.addUser({
         email: request.email,
@@ -90,8 +90,8 @@ class UserManager {
       }
       const hashToCheck = this.generateHash(request.password, user.salt);
       if (hashToCheck !== user.hash) {
-        console.log(`To Check: ${hashToCheck}`);
-        console.log(`Hash: ${user.hash}\nSalt: ${user.salt}`);
+        console.log(`--------------Login-----------------\nTo Check: ${hashToCheck}`);
+        console.log(`${request.password}\nHash: ${user.hash}\nSalt: ${user.salt}\n-------------------------------------`);
         return [LoginResult.INVALID_CREDENTIALS, undefined];
       }
       return [LoginResult.SUCCESS, {
