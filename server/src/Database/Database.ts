@@ -1,7 +1,7 @@
 import { User, UserRecord } from "@common/Models/User";
 import { EnvironmentVariables } from "../Utilities/EnvironmentVariables";
 import { DataTypes, ValueToArray } from "brackets-manager";
-import { Tournament } from "@common/Models/Tournament";
+import { Tournament, TournamentMetadata } from "@common/Models/Tournament";
 import { Team } from "@common/Models/Team";
 import { JsonDatabase } from "./JsonDatabase";
 import { MatchMetadata } from "@common/Models/MatchMetadata";
@@ -22,6 +22,10 @@ export interface Database {
   addTournament(tournament: Tournament): Promise<Tournament>;
   updateTournament(tournamentId: string,tournament: Partial<Omit<Tournament,'id'>>): Promise<Tournament>;
   deleteTournament(tournamentId: string): Promise<void>;
+
+  setTournamentMetadata(metadata: TournamentMetadata): Promise<TournamentMetadata>;
+  getTournamentMetadata(id: string): Promise<TournamentMetadata | undefined>;
+  deleteTournamentMetadata(id: string): Promise<void>;
 
   addMatchMetadata(metadata: MatchMetadata): Promise<void>;
   deleteMatchMetadata(tournamentId: string): Promise<void>;

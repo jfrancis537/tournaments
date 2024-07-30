@@ -7,7 +7,7 @@ import { DatabaseError, DatabaseErrorType } from "./DatabaseError";
 import { UserRecord } from "@common/Models/User";
 import { MatchMetadata } from "@common/Models/MatchMetadata";
 import { Team } from "@common/Models/Team";
-import { SerializedTournament, Tournament } from "@common/Models/Tournament";
+import { SerializedTournament, Tournament, TournamentMetadata } from "@common/Models/Tournament";
 import { Database as BracketsDatabase } from "brackets-manager";
 import { RegistrationData } from "@common/Models/RegistrationData";
 
@@ -18,6 +18,7 @@ interface JsonDatabaseSchema {
   version: string,
   users: { [id: string]: UserRecord };
   tournaments: { [id: string]: SerializedTournament };
+  tournamentMetadata: {[id: string]: TournamentMetadata}
   bracketData: BracketsDatabase;
   registrations: { [tid: string]: { [email: string]: RegistrationData } }
   teamData: { [tid: string]: { [id: string]: Team } };
@@ -65,6 +66,7 @@ export class JsonDatabase implements Database {
             teamData: {
             },
             tournaments: {},
+            tournamentMetadata: {},
             registrations: {},
             bracketData: {
               group: [],
@@ -86,6 +88,7 @@ export class JsonDatabase implements Database {
             teamData: {
             },
             tournaments: {},
+            tournamentMetadata: {},
             registrations: {},
             bracketData: {
               group: [],
@@ -185,6 +188,19 @@ export class JsonDatabase implements Database {
     this.data.tournaments[tournament.id] = Tournament.Serialize(tournament);
     await this.save();
     return this.getTournament(tournament.id);
+  }
+
+  public async setTournamentMetadata(metadata: TournamentMetadata): Promise<TournamentMetadata> {
+    this.data.tournamentMetadata[metadata.id] = clone(metadata);
+    await this.save();
+    return clone(this.data.tournamentMetadata[metadata.id]);
+  }
+
+  public async getTournamentMetadata(id: string): Promise<TournamentMetadata | undefined> {
+    return this.data.tournamentMetadata[id];
+  }
+  public async deleteTournamentMetadata(id: string): Promise<void> {
+    delete this.data.tournamentMetadata[id];
   }
 
   public async updateTournament(tournamentId: string, tournament: Partial<Omit<Tournament, "id">>): Promise<Tournament> {

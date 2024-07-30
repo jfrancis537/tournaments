@@ -5,6 +5,7 @@ export namespace Tables {
   export enum Names {
     Users = 'users',
     Tournaments = 'tournaments',
+    TournamentMetadata = 'tournament_metadata',
     MatchMetadata = 'match_metadata',
     BracketsData = 'bracket_data',
     Teams = 'teams',
@@ -17,6 +18,7 @@ export namespace Tables {
       return [
         Names.Users,
         Names.Tournaments,
+        Names.TournamentMetadata,
         Names.MatchMetadata,
         Names.BracketsData,
         Names.Teams,
@@ -74,6 +76,19 @@ export namespace Tables {
           Tournaments.PlayersSeeded,
           Tournaments.TeamSize,
         ];
+      }
+    }
+
+    export enum TournamentMetadata {
+      Id = 'id',
+      Metadata = 'metadata',
+    }
+    export namespace TournamentMetadata {
+      export function asArray() {
+        return [
+          TournamentMetadata.Id,
+          TournamentMetadata.Metadata
+        ]
       }
     }
 
@@ -179,6 +194,10 @@ export namespace Tables {
       [ColumnNames.Tournaments.PlayersSeeded]: boolean;
       [ColumnNames.Tournaments.TeamSize]: number;
     },
+    [Names.TournamentMetadata]: {
+      [ColumnNames.TournamentMetadata.Id]: string,
+      [ColumnNames.TournamentMetadata.Metadata]: string,
+    }
     [Names.MatchMetadata]: {
       [ColumnNames.MatchMetadata.TournamentId]: string,
       [ColumnNames.MatchMetadata.MatchId]: number,

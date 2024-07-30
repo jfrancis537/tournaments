@@ -1,7 +1,7 @@
 import { MatchMetadata } from "@common/Models/MatchMetadata";
 import { RegistrationData } from "@common/Models/RegistrationData";
 import { Player, Team } from "@common/Models/Team";
-import { Tournament } from "@common/Models/Tournament";
+import { Tournament, TournamentMetadata } from "@common/Models/Tournament";
 import { UserRecord, UserRole } from "@common/Models/User";
 import { Database as BracketsDatabase, Table } from "brackets-manager";
 import { Database } from "./Database";
@@ -32,8 +32,6 @@ export class PostgresDatabase implements Database {
 
     this.ready = this.init();
   }
-
-
 
   async hasUser(email: string): Promise<boolean> {
     const COLS = Tables.ColumnNames.Users;
@@ -325,6 +323,49 @@ export class PostgresDatabase implements Database {
       [tournamentId]
     )
   }
+
+  async setTournamentMetadata(metadata: TournamentMetadata): Promise<TournamentMetadata> {
+    const colNames = Tables.ColumnNames.TournamentMetadata.asArray();
+    const result = await this.query<ColResult<Tables.Names.TournamentMetadata>>(
+      `INSERT INTO ${Tables.Names.TournamentMetadata}
+       (${colNames.join(',')})
+       VALUES ($1, $2)
+       ON DUPLICATE KEY UPDATE ${Tables.ColumnNames.TournamentMetadata.Metadata} = $2`,
+      [metadata.id, JSON.stringify(metadata)]
+    )
+    const row = result.rows[0];
+    if (!row) {
+      throw new DatabaseError("Failed to set metadata for tournament with id: " + metadata.id, DatabaseErrorType.Other);
+    }
+
+    return JSON.parse(row.metadata) as TournamentMetadata;
+  }
+  async getTournamentMetadata(id: string): Promise<TournamentMetadata | undefined> {
+    const result = await this.query<{ metadata: string }, [string]>(
+      `SELECT ${Tables.ColumnNames.TournamentMetadata.Metadata}
+       FROM ${Tables.Names.TournamentMetadata}
+       WHERE ${Tables.ColumnNames.TournamentMetadata.Id} = $1;
+      `,
+      [id]
+    );
+
+    const row = result.rows[0];
+    if (!row) {
+      return undefined;
+    }
+
+    return JSON.parse(row.metadata) as TournamentMetadata;
+  }
+
+  async deleteTournamentMetadata(id: string): Promise<void> {
+    await this.query(
+      `DELETE FROM ${Tables.ColumnNames.TournamentMetadata.Metadata}
+       WHERE ${Tables.ColumnNames.TournamentMetadata.Id} = $1; 
+      `,
+      [id]
+    );
+  }
+
 
   async addMatchMetadata(metadata: MatchMetadata): Promise<void> {
     const colNames = Tables.ColumnNames.MatchMetadata.asArray();

@@ -46,6 +46,11 @@ export interface Tournament {
   teamSize: number;
 }
 
+export interface TournamentMetadata {
+  id: string;
+  registrationData: { [key: string]: string };
+}
+
 export interface SerializedTournament {
   id: string;
   name: string;
