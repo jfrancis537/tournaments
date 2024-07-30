@@ -327,10 +327,12 @@ export class PostgresDatabase implements Database {
   async setTournamentMetadata(metadata: TournamentMetadata): Promise<TournamentMetadata> {
     const colNames = Tables.ColumnNames.TournamentMetadata.asArray();
     const result = await this.query<ColResult<Tables.Names.TournamentMetadata>>(
-      `INSERT INTO ${Tables.Names.TournamentMetadata}
-       (${colNames.join(',')})
-       VALUES ($1, $2)
-       ON DUPLICATE KEY UPDATE ${Tables.ColumnNames.TournamentMetadata.Metadata} = $2`,
+      `INSERT INTO ${Tables.Names.TournamentMetadata} 
+      (${colNames.join(',')}) 
+      VALUES ($1, $2) 
+      ON CONFLICT (id) 
+      DO UPDATE SET 
+      ${Tables.ColumnNames.TournamentMetadata.Metadata} = EXCLUDED.${Tables.ColumnNames.TournamentMetadata.Metadata};`,
       [metadata.id, JSON.stringify(metadata)]
     )
     const row = result.rows[0];
@@ -368,12 +370,15 @@ export class PostgresDatabase implements Database {
 
 
   async addMatchMetadata(metadata: MatchMetadata): Promise<void> {
-    const colNames = Tables.ColumnNames.MatchMetadata.asArray();
+
+    const COLS = Tables.ColumnNames.MatchMetadata;
+    const colNames = COLS.asArray();
     await this.query<ColResult<Tables.Names.MatchMetadata>>(
-      `INSERT INTO ${Tables.Names.MatchMetadata}
-       (${colNames.join(',')})
-       VALUES ($1, $2, $3)
-       ON DUPLICATE KEY UPDATE ${Tables.ColumnNames.MatchMetadata.Title} = $3`,
+      `INSERT INTO ${Tables.Names.MatchMetadata} 
+      (${colNames.join(',')}) 
+      VALUES ($1, $2, $3) 
+      ON CONFLICT (${COLS.TournamentId}, ${COLS.MatchId}) 
+      DO UPDATE SET ${COLS.Title} = EXCLUDED.${COLS.Title};`,
       [metadata.tournamentId, metadata.matchId, metadata.title]
     )
   }
@@ -419,12 +424,14 @@ export class PostgresDatabase implements Database {
   }
 
   async setBracketData(data: BracketsDatabase): Promise<void> {
-    const colNames = Tables.ColumnNames.BracketsData.asArray();
+    const COLS = Tables.ColumnNames.BracketsData;
+    const colNames = COLS.asArray();
     await this.query<ColResult<Tables.Names.BracketsData>>(
       `INSERT INTO ${Tables.Names.BracketsData}
        (${colNames.join(',')})
        VALUES ($1, $2)
-       ON DUPLICATE KEY UPDATE ${Tables.ColumnNames.BracketsData.Data} = $2;`,
+       ON CONFLICT (${COLS.TournamentId}) 
+       DO UPDATE SET ${COLS.Data} = EXCLUDED.${COLS.Data};`,
       [NIL_UUID, JSON.stringify(data)]
     )
   }
