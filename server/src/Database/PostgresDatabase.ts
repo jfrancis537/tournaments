@@ -49,6 +49,8 @@ export class PostgresDatabase implements Database {
 
     const row = result.rows[0];
 
+    console.log(row);
+
     return {
       email: row.email,
       role: row.role,
