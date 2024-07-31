@@ -279,8 +279,8 @@ export class PostgresDatabase implements Database {
          ${COLS.Stages} = $7,
          ${COLS.StageSettings} = $8,
          ${COLS.PlayersSeeded} = $9,
-         ${COLS.TeamSize} = $10,
-       WHERE ${COLS.Id} = $1
+         ${COLS.TeamSize} = $10
+       WHERE ${COLS.Id} = $1;
       `,
       [
         tournamentId,
