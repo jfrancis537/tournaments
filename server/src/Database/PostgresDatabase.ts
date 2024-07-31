@@ -102,7 +102,7 @@ export class PostgresDatabase implements Database {
       WHERE ${COLS.Email} = $1
       RETURNING *;
       `,
-      [email,existingUser.role, existingUser.salt, existingUser.hash, existingUser.createdDate, existingUser.registrationToken ?? null]
+      [email, existingUser.role, existingUser.salt, existingUser.hash, existingUser.createdDate, existingUser.registrationToken ?? null]
     );
 
     const row = result.rows[0];
@@ -213,8 +213,13 @@ export class PostgresDatabase implements Database {
   }
 
   async addTournament(tournament: Tournament): Promise<Tournament> {
-    if (await this.getTournament(tournament.id)) {
-      throw new DatabaseError(`Tournament with id: ${tournament.id} already exists`, DatabaseErrorType.ExistingRecord);
+    let exists = true;
+    try {
+      await this.getTournament(tournament.id)
+    } catch (err) {
+      if (err instanceof DatabaseError && err.type === DatabaseErrorType.MissingRecord) {
+        exists = false;
+      }
     }
 
     const colNames = Tables.ColumnNames.Tournaments.asArray();
@@ -260,9 +265,6 @@ export class PostgresDatabase implements Database {
 
   async updateTournament(tournamentId: string, tournament: Partial<Omit<Tournament, "id">>): Promise<Tournament> {
     const existing = await this.getTournament(tournamentId);
-    if (!existing) {
-      throw new DatabaseError(`No tournament with id: ${tournamentId}`, DatabaseErrorType.MissingRecord);
-    }
 
     Object.assign(existing, tournament);
     const COLS = Tables.ColumnNames.Tournaments;
