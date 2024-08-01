@@ -467,9 +467,17 @@ export class PostgresDatabase implements Database {
 
   async addTeam(team: Team): Promise<Team> {
 
-    if (await this.getTeam(team.id)) {
+    let exists = true;
+    try {
+      await this.getTeam(team.id);
+    } catch {
+      exists = false;
+    }
+
+    if (exists) {
       throw new DatabaseError(`Team with id: ${team.id} already exists`, DatabaseErrorType.ExistingRecord);
     }
+
     const colNames = Tables.ColumnNames.Teams.asArray();
     const teamInsertResult = await this.query<ColResult<Tables.Names.Teams>>(`
     INSERT INTO ${Tables.Names.Teams} (${colNames.join(',')})
