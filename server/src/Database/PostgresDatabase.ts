@@ -337,7 +337,8 @@ export class PostgresDatabase implements Database {
       VALUES ($1, $2) 
       ON CONFLICT (id) 
       DO UPDATE SET 
-      ${Tables.ColumnNames.TournamentMetadata.Metadata} = EXCLUDED.${Tables.ColumnNames.TournamentMetadata.Metadata};`,
+      ${Tables.ColumnNames.TournamentMetadata.Metadata} = EXCLUDED.${Tables.ColumnNames.TournamentMetadata.Metadata}
+      RETURNING *;`,
       [metadata.id, JSON.stringify(metadata)]
     )
     const row = result.rows[0];
