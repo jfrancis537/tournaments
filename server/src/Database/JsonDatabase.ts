@@ -377,6 +377,7 @@ export class JsonDatabase implements Database {
   }
 
   private async save() {
+    console.log('saving');
     await writeFile(this.pathName, JSON.stringify(this.data, undefined, ' '), 'utf-8')
   }
 

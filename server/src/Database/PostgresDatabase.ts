@@ -2,10 +2,10 @@ import { MatchMetadata } from "@common/Models/MatchMetadata";
 import { RegistrationData } from "@common/Models/RegistrationData";
 import { Player, Team } from "@common/Models/Team";
 import { Tournament, TournamentMetadata } from "@common/Models/Tournament";
-import { UserRecord, UserRole } from "@common/Models/User";
+import { UserRecord } from "@common/Models/User";
 import { Database as BracketsDatabase, Table } from "brackets-manager";
 import { Database } from "./Database";
-import { Pool, QueryResultRow } from "pg";
+import * as pg from "pg";
 import { EnvironmentVariables } from "../Utilities/EnvironmentVariables";
 import { DatabaseError, DatabaseErrorType } from "./DatabaseError";
 import { Tables } from "./PostgressDatabaseDescriptors";
@@ -19,11 +19,11 @@ const NIL_UUID = `00000000-0000-0000-0000-000000000000`;
 
 export class PostgresDatabase implements Database {
 
-  private readonly pool: Pool;
+  private readonly pool: pg.Pool;
   private readonly ready: Promise<boolean>;
 
   constructor() {
-    this.pool = new Pool({
+    this.pool = new pg.Pool({
       password: EnvironmentVariables.PSQL_PASSWORD,
       database: 'kgpb',
       host: '127.0.0.1',
@@ -403,7 +403,7 @@ export class PostgresDatabase implements Database {
     const COLS = Tables.ColumnNames.MatchMetadata;
     const allMetadataQueryResult = await this.query<ColResult<Tables.Names.MatchMetadata>, [string]>(
       `SELECT * FROM ${Tables.Names.MatchMetadata}
-       WHERE ${COLS.TournamentId} = $1;
+       WHERE ${COLS.TournamentId} = $1
       `,
       [tournamentId]
     );
@@ -419,7 +419,7 @@ export class PostgresDatabase implements Database {
       }
       return metadata;
     } else {
-      const row = allMetadataQueryResult.rows[0];
+      const row = allMetadataQueryResult.rows.find((r => r.matchid === matchId));
       if (row) {
         return {
           tournamentId: row.tournamentid,
@@ -820,10 +820,15 @@ export class PostgresDatabase implements Database {
     );
   }
 
-  private async query<T extends QueryResultRow, P extends any[] = Values<T>>(text: string, params?: P) {
+  private async query<T extends pg.QueryResultRow, P extends any[] = Values<T>>(text: string, params?: P) {
     await this.ready;
-    console.log(text);
-    return await this.pool.query<T>(text, params);
+    try {
+      return await this.pool.query<T>(text, params);
+    } catch (err) {
+      console.log(text);
+      throw err;
+    }
+
   }
 
   private async init() {

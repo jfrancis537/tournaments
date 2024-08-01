@@ -79,7 +79,7 @@ class UserManager {
   public async loginUser(request: AuthAPIConstants.LoginRequest): Promise<[LoginResult, Readonly<User> | undefined]> {
     try {
       const user = await Database.instance.getUser(request.email);
-      console.log(user);
+      console.log("User: ", user);
       if (!user) {
         return [LoginResult.INVALID_CREDENTIALS, undefined];
       }
