@@ -436,6 +436,8 @@ class TournamentManager {
       }
     }
 
+    console.log(seeding);
+
     const stage = await this.manager.create.stage({
       name: tournament.name,
       tournamentId: tournament.id,
@@ -443,6 +445,7 @@ class TournamentManager {
       seeding: seeding.map(team => team?.name ?? null),
       settings: settings
     });
+    
     const filter: Partial<Participant> = {
       tournament_id: stage.tournament_id
     }
