@@ -652,11 +652,19 @@ export class PostgresDatabase implements Database {
   }
 
   async addRegistration(reg: RegistrationData): Promise<RegistrationData> {
-    if (await this.getRegistration(reg.tournamentId, reg.contactEmail)) {
+    let exists = true;
+    try {
+      await this.getRegistration(reg.tournamentId, reg.contactEmail)
+    } catch {
+      exists = false;
+    }
+
+    if (exists) {
       throw new DatabaseError(
         `Registration in tournament with id: ${reg.tournamentId} and email: ${reg.contactEmail} already exists`, DatabaseErrorType.ExistingRecord
       );
     }
+
 
     const colNames = Tables.ColumnNames.Registrations.asArray();
     const result = await this.query<ColResult<Tables.Names.Registrations>>(`
