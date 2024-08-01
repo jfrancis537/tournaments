@@ -58,6 +58,7 @@ class TeamManager {
           return TeamAPIConstants.RegistrationUpdateResult.NO_SUCH_REGISTRATION;
         }
       }
+      console.log(err);
     }
     return TeamAPIConstants.RegistrationUpdateResult.ERROR;
 
