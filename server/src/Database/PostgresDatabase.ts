@@ -541,7 +541,7 @@ export class PostgresDatabase implements Database {
       players: []
     };
 
-    const playerCols = Tables.ColumnNames.Teams.asArray();
+    const playerCols = Tables.ColumnNames.Players.asArray();
     const playerSelection = await this.query<ColResult<Tables.Names.Players>, string[]>(
       `SELECT ${playerCols.join(',')} FROM ${Tables.Names.Players} 
        WHERE ${Tables.ColumnNames.Players.TeamId} = $1;
@@ -581,7 +581,7 @@ export class PostgresDatabase implements Database {
       valuePlaceholders.push(`$${i}`);
     }
 
-    const playerCols = Tables.ColumnNames.Teams.asArray();
+    const playerCols = Tables.ColumnNames.Players.asArray();
     const playerSelection = await this.query<ColResult<Tables.Names.Players>, string[]>(
       `SELECT ${playerCols.join(',')} FROM ${Tables.Names.Players} 
        WHERE ${Tables.ColumnNames.Players.TeamId} IN (${valuePlaceholders.join(',')});
