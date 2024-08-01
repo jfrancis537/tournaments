@@ -492,7 +492,7 @@ export class PostgresDatabase implements Database {
 
     const players: Player[] = [];
     for (const player of team.players) {
-      const playerCols = Tables.ColumnNames.Teams.asArray();
+      const playerCols = Tables.ColumnNames.Players.asArray();
       const insertResult = await this.query<ColResult<Tables.Names.Players>>(
         `INSERT INTO ${Tables.Names.Players} (${playerCols.join(',')})
            VALUES ($1, $2, $3)
