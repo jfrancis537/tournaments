@@ -419,6 +419,8 @@ class TournamentManager {
       return;
     }
 
+    console.log("Unordered: ",unorderedTeams);
+
     let teams = [...unorderedTeams].filter(team => team.seedNumber !== undefined);
     teams.sort((a, b) => {
       return a.seedNumber! - b.seedNumber!;
@@ -436,7 +438,7 @@ class TournamentManager {
       }
     }
 
-    console.log(seeding);
+    console.log("seeding: ",seeding);
 
     const stage = await this.manager.create.stage({
       name: tournament.name,
