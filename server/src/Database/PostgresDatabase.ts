@@ -408,7 +408,7 @@ export class PostgresDatabase implements Database {
       [tournamentId]
     );
 
-    if (matchId !== undefined) {
+    if (matchId === undefined) {
       const metadata: MatchMetadata[] = [];
       for (const row of allMetadataQueryResult.rows) {
         metadata.push({
@@ -420,11 +420,17 @@ export class PostgresDatabase implements Database {
       return metadata;
     } else {
       const row = allMetadataQueryResult.rows[0];
-      return {
-        tournamentId: row.tournamentid,
-        matchId: row.matchid,
-        title: row.title
+      if (row) {
+        return {
+          tournamentId: row.tournamentid,
+          matchId: row.matchid,
+          title: row.title
+        }
+      } else {
+        throw new DatabaseError(`match: ${matchId} does not have metadata for tournament: ${tournamentId}`
+          , DatabaseErrorType.MissingRecord);
       }
+
     }
   }
 
