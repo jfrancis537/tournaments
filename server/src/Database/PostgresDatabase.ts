@@ -521,6 +521,56 @@ export class PostgresDatabase implements Database {
     }
 
   }
+
+  async setTeamSeedNumber(id: string, seed: number): Promise<Team> {
+    const result = await this.query<ColResult<Tables.Names.Teams>>(
+      `UPDATE ${Tables.Names.Teams}
+       SET 
+         ${Tables.ColumnNames.Teams.SeedNumber} = $2
+       WHERE ${Tables.ColumnNames.Teams.Id} = $1
+       RETURNING *;
+      `,
+      [id, seed]
+    );
+
+    const row = result.rows[0];
+    if (!row) {
+      throw new DatabaseError(`No team with id: ${id}`, DatabaseErrorType.MissingRecord);
+    }
+
+    const team: Team = {
+      id: row.id,
+      tournamentId: row.tournamentid,
+      name: row.name,
+      seedNumber: row.seednumber ?? undefined,
+      players: []
+    };
+
+    const playerSelection = await this.getPlayers(id);
+
+    for (const playerRow of playerSelection.rows) {
+      team.players.push({
+        contactEmail: playerRow.contactemail,
+        name: playerRow.name
+      });
+    }
+
+    return team;
+
+
+  }
+
+  private async getPlayers(teamId: string) {
+    const playerCols = Tables.ColumnNames.Players.asArray();
+    const playerSelection = await this.query<ColResult<Tables.Names.Players>, string[]>(
+      `SELECT ${playerCols.join(',')} FROM ${Tables.Names.Players} 
+       WHERE ${Tables.ColumnNames.Players.TeamId} = $1;
+      `,
+      [teamId]
+    );
+    return playerSelection;
+  }
+
   async getTeam(id: string): Promise<Team> {
     const teamSelection = await this.query<ColResult<Tables.Names.Teams>>(
       `SELECT * FROM ${Tables.Names.Teams} WHERE ${Tables.ColumnNames.Teams.Id} = $1;`,
@@ -541,13 +591,7 @@ export class PostgresDatabase implements Database {
       players: []
     };
 
-    const playerCols = Tables.ColumnNames.Players.asArray();
-    const playerSelection = await this.query<ColResult<Tables.Names.Players>, string[]>(
-      `SELECT ${playerCols.join(',')} FROM ${Tables.Names.Players} 
-       WHERE ${Tables.ColumnNames.Players.TeamId} = $1;
-      `,
-      [id]
-    );
+    const playerSelection = await this.getPlayers(id);
 
     for (const playerRow of playerSelection.rows) {
       team.players.push({

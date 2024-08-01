@@ -36,6 +36,7 @@ export interface Database {
   getBracketData(): Promise<ValueToArray<DataTypes>>;
 
   addTeam(team: Team): Promise<Team>;
+  setTeamSeedNumber(id: string, seed: number): Promise<Team>;
   getTeam(id: string): Promise<Team>;
   getTeams(tournamentId: string): Promise<Team[]>
   deleteTeams(tournamentId: string): Promise<void>;

@@ -256,12 +256,24 @@ export class JsonDatabase implements Database {
     }
   }
 
+  public async setTeamSeedNumber(id: string, seed: number): Promise<Team> {
+    for (const tournamentId in this.data.teamData) {
+      const tournamentTeams = this.data.teamData[tournamentId];
+      const team = tournamentTeams[id];
+      if (team) {
+        team.seedNumber = seed;
+        return clone(team);
+      }
+    }
+    throw new DatabaseError('Team with this id does not exist.', DatabaseErrorType.MissingRecord);
+  }
+
   public async getTeam(id: string): Promise<Team> {
     for (const tournamentId in this.data.teamData) {
       const tournamentTeams = this.data.teamData[tournamentId];
       const team = tournamentTeams[id];
       if (team) {
-        return team;
+        return clone(team);
       }
     }
     throw new DatabaseError('Team with this id does not exist.', DatabaseErrorType.MissingRecord);
