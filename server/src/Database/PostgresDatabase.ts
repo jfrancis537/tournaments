@@ -712,8 +712,9 @@ export class PostgresDatabase implements Database {
        SET 
          ${COLS.Name} = $3,
          ${COLS.TeamCode} = $4,
-         ${COLS.Approved} = $5,
+         ${COLS.Approved} = $5
        WHERE ${COLS.TournamentId} = $1 AND ${COLS.Email} = $2
+       RETURNING *;
       `,
       [
         tournamentId,
