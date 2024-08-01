@@ -34,7 +34,6 @@ class UserManager {
 
     const salt = crypto.randomBytes(32).toString('hex');
     const hash = await this.generateHash(request.password, salt);
-    console.log(`------------------Registration--------------\nPassword:${request.password.split('')}\nHash: ${hash}\nSalt: ${salt}\n-------------------------------------`);
     try {
       const record = await Database.instance.addUser({
         email: request.email,
@@ -79,20 +78,16 @@ class UserManager {
   public async loginUser(request: AuthAPIConstants.LoginRequest): Promise<[LoginResult, Readonly<User> | undefined]> {
     try {
       const user = await Database.instance.getUser(request.email);
-      console.log("User: ", user);
       if (!user) {
         return [LoginResult.INVALID_CREDENTIALS, undefined];
       }
       // Users with a registration code are pending.
       if (user.registrationToken) {
-        console.log("Reg Token Failure");
         return [LoginResult.INVALID_CREDENTIALS, undefined];
       }
       const hashToCheck = await this.generateHash(request.password, user.salt);
       if (hashToCheck !== user.hash) {
-        console.log(`--------------Login-----------------\nTo Check: ${hashToCheck}`);
-        console.log(`Password: ${request.password.split('')}\nHash: ${user.hash}\nSalt: ${user.salt}\n-------------------------------------`);
-        return [LoginResult.INVALID_CREDENTIALS, undefined];
+       return [LoginResult.INVALID_CREDENTIALS, undefined];
       }
       return [LoginResult.SUCCESS, {
         email: user.email,
@@ -101,7 +96,6 @@ class UserManager {
     } catch (err) {
       if (err instanceof DatabaseError) {
         if (err.type === DatabaseErrorType.MissingRecord) {
-          console.log("No such user.");
           return [LoginResult.INVALID_CREDENTIALS, undefined];
         }
       }
@@ -115,17 +109,16 @@ class UserManager {
       await Database.instance.confirmUser(token);
       return ConfirmAccountResult.SUCCESS;
     } catch (err) {
-      console.error(err);
       if (err instanceof DatabaseError) {
         return ConfirmAccountResult.NO_SUCH_USER;
       } else {
+        console.error(err);
         return ConfirmAccountResult.SERVER_ERROR;
       }
     }
   }
 
   private async generateHash(password: string, salt: string) {
-    console.log(`Password+Salt = ${password}:::${salt}`);
     return crypto.pbkdf2Sync(password, salt, 10000, 512, 'sha512').toString('base64');
   }
 }

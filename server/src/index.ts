@@ -1,3 +1,7 @@
 import { App } from './App';
 
-App.start();
+try {
+  App.start();
+} catch (err) {
+  console.error(err);
+}
