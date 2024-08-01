@@ -256,7 +256,7 @@ export class JsonDatabase implements Database {
     }
   }
 
-  public async setTeamSeedNumber(id: string, seed: number): Promise<Team> {
+  public async setTeamSeedNumber(id: string, seed: number | undefined): Promise<Team> {
     for (const tournamentId in this.data.teamData) {
       const tournamentTeams = this.data.teamData[tournamentId];
       const team = tournamentTeams[id];

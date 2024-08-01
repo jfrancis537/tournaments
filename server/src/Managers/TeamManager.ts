@@ -47,14 +47,14 @@ class TeamManager {
     }
   }
 
-  public async updateRegistration(tournamentId: string,contactEmail: string, update: Partial<Omit<RegistrationData,'contactEmail'>>) {
+  public async updateRegistration(tournamentId: string, contactEmail: string, update: Partial<Omit<RegistrationData, 'contactEmail'>>) {
     try {
       const data = await Database.instance.updateRegistration(tournamentId, contactEmail, update);
       TeamSocketAPI.onregistrationchanged.invoke(data);
       return TeamAPIConstants.RegistrationUpdateResult.SUCCESS;
     } catch (err) {
-      if(err instanceof DatabaseError) {
-        if(err.type === DatabaseErrorType.MissingRecord) {
+      if (err instanceof DatabaseError) {
+        if (err.type === DatabaseErrorType.MissingRecord) {
           return TeamAPIConstants.RegistrationUpdateResult.NO_SUCH_REGISTRATION;
         }
       }
@@ -68,7 +68,7 @@ class TeamManager {
     await Database.instance.deleteTeams(tournamentId);
   }
 
-  public async registerTeam(tournamentId: string,data: TeamAPIConstants.TeamRegistrationRequest): Promise<[TeamAPIConstants.TeamRegistrationResult, RegistrationData | undefined]> {
+  public async registerTeam(tournamentId: string, data: TeamAPIConstants.TeamRegistrationRequest): Promise<[TeamAPIConstants.TeamRegistrationResult, RegistrationData | undefined]> {
     const registrations = (await this.getRegistrations(tournamentId)) ?? [];
     const tournament = await TournamentManager.instance.getTournament(tournamentId);
 
@@ -106,7 +106,7 @@ class TeamManager {
     }
   }
 
-  
+
 
   public async confirmTeamRegistration(options: TeamOptions): Promise<[TeamAPIConstants.TeamRegistrationResult, Team | undefined]> {
 
@@ -133,15 +133,16 @@ class TeamManager {
    */
   public async assignSeedNumbers(toAssign: [string, number | undefined][]) {
     for (const [id, seed] of toAssign) {
-      const team = await this.getTeam(id);
-      if (!team) {
-        throw new Error(`Team with id: ${id} does not exist.`);
+      try {
+        const team = await Database.instance.setTeamSeedNumber(id, seed);
+        TeamSocketAPI.onteamseednumberassigned.invoke(team);
+      } catch (err) {
+        if (err instanceof DatabaseError && err.type === DatabaseErrorType.MissingRecord) {
+          throw new Error(`Team with id: ${id} does not exist.`);
+        }
       }
-      team.seedNumber = seed;
-      TeamSocketAPI.onteamseednumberassigned.invoke(team);
     }
   }
-
 }
 
 const instance = new Lazy(() => new TeamManager());

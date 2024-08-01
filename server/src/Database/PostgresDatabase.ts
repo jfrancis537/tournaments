@@ -522,7 +522,7 @@ export class PostgresDatabase implements Database {
 
   }
 
-  async setTeamSeedNumber(id: string, seed: number): Promise<Team> {
+  async setTeamSeedNumber(id: string, seed: number | undefined): Promise<Team> {
     const result = await this.query<ColResult<Tables.Names.Teams>>(
       `UPDATE ${Tables.Names.Teams}
        SET 
@@ -530,7 +530,7 @@ export class PostgresDatabase implements Database {
        WHERE ${Tables.ColumnNames.Teams.Id} = $1
        RETURNING *;
       `,
-      [id, seed]
+      [id, seed ?? null]
     );
 
     const row = result.rows[0];
