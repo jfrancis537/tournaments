@@ -1,5 +1,5 @@
 import { Match } from "brackets-model";
-import { Tournament } from "../Models/Tournament";
+import { Tournament, TournamentMetadata } from "../Models/Tournament";
 import { SocketAction, SocketLike } from "../Utilities/SocketAction";
 import { SocketName } from "../Utilities/SocketName";
 import { MatchMetadata } from "../Models/MatchMetadata";
@@ -10,6 +10,7 @@ class TournamentSocketAPI {
   private ontournamentstateupdated_?: SocketAction<Tournament>;
   private ontournamentstarted_?: SocketAction<Tournament>;
   private ontournamentdeleted_?: SocketAction<string>;
+  private ontournamentmetadatachanged_?: SocketAction<TournamentMetadata>;
 
   private onmatchupdated_?: SocketAction<Match>;
   private onmatchmetadataupdated_?: SocketAction<MatchMetadata>;
@@ -42,7 +43,10 @@ class TournamentSocketAPI {
       undefined,
       Tournament.Deserialize
     );
-
+    this.ontournamentmetadatachanged_ = new SocketAction(
+      SocketName.TournamentMetadataChanged,
+      socket
+    );
     this.onmatchstarted_ = new SocketAction(
       SocketName.MatchStarted,
       socket
@@ -87,6 +91,13 @@ class TournamentSocketAPI {
       throw new Error('API is not initialized');
     }
     return this.ontournamentstarted_!;
+  }
+
+  public get ontournamentmetadatachanged() {
+    if (!this.initialized) {
+      throw new Error('API is not initialized');
+    }
+    return this.ontournamentmetadatachanged_;
   }
 
   public get onmatchupdated() {

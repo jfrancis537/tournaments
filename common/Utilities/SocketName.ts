@@ -5,6 +5,7 @@ export enum SocketName {
   TournamentDeleted = 'tournament_deleted',
   TournamentStarted = 'tournament_started',
   TournamentStateUpdated = 'tournament_state_updated',
+  TournamentMetadataChanged = 'tournament_metadata_updated',
   MatchStarted = 'match_started',
   MatchUpdated = 'match_updated',
   MatchMetadataUpdated = 'match_metadata_updated',

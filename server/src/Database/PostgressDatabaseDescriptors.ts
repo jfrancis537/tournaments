@@ -155,6 +155,7 @@ export namespace Tables {
     export enum Registrations {
       Name = 'name',
       Email = 'contactemail',
+      Details = 'details',
       TournamentId = 'tournamentid',
       TeamCode = 'teamcode',
       Approved = 'approved'
@@ -165,6 +166,7 @@ export namespace Tables {
         return [
           Registrations.Name,
           Registrations.Email,
+          Registrations.Details,
           Registrations.TournamentId,
           Registrations.TeamCode,
           Registrations.Approved,
@@ -221,6 +223,7 @@ export namespace Tables {
     [Names.Registrations]: {
       [ColumnNames.Registrations.Name]: string,
       [ColumnNames.Registrations.Email]: string,
+      [ColumnNames.Registrations.Details]: string,
       [ColumnNames.Registrations.TournamentId]: string,
       [ColumnNames.Registrations.TeamCode]: string | null,
       [ColumnNames.Registrations.Approved]: boolean

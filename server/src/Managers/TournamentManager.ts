@@ -1,7 +1,7 @@
 import { BracketsManager, CrudInterface, DataTypes, Database as BracketsDatabase } from "brackets-manager";
 import { InMemoryDatabase } from "brackets-memory-db";
 import { v4 as uuid } from "uuid";
-import { Tournament, TournamentOptions, TournamentState } from "@common/Models/Tournament";
+import { Tournament, TournamentMetadata, TournamentOptions, TournamentState } from "@common/Models/Tournament";
 import { Match, Participant, StageSettings, StageType, Status } from "brackets-model";
 import { TeamManager } from "./TeamManager";
 import { Team } from "@common/Models/Team";
@@ -70,6 +70,24 @@ class TournamentManager {
 
   public async closeRegistration(id: string) {
     await this.setTournamentState(id, TournamentState.RegistrationConfirmation, TournamentSocketAPI.ontournamentstateupdated);
+  }
+
+  public async setTournamentMetadata(metadata: TournamentMetadata) {
+    const stored = await Database.instance.setTournamentMetadata(metadata);
+    TournamentSocketAPI.ontournamentmetadatachanged?.invoke(stored)
+    return stored;
+  }
+
+  public async getTournamentMetadata(id: string) {
+    try {
+      const metadata = await Database.instance.getTournamentMetadata(id);
+      return metadata;
+    } catch (err) {
+      if(err instanceof DatabaseError && err.type === DatabaseErrorType.MissingRecord) {
+        return undefined;
+      }
+      throw err;
+    }
   }
 
   public async finalizeRegistrations(id: string) {
@@ -475,7 +493,6 @@ class TournamentManager {
       }
       throw err;
     }
-
   }
 
 }

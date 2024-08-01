@@ -1,7 +1,8 @@
 import {
   Container, FormControl, FormLabel, Input,
   Button, Card, Typography, Divider,
-  CardContent, Box, IconButton, CircularProgress, RadioGroup, Radio
+  CardContent, Box, IconButton, CircularProgress, RadioGroup, Radio,
+  Textarea
 } from "@mui/joy";
 
 import pageStyles from './TournamentRegistration.module.css';
@@ -12,7 +13,7 @@ import { TeamAPI } from "../../APIs/TeamAPI";
 import { TeamAPIConstants } from "@common/Constants/TeamAPIConstants";
 import { useNavigation } from "../../Hooks/UseNavigation";
 import { UserContext } from "../../Contexts/UserContext";
-import { Tournament } from "@common/Models/Tournament";
+import { Tournament, TournamentMetadata } from "@common/Models/Tournament";
 import { TournamentAPI } from "../../APIs/TournamentAPI";
 import { copy } from "../../Utilities/Clipboard";
 
@@ -52,11 +53,18 @@ export const TournamentRegistration: React.FC<TournamentRegistrationProps> = (pr
   const [errorMessage, setErrorMessage] = useState('');
   const [tournament, setTournament] = useState<Tournament>();
   const [waitingForCode, setWaitingForCode] = useState(false);
+  const [details,setDetails] = useState("");
+  const [tournamentMetadata, setTournamentMetadata] = useState<TournamentMetadata>();
 
   const goHome = useNavigation("/");
 
   useEffect(() => {
-    TournamentAPI.getTournament(props.tournamentId).then(t => setTournament(t));
+    TournamentAPI.getTournament(props.tournamentId).then(t => setTournament(t))
+      .then(async () => {
+        const md = await TournamentAPI.getTournamentMetadata(props.tournamentId);
+        setTournamentMetadata(md);
+        setDetails(md?.registrationData["details"] ?? "");
+      });
   }, [props.tournamentId]);
 
   useEffect(() => {
@@ -106,7 +114,8 @@ export const TournamentRegistration: React.FC<TournamentRegistrationProps> = (pr
     const result = await TeamAPI.register(props.tournamentId, {
       name: name,
       contactEmail: email,
-      teamCode: codeState.choice === CodeChoice.EXISTING ? enteredCode : codeState.code
+      teamCode: codeState.choice === CodeChoice.EXISTING ? enteredCode : codeState.code,
+      details: details
     });
     const ResultType = TeamAPIConstants.TeamRegistrationResult;
     switch (result.result) {
@@ -148,6 +157,14 @@ export const TournamentRegistration: React.FC<TournamentRegistrationProps> = (pr
                 disabled={!!user}
                 type='email'
                 onChange={e => setEmail(e.target.value)}
+              />
+            </FormControl>
+            <FormControl>
+              <FormLabel>Email</FormLabel>
+              <Textarea
+                value={details}
+                disabled={!tournamentMetadata}
+                onChange={e => setDetails(e.target.value)}
               />
             </FormControl>
             {tournament!.teamSize > 1 && (
@@ -219,7 +236,7 @@ export const TournamentRegistration: React.FC<TournamentRegistrationProps> = (pr
                   </IconButton>
                 </Box>
                 <Typography level="body-md">
-                  Be sure to save this code and share it with your teammate. 
+                  Be sure to save this code and share it with your teammate.
                   If you lose it contact <a href="mailto:admin@kgpb.us">admin@kgpb.us</a>.
                 </Typography>
               </CardContent>

@@ -5,7 +5,7 @@ import { DateTime } from "luxon";
 import { useLocation } from "wouter";
 import { HOME_PAGE_URL } from "../../Utilities/RouteUtils";
 import { TournamentAPI } from "../../APIs/TournamentAPI";
-import { Container, FormControl, FormLabel, Input, Select, Option, Button } from "@mui/joy";
+import { Container, FormControl, FormLabel, Input, Select, Option, Button, Textarea } from "@mui/joy";
 
 import pageStyles from './TournamentCreator.module.css';
 
@@ -42,6 +42,7 @@ export const TournamentCreator: React.FC<TournamentCreatorProps> = (props) => {
   const [registrationDate, setRegistrationDate] = useState<DateTime>(DateTime.invalid('No Value'));
   const [endDate, setEndDate] = useState<DateTime>(DateTime.invalid('No Value'));
   const [teamSize, setTeamSize] = useState<number>(1);
+  const [additionalDetails, setAdditionalDetails] = useState("");
 
 
   const [, setLocation] = useLocation();
@@ -111,16 +112,22 @@ export const TournamentCreator: React.FC<TournamentCreatorProps> = (props) => {
       playersSeeded: false,
       teamSize: teamSize
     });
+    await TournamentAPI.setTournamentMetadata({
+      id: t.id,
+      registrationData: {
+        details: additionalDetails
+      }
+    });
     props.onAccept?.call(undefined, t);
     setLocation(HOME_PAGE_URL);
   }
 
   function canCreate() {
-    return startDate.isValid && 
-    endDate.isValid && 
-    name !== '' && 
-    (endDate.diff(startDate).toMillis() >= 0) &&
-    teamSize > 0;
+    return startDate.isValid &&
+      endDate.isValid &&
+      name !== '' &&
+      (endDate.diff(startDate).toMillis() >= 0) &&
+      teamSize > 0;
   }
 
   function render() {
@@ -165,6 +172,10 @@ export const TournamentCreator: React.FC<TournamentCreatorProps> = (props) => {
             <Option disabled value={SeedingMode.IN_ORDER}>{SeedingMode.toString(SeedingMode.IN_ORDER)}</Option>
             <Option disabled value={SeedingMode.RANDOM}>{SeedingMode.toString(SeedingMode.RANDOM)}</Option>
           </Select>
+        </FormControl>
+        <FormControl>
+          <FormLabel>Additional Details Template</FormLabel>
+          <Textarea onChange={(e) => setAdditionalDetails(e.target.value)} />
         </FormControl>
         <Button disabled={!canCreate()} onClick={accept}>Create</Button>
       </Container>

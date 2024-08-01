@@ -1,7 +1,7 @@
 import { TournamentAPIConstants } from '@common/Constants/TournamentAPIConstants';
 import express, { Router } from 'express';
 import { TournamentManager } from '../Managers/TournamentManager';
-import { Tournament, TournamentOptions, TournamentState } from '@common/Models/Tournament';
+import { Tournament, TournamentMetadata, TournamentOptions, TournamentState } from '@common/Models/Tournament';
 import { RequireRole } from '../MiddleWare/RequireRoleMiddleware';
 import { TeamManager } from '../Managers/TeamManager';
 
@@ -108,6 +108,28 @@ namespace TournamentManagerController {
       const options: TournamentOptions = Tournament.Deserialize(req.body);
       const t = await TournamentManager.instance.createNewTournament(options);
       resp.status(201).json(t);
+    });
+
+  router.put(TournamentAPIConstants.SET_METADATA(), RequireRole('admin'),
+    async (req, resp) => {
+      const body: TournamentMetadata = req.body;
+      const tournament = await TournamentManager.instance.getTournament(req.params.id);
+      if (!tournament) {
+        resp.sendStatus(404);
+        return;
+      }
+      await TournamentManager.instance.setTournamentMetadata(body);
+      resp.sendStatus(201);
+    });
+
+  router.get(TournamentAPIConstants.GET_METADATA(),
+    async (req, resp) => {
+      const metadata = await TournamentManager.instance.getTournamentMetadata(req.params.id);
+      if (!metadata) {
+        resp.sendStatus(404);
+        return;
+      }
+      resp.status(200).json(metadata);
     });
 }
 const both: [string, Router] = [TournamentManagerController.path, TournamentManagerController.router];

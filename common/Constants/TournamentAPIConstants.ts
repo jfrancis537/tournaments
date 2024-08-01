@@ -41,4 +41,16 @@ export namespace TournamentAPIConstants {
   export const GET_TEAMS = (id = ':id') => {
     return `/get/teams/${id}`
   }
+
+  export function SET_METADATA(id: string): string;
+  export function SET_METADATA(): '/set/metadata/:id';
+  export function SET_METADATA(id = ':id') {
+    return `/set/metadata/${id}`
+  }
+
+  export function GET_METADATA(id: string): string;
+  export function GET_METADATA(): '/get/metadata/:id';
+  export function GET_METADATA(id = ':id') {
+    return `/get/metadata/${id}`
+  }
 }

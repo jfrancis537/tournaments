@@ -679,6 +679,7 @@ export class PostgresDatabase implements Database {
     return {
       contactEmail: row.contactemail,
       name: row.name,
+      details: row.details,
       approved: row.approved,
       teamCode: row.teamcode ?? undefined,
       tournamentId: row.tournamentid
@@ -699,6 +700,7 @@ export class PostgresDatabase implements Database {
     for (const row of result.rows) {
       registrations.push({
         contactEmail: row.contactemail,
+        details: row.details,
         name: row.name,
         approved: row.approved,
         teamCode: row.teamcode ?? undefined,
@@ -727,11 +729,12 @@ export class PostgresDatabase implements Database {
     const colNames = Tables.ColumnNames.Registrations.asArray();
     const result = await this.query<ColResult<Tables.Names.Registrations>>(`
     INSERT INTO ${Tables.Names.Registrations} (${colNames.join(',')})
-    VALUES ($1, $2, $3, $4, $5)
+    VALUES ($1, $2, $3, $4, $5, $6)
     RETURNING *;`,
       [
         reg.name,
         reg.contactEmail,
+        reg.details,
         reg.tournamentId,
         reg.teamCode ?? null,
         reg.approved
@@ -748,6 +751,7 @@ export class PostgresDatabase implements Database {
 
     return {
       contactEmail: row.contactemail,
+      details: row.details,
       name: row.name,
       approved: row.approved,
       teamCode: row.teamcode ?? undefined,
@@ -769,8 +773,9 @@ export class PostgresDatabase implements Database {
       `UPDATE ${Tables.Names.Registrations}
        SET 
          ${COLS.Name} = $3,
-         ${COLS.TeamCode} = $4,
-         ${COLS.Approved} = $5
+         ${COLS.Details} = $4,
+         ${COLS.TeamCode} = $5,
+         ${COLS.Approved} = $6
        WHERE ${COLS.TournamentId} = $1 AND ${COLS.Email} = $2
        RETURNING *;
       `,
@@ -778,6 +783,7 @@ export class PostgresDatabase implements Database {
         tournamentId,
         email,
         existing.name,
+        existing.details,
         existing.teamCode ?? null,
         existing.approved
       ]
@@ -794,6 +800,7 @@ export class PostgresDatabase implements Database {
 
     return {
       contactEmail: row.contactemail,
+      details: row.details,
       name: row.name,
       approved: row.approved,
       teamCode: row.teamcode ?? undefined,
