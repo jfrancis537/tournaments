@@ -1,3 +1,8 @@
 .container > *{
   margin-bottom: 1rem;
 }
+
+.container {
+  overflow: scroll;
+  padding-bottom: 1rem;
+}
