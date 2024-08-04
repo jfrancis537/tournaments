@@ -160,7 +160,7 @@ export const TournamentRegistration: React.FC<TournamentRegistrationProps> = (pr
               />
             </FormControl>
             <FormControl>
-              <FormLabel>Email</FormLabel>
+              <FormLabel>Additional Details</FormLabel>
               <Textarea
                 value={details}
                 disabled={!tournamentMetadata}
