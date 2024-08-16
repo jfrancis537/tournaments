@@ -11,3 +11,12 @@
 .button-container>button {
   flex: 1 !important;
 }
+
+.registration-counter {
+  cursor: pointer;
+}
+
+.registration-counter:hover {
+  background-color: #e8e8e8;
+  border-radius: 5px;
+}

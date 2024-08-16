@@ -32,6 +32,7 @@ export const TournamentManagment: React.FC<TournamentManagmentProps> = (props) =
   const navigateToAssigning = useNavigation(`${tournamentUrl(props.tournamentId)}/assigning`);
   const navigateToTournament = useNavigation(`${tournamentUrl(props.tournamentId)}`);
   const gotoRegistrationApproval = useNavigation(`${tournamentUrl(props.tournamentId)}/registration-approval`);
+  const gotoRegistrationViewer = useNavigation(`${tournamentUrl(props.tournamentId)}/registrations`);
   const gotoTeamAssignment = useNavigation(`${tournamentUrl(props.tournamentId)}/team-assignment`);
   const [tournament, setTournament] = useState<Tournament>();
   const [registrations, setRegistrations] = useState<RegistrationData[]>();
@@ -208,7 +209,7 @@ export const TournamentManagment: React.FC<TournamentManagmentProps> = (props) =
               <Divider />
               <CardContent>
                 <List>
-                  <ListItem>
+                  <ListItem onClick={gotoRegistrationViewer} className={pageStyles['registration-counter']}>
                     <ListItemDecorator>
                       <Person color="primary" />
                     </ListItemDecorator>

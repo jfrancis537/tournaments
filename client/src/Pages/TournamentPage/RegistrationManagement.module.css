@@ -1,5 +1,7 @@
 .table-box {
   margin-top: 1rem;
+  display: flex;
+  flex-flow: column;
 }
 
 .table-box p {
@@ -12,6 +14,8 @@
 
 .container {
   flex: 1;
+  display: flex !important;
+  flex-flow: column !important;
 }
 
 .container .table th {

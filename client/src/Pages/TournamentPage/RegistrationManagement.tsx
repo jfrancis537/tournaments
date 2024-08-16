@@ -11,6 +11,7 @@ import { tournamentUrl } from "../../Utilities/RouteUtils";
 
 interface RegistrationManagementProps {
   tournamentId: string;
+  editable: boolean;
 }
 
 export const RegistrationManagement: React.FC<RegistrationManagementProps> = (props) => {
@@ -63,11 +64,11 @@ export const RegistrationManagement: React.FC<RegistrationManagementProps> = (pr
         <td>{registration.contactEmail}</td>
         <td>{registration.teamCode ?? 'N/A'}</td>
         <td>{registration.approved ? (
-          <IconButton onClick={() => rejectRegistration(registration)}>
+          <IconButton disabled={!props.editable} onClick={() => rejectRegistration(registration)}>
             <Cancel htmlColor="#cf4343" />
           </IconButton>
         ) : (
-          <IconButton onClick={() => acceptRegistration(registration)}>
+          <IconButton disabled={!props.editable} onClick={() => acceptRegistration(registration)}>
             <Check color='success' />
           </IconButton>
         )}</td>
@@ -77,7 +78,7 @@ export const RegistrationManagement: React.FC<RegistrationManagementProps> = (pr
 
   function renderTable(registrations: RegistrationData[], approved: boolean) {
     return (
-      <Sheet variant="outlined" sx={{ overflow: 'auto', maxHeight: '45%' }} key={String(approved)}>
+      <Sheet variant="outlined" sx={{ overflow: 'auto', maxHeight: props.editable ? '45%' : '90%' }} key={String(approved)}>
         <Table stickyHeader className={pageStyles.table}>
           <thead>
             <tr>
@@ -109,21 +110,37 @@ export const RegistrationManagement: React.FC<RegistrationManagementProps> = (pr
       }
     });
 
-    return (
-      <Container maxWidth='md' className={pageStyles.container}>
-        <Box>
-          <Button onClick={goBack}>Back</Button>
-        </Box>
-        <Box className={pageStyles['table-box']}>
-          <Typography level='title-lg'>Unapproved Registrations</Typography>
-          {renderTable(registrations.filter(r => !r.approved), false)}
-        </Box>
-        <Box className={pageStyles['table-box']}>
-          <Typography level='title-lg'>Approved Registrations</Typography>
-          {renderTable(registrations.filter(r => r.approved), true)}
-        </Box>
-      </Container>
-    );
+    if (!props.editable) {
+      return (
+        <Container maxWidth='md' className={pageStyles.container}>
+          <Box>
+            <Button onClick={goBack}>Back</Button>
+          </Box>
+          <Box className={pageStyles['table-box']}>
+            <Typography level='title-lg'>Registrations</Typography>
+            {renderTable(registrations, false)}
+          </Box>
+        </Container>
+      );
+    } else {
+      return (
+        <Container maxWidth='md' className={pageStyles.container}>
+          <Box>
+            <Button onClick={goBack}>Back</Button>
+          </Box>
+          <Box className={pageStyles['table-box']}>
+            <Typography level='title-lg'>Unapproved Registrations</Typography>
+            {renderTable(registrations.filter(r => !r.approved), false)}
+          </Box>
+          <Box className={pageStyles['table-box']}>
+            <Typography level='title-lg'>Approved Registrations</Typography>
+            {renderTable(registrations.filter(r => r.approved), true)}
+          </Box>
+        </Container>
+      );
+    }
+
+
   }
 
   return render();

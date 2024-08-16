@@ -129,7 +129,17 @@ export const App: React.FC = () => {
                   <NotFound />
                 )
               }
-              return <RegistrationManagement tournamentId={params.id} />
+              return <RegistrationManagement editable tournamentId={params.id} />
+            }}
+          </AuthenticatedRoute>
+          <AuthenticatedRoute roles={['admin']} path='/tournament/:id/registrations'>
+            {(params) => {
+              if (params.id === NEW_TOURNAMENT_ID) {
+                return (
+                  <NotFound />
+                )
+              }
+              return <RegistrationManagement editable={false} tournamentId={params.id} />
             }}
           </AuthenticatedRoute>
           <AuthenticatedRoute roles={['admin']} path='/tournament/:id/team-assignment'>
