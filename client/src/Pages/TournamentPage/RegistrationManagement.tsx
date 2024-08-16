@@ -78,7 +78,7 @@ export const RegistrationManagement: React.FC<RegistrationManagementProps> = (pr
 
   function renderTable(registrations: RegistrationData[], approved: boolean) {
     return (
-      <Sheet variant="outlined" sx={{ overflow: 'auto', maxHeight: props.editable ? '45%' : '90%' }} key={String(approved)}>
+      <Sheet variant="outlined" sx={{ overflow: 'auto', maxHeight: props.editable ? '45%' : '80%' }} key={String(approved)}>
         <Table stickyHeader className={pageStyles.table}>
           <thead>
             <tr>
