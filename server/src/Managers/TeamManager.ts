@@ -82,7 +82,10 @@ class TeamManager {
     }
 
     if (data.teamCodeMode === CodeChoice.EXISTING &&
-      registrations.findIndex((existing) => existing.teamCode === data.teamCode) == -1) {
+      registrations.findIndex((existing) => {
+        console.log(existing.teamCode,data.teamCode);
+        return existing.teamCode === data.teamCode
+      }) == -1) {
       return [TeamAPIConstants.TeamRegistrationResult.NO_TEAMMATE, undefined];
     }
 
