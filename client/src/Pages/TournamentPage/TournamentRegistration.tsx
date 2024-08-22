@@ -16,6 +16,7 @@ import { UserContext } from "../../Contexts/UserContext";
 import { Tournament, TournamentMetadata } from "@common/Models/Tournament";
 import { TournamentAPI } from "../../APIs/TournamentAPI";
 import { copy } from "../../Utilities/Clipboard";
+import { CodeChoice } from "@common/Enums/RegistrationEnums";
 
 interface TournamentRegistrationProps {
   tournamentId: string;
@@ -25,12 +26,6 @@ enum RegistrationState {
   Error,
   Composing,
   Complete
-}
-
-enum CodeChoice {
-  NONE = 'none',
-  NEW = 'new',
-  EXISTING = 'existing'
 }
 
 interface CodeState {
@@ -115,7 +110,8 @@ export const TournamentRegistration: React.FC<TournamentRegistrationProps> = (pr
       name: name,
       contactEmail: email,
       teamCode: codeState.choice === CodeChoice.EXISTING ? enteredCode : codeState.code,
-      details: details
+      details: details,
+      teamCodeMode: codeState.choice
     });
     const ResultType = TeamAPIConstants.TeamRegistrationResult;
     switch (result.result) {

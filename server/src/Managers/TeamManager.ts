@@ -8,6 +8,7 @@ import { Tournament } from "@common/Models/Tournament";
 import { TeamSocketAPI } from "@common/SocketAPIs/TeamAPI";
 import { DatabaseError, DatabaseErrorType } from "../Database/DatabaseError";
 import { RegistrationData } from "@common/Models/RegistrationData";
+import { CodeChoice } from "@common/Enums/RegistrationEnums";
 
 type TeamOptions = Omit<Omit<Team, 'id'>, 'seedNumber'>
 
@@ -78,6 +79,11 @@ class TeamManager {
       if (!Tournament.isRegistrationOpen(tournament)) {
         return [TeamAPIConstants.TeamRegistrationResult.REGISTRATION_CLOSED, undefined]
       }
+    }
+
+    if (data.teamCodeMode === CodeChoice.EXISTING &&
+      registrations.findIndex((existing) => existing.teamCode === data.teamCode) == -1) {
+      return [TeamAPIConstants.TeamRegistrationResult.NO_TEAMMATE, undefined];
     }
 
     for (const existing of registrations) {

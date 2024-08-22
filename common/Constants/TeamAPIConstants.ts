@@ -3,19 +3,30 @@ import { RegistrationData } from "../Models/RegistrationData";
 export namespace TeamAPIConstants {
   export const BASE_PATH = '/api/v1/team';
 
-  export type TeamRegistrationRequest = Omit<Omit<Omit<RegistrationData,'id'>,'tournamentId'>, 'approved'>
+  type TeamRegistrationRequestBase = Omit<Omit<Omit<RegistrationData, 'id'>, 'tournamentId'>, 'approved'>
+
+  export interface TeamRegistrationRequest extends TeamRegistrationRequestBase {
+    teamCodeMode: CodeChoice
+  }
+
+  export enum CodeChoice {
+    NONE = 'none',
+    NEW = 'new',
+    EXISTING = 'existing'
+  }
 
   export enum TeamRegistrationResult {
     SUCCESS,
     REGISTRATION_CLOSED,
     NO_SUCH_TOURNAMENT,
+    NO_TEAMMATE,
     INVALID_EMAIL,
     SERVER_ERROR,
   }
 
   export namespace TeamRegistrationResult {
     export function toErrorMessage(val: TeamRegistrationResult) {
-      switch(val) {
+      switch (val) {
         case TeamRegistrationResult.SUCCESS:
           return '';
         case TeamRegistrationResult.REGISTRATION_CLOSED:
@@ -24,6 +35,8 @@ export namespace TeamAPIConstants {
           return 'The tournament being registered for does not exist.'
         case TeamRegistrationResult.INVALID_EMAIL:
           return 'A registration for this tournament has already been created under that email.';
+        case TeamRegistrationResult.NO_TEAMMATE:
+          return 'A teammate has not signed up with the code provided. You may be registering for the wrong tournament.';
         case TeamRegistrationResult.SERVER_ERROR:
           return 'Failed to register for unknown reason. Please try again later.';
       }
