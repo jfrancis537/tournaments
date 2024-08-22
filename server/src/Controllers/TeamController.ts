@@ -143,6 +143,9 @@ namespace TeamController {
         resp.status(200).json(response);
         break;
       case TeamAPIConstants.TeamRegistrationResult.REGISTRATION_CLOSED:
+      case TeamAPIConstants.TeamRegistrationResult.NO_TEAMMATE:
+        resp.status(400).json(response);
+        break;
       case TeamAPIConstants.TeamRegistrationResult.INVALID_EMAIL:
         resp.status(400).json(response);
         break;
