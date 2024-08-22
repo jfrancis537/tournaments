@@ -57,12 +57,19 @@ export const RegistrationManagement: React.FC<RegistrationManagementProps> = (pr
     TeamAPI.setRegistrationApproval(props.tournamentId, registration.contactEmail, true);
   }
 
-  function renderRegistrationRow(registration: RegistrationData) {
+  function renderRegistrationRow(registration: RegistrationData, all: RegistrationData[]) {
+    let markMissingPartner = false;
+    if (registration.teamCode !== undefined) {
+      const partner = all.find(r => r.teamCode === registration.teamCode);
+      if (!partner) {
+        markMissingPartner = true;
+      }
+    }
     return (
       <tr key={registration.contactEmail}>
         <td>{registration.name}</td>
         <td>{registration.contactEmail}</td>
-        <td>{registration.teamCode ?? 'N/A'}</td>
+        <td style={{ color: markMissingPartner ? 'red' : 'inherit' }}>{registration.teamCode ?? 'N/A'}</td>
         <td>{registration.approved ? (
           <IconButton disabled={!props.editable} onClick={() => rejectRegistration(registration)}>
             <Cancel htmlColor="#cf4343" />
@@ -78,7 +85,7 @@ export const RegistrationManagement: React.FC<RegistrationManagementProps> = (pr
 
   function renderTable(registrations: RegistrationData[], approved: boolean) {
     return (
-      <Sheet variant="outlined" sx={{ overflow: 'auto', maxHeight: props.editable ? '45%' : '80%' }} key={String(approved)}>
+      <Sheet variant="outlined" sx={{ overflow: 'auto', maxHeight: props.editable ? '30vh' : '70vh' }} key={String(approved)}>
         <Table stickyHeader className={pageStyles.table}>
           <thead>
             <tr>
@@ -89,7 +96,7 @@ export const RegistrationManagement: React.FC<RegistrationManagementProps> = (pr
             </tr>
           </thead>
           <tbody>
-            {registrations.map(r => renderRegistrationRow(r))}
+            {registrations.map(r => renderRegistrationRow(r, registrations))}
           </tbody>
         </Table>
       </Sheet>
