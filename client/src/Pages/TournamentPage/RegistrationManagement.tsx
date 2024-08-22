@@ -59,12 +59,16 @@ export const RegistrationManagement: React.FC<RegistrationManagementProps> = (pr
 
   function renderRegistrationRow(registration: RegistrationData, all: RegistrationData[]) {
     let markMissingPartner = false;
+
     if (registration.teamCode !== undefined) {
-      const partner = all.find(r => r.teamCode === registration.teamCode);
+      const partner = all.find(r => {
+        return (registration !== r) && (r.teamCode === registration.teamCode)
+      });
       if (!partner) {
         markMissingPartner = true;
       }
     }
+
     return (
       <tr key={registration.contactEmail}>
         <td>{registration.name}</td>
