@@ -83,7 +83,7 @@ class TournamentManager {
       const metadata = await Database.instance.getTournamentMetadata(id);
       return metadata;
     } catch (err) {
-      if(err instanceof DatabaseError && err.type === DatabaseErrorType.MissingRecord) {
+      if (err instanceof DatabaseError && err.type === DatabaseErrorType.MissingRecord) {
         return undefined;
       }
       throw err;
@@ -124,18 +124,19 @@ class TournamentManager {
           })),
           tournamentId: tournament.id
         });
-        if(result[0] === TeamAPIConstants.TeamRegistrationResult.SUCCESS) {
+        if (result[0] === TeamAPIConstants.TeamRegistrationResult.SUCCESS) {
           confirmedTeams.push(result[1]!);
         }
       }
       await this.setTournamentState(id, TournamentState.Seeding, TournamentSocketAPI.ontournamentstateupdated);
       const confirmUrl = `https://${EnvironmentVariables.HOST}/tournament/${tournament.id}`;
-      const body = TournamentRegistrationConfirmation(tournament.name,confirmUrl);
+      const body = TournamentRegistrationConfirmation(tournament.name, confirmUrl);
 
-      for(const team of confirmedTeams)
-      {
-        for(const player of team.players)
-        {
+      for (const team of confirmedTeams) {
+        for (const player of team.players) {
+          if (player.contactEmail.startsWith("UNK")) {
+            continue;
+          }
           MailManager.sendEmail({
             sender: EnvironmentVariables.EMAIL_SENDER,
             to: player.contactEmail,
@@ -461,7 +462,7 @@ class TournamentManager {
       seeding: seeding.map(team => team?.name ?? null),
       settings: settings
     });
-    
+
     const filter: Partial<Participant> = {
       tournament_id: stage.tournament_id
     }
