@@ -70,7 +70,7 @@ export const TournamentViewer: React.FC<TournamentPageProps> = (props) => {
       if (user) {
         return tournament.state >= TournamentState.Finalizing;
       } else {
-        return tournament.state >= TournamentState.Active;
+        return tournament.state >= TournamentState.Finalizing;
       }
     }
     return shouldShow;
@@ -135,7 +135,7 @@ export const TournamentViewer: React.FC<TournamentPageProps> = (props) => {
 
   async function onMatchClicked(match: Match) {
 
-    if (tournament && tournament.state === TournamentState.Finalizing) {
+    if (tournament && tournament.state === TournamentState.Finalizing && user?.role === 'admin') {
       setMatchToEdit(match);
       return;
     }
