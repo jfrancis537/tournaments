@@ -25,9 +25,9 @@ export class PostgresDatabase implements Database {
   constructor() {
     this.pool = new pg.Pool({
       password: EnvironmentVariables.PSQL_PASSWORD,
-      database: 'kgpb',
+      database: EnvironmentVariables.PSQL_DATABASE,
       host: '127.0.0.1',
-      user: 'www-data'
+      user: EnvironmentVariables.PSQL_USERNAME
     });
 
     this.ready = this.init();
