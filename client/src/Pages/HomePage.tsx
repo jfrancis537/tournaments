@@ -92,7 +92,8 @@ export const HomePage: React.FC = () => {
 
   function renderTournament(tournament: Tournament) {
 
-    let registrationOpen = Tournament.isRegistrationOpen(tournament);
+    const registrationOpen = Tournament.isRegistrationOpen(tournament);
+    const canView = tournament.state >= TournamentState.Finalizing;
 
     const allowManagement = !!user && user.role === 'admin';
 
@@ -134,6 +135,9 @@ export const HomePage: React.FC = () => {
             <ButtonGroup variant="solid" color="primary" sx={{
               justifyContent: 'flex-end'
             }}>
+              {canView &&
+                <Button onClick={navigateTo(`${tournamentUrl(tournament.id)}`)}>View</Button>
+              }
               {registrationOpen &&
                 <Button onClick={navigateTo(`${tournamentUrl(tournament.id)}/register`)}>Register</Button>}
               {allowManagement &&
