@@ -27,12 +27,14 @@ export const ScoreControls: React.FC<ScoreControlProps> = (props) => {
 
   async function forfeit() {
     setWaiting(true);
+    confirm('Are you sure you want to forfeit for ' + team.name + "?");
     await MatchAPI.forfeit(props.tournamentId, match, team.seedNumber!);
     setWaiting(false);
   }
 
   async function win() {
     setWaiting(true);
+    confirm('Are you sure you want to set the winner to ' + team.name + "?");
     await MatchAPI.selectWinner(props.tournamentId, match, team.seedNumber!);
     setWaiting(false);
   }
