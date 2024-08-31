@@ -86,7 +86,7 @@ export const BracketsViewer: React.FC<BracketViewerProps> = (props) => {
       showLowerBracketSlotsOrigin: true,
     });
 
-    applyMetadata();
+    //applyMetadata();
   }
 
   function applyMetadata() {
