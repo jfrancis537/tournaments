@@ -9,7 +9,7 @@ import { MatchMetadata } from '@common/Models/MatchMetadata';
 import { MatchAPI } from '../APIs/MatchAPI';
 import { TournamentSocketAPI } from '@common/SocketAPIs/TournamentAPI';
 
-import styles from './BracketsViewer.css';
+import styles from './BracketsViewer.module.css';
 
 type BracketsViewer = typeof globalThis.bracketsViewer;
 
