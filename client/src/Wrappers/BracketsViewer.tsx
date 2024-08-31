@@ -105,7 +105,7 @@ export const BracketsViewer: React.FC<BracketViewerProps> = (props) => {
         titleSpan.innerText = data.title;
         const labelSpan = matchElement?.querySelector('.opponents > span');
         if (labelSpan) {
-          labelSpan.parentElement?.insertBefore(labelSpan,titleSpan);
+          labelSpan.parentElement?.insertBefore(titleSpan,labelSpan);
           labelSpan.remove();
           labelSpan.classList.add(styles.label);
           titleSpan.parentElement?.append(labelSpan);

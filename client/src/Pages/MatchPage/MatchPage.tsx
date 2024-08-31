@@ -87,7 +87,6 @@ export const MatchPage: React.FC<MatchPageProps> = (props) => {
                   {match.status === Status.Ready &&
                     <Button onClick={startMatch}>Start</Button>}
                   <Button onClick={editMatch}>Edit</Button>
-                  <Button onClick={() => MatchAPI.resetMatch(props.tournamentId,match)}>Reset</Button>
                 </ButtonGroup>
               </Authenticated>
             </Box>
