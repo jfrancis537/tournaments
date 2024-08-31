@@ -54,12 +54,16 @@ export const ScoreControls: React.FC<ScoreControlProps> = (props) => {
           </IconButton>
         </Tooltip>
         <Tooltip title="Set Winner" placement="top">
-          <IconButton onClick={win}>
+          <IconButton 
+          disabled={match.status === Status.Completed}
+          onClick={win}>
             <EmojiEvents />
           </IconButton>
         </Tooltip>
         <Tooltip title="Forfeit" placement="top">
-          <IconButton onClick={forfeit}>
+          <IconButton 
+          disabled={match.status === Status.Completed}
+          onClick={forfeit}>
             <HighlightOff />
           </IconButton>
         </Tooltip>
