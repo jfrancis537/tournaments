@@ -9,6 +9,8 @@ import { MatchMetadata } from '@common/Models/MatchMetadata';
 import { MatchAPI } from '../APIs/MatchAPI';
 import { TournamentSocketAPI } from '@common/SocketAPIs/TournamentAPI';
 
+import styles from './BracketsViewer.css';
+
 type BracketsViewer = typeof globalThis.bracketsViewer;
 
 // We have to shim this in since vite won't do this manipulation via index.html
@@ -46,7 +48,7 @@ export const BracketsViewer: React.FC<BracketViewerProps> = (props) => {
 
   useEffect(() => {
     TournamentSocketAPI.onmatchmetadataupdated.addListener(onMetadataUpdated);
-    // applyMetadata();
+    applyMetadata();
     return () => {
       TournamentSocketAPI.onmatchmetadataupdated.removeListener(onMetadataUpdated);
     }
@@ -86,7 +88,7 @@ export const BracketsViewer: React.FC<BracketViewerProps> = (props) => {
       showLowerBracketSlotsOrigin: true,
     });
 
-    //applyMetadata();
+    applyMetadata();
   }
 
   function applyMetadata() {
@@ -99,9 +101,14 @@ export const BracketsViewer: React.FC<BracketViewerProps> = (props) => {
         }
 
         const matchElement = document.querySelector(`div[data-match-id="${data.matchId}"]`);
-        const titleSpan = matchElement?.querySelector('.opponents > span');
-        if (titleSpan) {
-          titleSpan.innerHTML = data.title;
+        const titleSpan = document.createElement('span');
+        titleSpan.innerText = data.title;
+        const labelSpan = matchElement?.querySelector('.opponents > span');
+        if (labelSpan) {
+          matchElement?.insertBefore(labelSpan,titleSpan);
+          labelSpan.remove();
+          labelSpan.classList.add(styles.label);
+          matchElement?.append(labelSpan);
         }
       }
     }

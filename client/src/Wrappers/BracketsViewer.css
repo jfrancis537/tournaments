@@ -1,0 +1,9 @@
+.label {
+  position: absolute;
+  bottom: -8px;
+  font-size: .8em;
+  padding: 0 5px;
+  color: var(--label-color);
+  background: var(--primary-background);
+  border-radius: 3px;
+}
