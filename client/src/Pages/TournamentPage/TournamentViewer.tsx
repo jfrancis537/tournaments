@@ -127,10 +127,6 @@ export const TournamentViewer: React.FC<TournamentPageProps> = (props) => {
     setLoadingState(LoadState.COMPLETE);
     setTournament(t);
     setTournamentData(database);
-    // const requiredState = user?.role === 'admin' ? TournamentState.Finalizing : TournamentState.Active;
-    // if (t.state >= requiredState) {
-
-    // }
   }
 
   async function onMatchClicked(match: Match) {

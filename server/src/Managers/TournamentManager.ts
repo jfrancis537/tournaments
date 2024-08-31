@@ -253,6 +253,27 @@ class TournamentManager {
     return false;
   }
 
+  public async reset(tournamentId: string, matchId: number) {
+    const match = await this.getMatch(tournamentId, matchId);
+    if (!match) {
+      return;
+    }
+    this.manager.update.match({
+      id: matchId,
+      opponent1: {
+        forfeit: false,
+        result: undefined,
+        score: 0
+      },
+      opponent2: {
+        forfeit: false,
+        result: undefined,
+        score: 0
+      },
+      status: Status.Ready
+    })
+  }
+
   public async forfeit(tournamentId: string, teamId: number, matchId: number) {
 
     const match = await this.getMatch(tournamentId, matchId);
