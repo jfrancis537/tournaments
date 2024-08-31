@@ -99,6 +99,18 @@ export namespace MatchAPI {
     }
   }
 
+  export async function resetMatch(tournamentId: string, match: Match) {
+    const resp = await fetch(`${MatchAPIConstants.BASE_PATH}${MatchAPIConstants.RESET_MATCH(tournamentId, match.id.toString())}`, {
+      headers: {
+        'Content-Type': 'application/json'
+      }
+    });
+
+    if (!resp.ok) {
+      throw new HttpStatusError("Failed to reset match.", resp.status);
+    }
+  }
+
   export async function selectWinner(tournamentId: string, match: Match, participantId: number) {
     const body: MatchAPIConstants.WinnerUpdate = {
       winnerId: participantId

@@ -64,4 +64,8 @@ export namespace MatchAPIConstants {
   export const UPDATE = (tournamentId = ':tid',matchId = ':mid') => {
     return `/${tournamentId}/match/update/${matchId}`
   }
+
+  export const RESET_MATCH = (tournamentId = ':tid',matchId = ':mid') => {
+    return `/${tournamentId}/match/reset/${matchId}`
+  }
 }

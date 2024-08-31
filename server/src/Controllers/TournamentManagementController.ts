@@ -131,6 +131,7 @@ namespace TournamentManagerController {
       }
       resp.status(200).json(metadata);
     });
+
 }
 const both: [string, Router] = [TournamentManagerController.path, TournamentManagerController.router];
 export { both as TournamentManagerController };

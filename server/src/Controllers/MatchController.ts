@@ -114,6 +114,15 @@ namespace MatchController {
       resp.sendStatus(200);
     });
 
+    router.get(MatchAPIConstants.RESET_MATCH(),RequireRole('admin'), async (req,resp) => {
+      try {
+        await TournamentManager.instance.reset(req.params.tid, Number(req.params.mid));
+      } catch {
+        resp.sendStatus(500);
+      }
+      resp.sendStatus(200);
+    });
+
   router.put(MatchAPIConstants.UPDATE(), RequireRole('admin'),
     async (req, resp) => {
       const body: Partial<Match> = req.body;
