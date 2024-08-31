@@ -46,7 +46,7 @@ export const BracketsViewer: React.FC<BracketViewerProps> = (props) => {
 
   useEffect(() => {
     TournamentSocketAPI.onmatchmetadataupdated.addListener(onMetadataUpdated);
-    applyMetadata();
+    // applyMetadata();
     return () => {
       TournamentSocketAPI.onmatchmetadataupdated.removeListener(onMetadataUpdated);
     }
