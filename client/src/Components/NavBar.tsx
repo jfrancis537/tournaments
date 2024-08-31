@@ -2,7 +2,7 @@ import MenuIcon from '@mui/icons-material/Menu'
 import { Box, Button, Dropdown, Menu, MenuButton, MenuItem, Typography } from '@mui/joy';
 
 import navStyles from './NavBar.module.css';
-import { useContext } from 'react';
+import { useContext, useEffect } from 'react';
 import { UserContext } from '../Contexts/UserContext';
 import { useLocation } from 'wouter';
 import { Person } from '@mui/icons-material';

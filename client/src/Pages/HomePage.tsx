@@ -129,7 +129,7 @@ export const HomePage: React.FC = () => {
             </ListItem>
           </List>
         </CardContent>
-        {(registrationOpen || allowManagement) && (
+        {(registrationOpen || allowManagement || canView) && (
           <>
             <Divider />
             <ButtonGroup variant="solid" color="primary" sx={{
