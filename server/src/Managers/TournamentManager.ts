@@ -515,5 +515,10 @@ class TournamentManager {
 
 }
 
-const instance = new Lazy(() => new TournamentManager());
+const instance = new Lazy(() => {
+  let instance = new TournamentManager();
+  //@ts-ignore
+  globalThis['tm'] = instance;
+  return instance;
+});
 export { instance as TournamentManager };
