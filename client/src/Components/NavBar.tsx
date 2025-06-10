@@ -1,13 +1,10 @@
-import MenuIcon from '@mui/icons-material/Menu'
 import { Box, Button, Dropdown, Menu, MenuButton, MenuItem, Typography } from '@mui/joy';
 
-import navStyles from './NavBar.module.css';
-import { useContext, useEffect } from 'react';
-import { UserContext } from '../Contexts/UserContext';
-import { useLocation } from 'wouter';
 import { Person } from '@mui/icons-material';
-import { AuthAPI } from '../APIs/AuthAPI';
-import { useSocketState } from '../Managers/SocketManager';
+import { useContext } from 'react';
+import { useLocation } from 'wouter';
+import { UserContext } from '../Contexts/UserContext';
+import navStyles from './NavBar.module.css';
 
 
 const NavBarButton: React.FC<{ url: string, children: string }> = (props) => {
@@ -20,15 +17,16 @@ const NavBarButton: React.FC<{ url: string, children: string }> = (props) => {
   )
 }
 
+function login() {
+  window.location.href = '/api/v1/auth/login';
+}
+
 export const NavBar: React.FC = () => {
 
-  const { user, setUser } = useContext(UserContext);
-  const [, setLocation] = useLocation();
+  const { user } = useContext(UserContext);
 
   async function logout() {
-    await AuthAPI.logout();
-    setUser(undefined);
-    setLocation('/');
+    window.location.href = '/oidc/logout';
   }
 
   function renderUserOrLogin() {
@@ -54,7 +52,7 @@ export const NavBar: React.FC = () => {
       )
     } else {
       return (
-        <NavBarButton url='/account/login'>Login</NavBarButton>
+        <Button variant='plain' onClick={login}>Login</Button>
       )
     }
   }
@@ -67,6 +65,8 @@ export const NavBar: React.FC = () => {
         </Box>
         <Box sx={{display: 'flex'}}>
           <NavBarButton url='/'>Home</NavBarButton>
+          <NavBarButton url='/news'>News</NavBarButton>
+          <NavBarButton url='/tournaments/all'>Tournaments</NavBarButton>
           {renderUserOrLogin()}
         </Box>
       </div>

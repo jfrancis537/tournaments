@@ -21,18 +21,18 @@ import TournamentRegistrationConfirmation from "../Templates/TournamentRegistrat
 class TournamentManager {
 
   private readonly storage: CrudInterface;
-  private readonly manager: BracketsManager;
+  private readonly bracketManager: BracketsManager;
 
   constructor() {
     this.storage = new MemoryDatabaseShim(new InMemoryDatabase(), async () => {
-      await Database.instance.setBracketData(await this.manager.export());
+      await Database.instance.setBracketData(await this.bracketManager.export());
     });
-    this.manager = new BracketsManager(this.storage);
+    this.bracketManager = new BracketsManager(this.storage);
   }
 
   public async populateBracketData() {
     const data = await Database.instance.getBracketData();
-    this.manager.import(data);
+    this.bracketManager.import(data);
   }
 
   public async createNewTournament(options: TournamentOptions) {
@@ -56,8 +56,8 @@ class TournamentManager {
   }
 
   public async deleteTournament(id: string) {
-    await this.manager.delete.tournament(id);
-    await this.manager.storage.delete('participant', { tournament_id: id });
+    await this.bracketManager.delete.tournament(id);
+    await this.bracketManager.storage.delete('participant', { tournament_id: id });
     await Database.instance.deleteTournament(id);
     await Database.instance.deleteMatchMetadata(id);
     await Database.instance.deleteRegistrations(id);
@@ -222,7 +222,7 @@ class TournamentManager {
     }
 
     if (match.opponent1!.id === teamId) {
-      await this.manager.update.match({
+      await this.bracketManager.update.match({
         id: match.id,
         opponent1: {
           result: 'win',
@@ -236,7 +236,7 @@ class TournamentManager {
       TournamentSocketAPI.onmatchupdated.invoke(match);
       return true;
     } else if (match.opponent2!.id === teamId) {
-      await this.manager.update.match({
+      await this.bracketManager.update.match({
         id: match.id,
         opponent1: {
           result: 'loss',
@@ -258,7 +258,7 @@ class TournamentManager {
     if (!match) {
       return;
     }
-    this.manager.update.match({
+    this.bracketManager.update.match({
       id: matchId,
       opponent1: {
         forfeit: false,
@@ -284,7 +284,7 @@ class TournamentManager {
 
 
     if (match.opponent1!.id === teamId) {
-      await this.manager.update.match({
+      await this.bracketManager.update.match({
         id: match.id,
         opponent1: {
           forfeit: true
@@ -296,7 +296,7 @@ class TournamentManager {
       TournamentSocketAPI.onmatchupdated.invoke(match);
       return true;
     } else if (match.opponent2!.id === teamId) {
-      await this.manager.update.match({
+      await this.bracketManager.update.match({
         id: match.id,
         opponent1: {
           result: 'win'
@@ -333,7 +333,7 @@ class TournamentManager {
 
   public async startMatch(tournamentId: string, match: Match) {
 
-    await this.manager.storage.update('match', {
+    await this.bracketManager.storage.update('match', {
       id: match.id
     }, {
       opponent1: {
@@ -367,7 +367,7 @@ class TournamentManager {
 
     if (match.opponent1!.id === teamId) {
       const currentScore = match.opponent1!.score ?? 0;
-      await this.manager.storage.update('match', {
+      await this.bracketManager.storage.update('match', {
         id: match.id
       }, {
         opponent1: {
@@ -378,7 +378,7 @@ class TournamentManager {
       TournamentSocketAPI.onmatchupdated.invoke(match);
     } else {
       const currentScore = match.opponent2!.score ?? 0;
-      await this.manager.storage.update('match', {
+      await this.bracketManager.storage.update('match', {
         id: match.id
       }, {
         opponent2: {
@@ -392,7 +392,7 @@ class TournamentManager {
   }
 
   public async updateMatch(tournamentId: string, matchId: number, update: Partial<Match>) {
-    const success = await this.manager.storage.update('match', {
+    const success = await this.bracketManager.storage.update('match', {
       id: matchId
     }, update);
     const updated = await this.getMatch(tournamentId, matchId);
@@ -402,7 +402,7 @@ class TournamentManager {
 
   public async declareDraw(teamId: number, match: Match) {
     if (match.opponent1!.id === teamId) {
-      await this.manager.update.match({
+      await this.bracketManager.update.match({
         id: match.id,
         opponent1: {
           result: 'draw'
@@ -412,7 +412,7 @@ class TournamentManager {
         }
       });
     } else {
-      await this.manager.update.match({
+      await this.bracketManager.update.match({
         id: match.id,
         opponent1: {
           result: 'draw'
@@ -428,14 +428,14 @@ class TournamentManager {
   public async getTournamentData(id: string): Promise<[Tournament, BracketsDatabase] | undefined> {
     const tournament = await this.getTournament(id);
     if (tournament) {
-      return [tournament, await this.manager.get.tournamentData(id)];
+      return [tournament, await this.bracketManager.get.tournamentData(id)];
     } else {
       return undefined;
     }
   }
 
   public async getMatch(tournamentId: string, matchId: number): Promise<Match | undefined> {
-    const stage = await this.manager.get.currentStage(tournamentId);
+    const stage = await this.bracketManager.get.currentStage(tournamentId);
     if (!stage) {
       return undefined;
     }
@@ -444,7 +444,7 @@ class TournamentManager {
       stage_id: stage.id,
       id: matchId
     }
-    const selection = await this.manager.storage.select('match', filter);
+    const selection = await this.bracketManager.storage.select('match', filter);
     if (!selection) {
       return undefined;
     }
@@ -454,12 +454,12 @@ class TournamentManager {
   private async createStage(tournament: Readonly<Tournament>, stageType: Readonly<StageType>, settings: StageSettings) {
 
     // Get the teams for the tournament
-    let unorderedTeams = await TeamManager.instance.getTeams(tournament.id);
+    const unorderedTeams = await TeamManager.instance.getTeams(tournament.id);
     if (!unorderedTeams) {
       return;
     }
 
-    let teams = [...unorderedTeams].filter(team => team.seedNumber !== undefined);
+    const teams = [...unorderedTeams].filter(team => team.seedNumber !== undefined);
     teams.sort((a, b) => {
       return a.seedNumber! - b.seedNumber!;
     });
@@ -476,7 +476,7 @@ class TournamentManager {
       }
     }
 
-    const stage = await this.manager.create.stage({
+    const stage = await this.bracketManager.create.stage({
       name: tournament.name,
       tournamentId: tournament.id,
       type: stageType,
@@ -488,7 +488,7 @@ class TournamentManager {
       tournament_id: stage.tournament_id
     }
     // Not null asserted because we just created the stage.
-    const participants = (await this.manager.storage.select('participant', filter))!;
+    const participants = (await this.bracketManager.storage.select('participant', filter))!;
     await TeamManager.instance.assignSeedNumbers(
       participants.map((participant, i) => {
         const team = teams[i];
@@ -516,9 +516,9 @@ class TournamentManager {
 }
 
 const instance = new Lazy(() => {
-  let instance = new TournamentManager();
+  const instance = new TournamentManager();
   //@ts-ignore
-  globalThis['tm'] = instance;
+  globalThis["tm"] = instance;
   return instance;
 });
 export { instance as TournamentManager };

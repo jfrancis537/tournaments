@@ -1,12 +1,12 @@
-import express, { Router } from 'express';
-import { TournamentManager } from '../Managers/TournamentManager';
 import { MatchAPIConstants } from '@common/Constants/MatchAPIConstants';
-import { Match } from 'brackets-model';
-import { RequireRole } from '../MiddleWare/RequireRoleMiddleware';
-import { Database } from '../Database/Database';
-import { DatabaseError, DatabaseErrorType } from '../Database/DatabaseError';
 import { MatchMetadata } from '@common/Models/MatchMetadata';
 import { TournamentSocketAPI } from '@common/SocketAPIs/TournamentAPI';
+import { Match } from 'brackets-model';
+import express, { Router } from 'express';
+import { Database } from '../Database/Database';
+import { DatabaseError, DatabaseErrorType } from '../Database/DatabaseError';
+import { TournamentManager } from '../Managers/TournamentManager';
+import { RequireRole } from '../MiddleWare/RequireRoleMiddleware';
 
 namespace MatchController {
   export const path = MatchAPIConstants.BASE_PATH;
@@ -49,7 +49,7 @@ namespace MatchController {
     }
   });
 
-  router.put(MatchAPIConstants.ADD_MATCH_METADATA(),RequireRole('admin') ,async (req, resp) => {
+  router.put(MatchAPIConstants.ADD_MATCH_METADATA(),RequireRole('Admin') ,async (req, resp) => {
     const metadata: MatchMetadata = req.body;
     if (metadata.matchId !== Number(req.params.mid) || metadata.tournamentId !== req.params.tid) {
       resp.sendStatus(400);
@@ -60,7 +60,7 @@ namespace MatchController {
     resp.sendStatus(201);
   });
 
-  router.put(MatchAPIConstants.SELECT_WINNER(), RequireRole('admin'),
+  router.put(MatchAPIConstants.SELECT_WINNER(), RequireRole('Admin'),
     async (req, resp) => {
       const body: MatchAPIConstants.WinnerUpdate = req.body;
       const success = await TournamentManager.instance.selectWinner(req.params.tid, body.winnerId, Number(req.params.mid));
@@ -72,7 +72,7 @@ namespace MatchController {
       resp.sendStatus(200);
     });
 
-  router.put(MatchAPIConstants.FORFEIT(), RequireRole('admin'),
+  router.put(MatchAPIConstants.FORFEIT(), RequireRole('Admin'),
     async (req, resp) => {
       const body: MatchAPIConstants.ForfeitUpdate = req.body;
       const success = await TournamentManager.instance.forfeit(req.params.tid, body.forfeitId, Number(req.params.mid));
@@ -84,7 +84,7 @@ namespace MatchController {
       resp.sendStatus(200);
     });
 
-  router.put(MatchAPIConstants.UPDATE_SCORE(), RequireRole('admin'),
+  router.put(MatchAPIConstants.UPDATE_SCORE(), RequireRole('Admin'),
     async (req, resp) => {
       const body: MatchAPIConstants.ScoreUpdate = req.body;
 
@@ -97,7 +97,7 @@ namespace MatchController {
       resp.sendStatus(200);
     });
 
-  router.put(MatchAPIConstants.UPDATE_STATE(), RequireRole('admin'),
+  router.put(MatchAPIConstants.UPDATE_STATE(), RequireRole('Admin'),
     async (req, resp) => {
       const body: MatchAPIConstants.StateUpdate = req.body;
       if (Number(req.params.mid) !== body.match.id) {
@@ -114,7 +114,7 @@ namespace MatchController {
       resp.sendStatus(200);
     });
 
-    router.get(MatchAPIConstants.RESET_MATCH(),RequireRole('admin'), async (req,resp) => {
+    router.get(MatchAPIConstants.RESET_MATCH(),RequireRole('Admin'), async (req,resp) => {
       try {
         await TournamentManager.instance.reset(req.params.tid, Number(req.params.mid));
       } catch {
@@ -123,7 +123,7 @@ namespace MatchController {
       resp.sendStatus(200);
     });
 
-  router.put(MatchAPIConstants.UPDATE(), RequireRole('admin'),
+  router.put(MatchAPIConstants.UPDATE(), RequireRole('Admin'),
     async (req, resp) => {
       const body: Partial<Match> = req.body;
       const success = await TournamentManager.instance.updateMatch(req.params.tid, Number(req.params.mid), body);

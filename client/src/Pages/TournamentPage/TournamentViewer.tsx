@@ -1,19 +1,19 @@
-import { useContext, useEffect, useState } from "react";
-import { LoadState } from "../../Utilities/LoadState";
+import { MatchMetadata } from "@common/Models/MatchMetadata";
+import { Tournament, TournamentState } from "@common/Models/Tournament";
+import { TournamentSocketAPI } from "@common/SocketAPIs/TournamentAPI";
 import { Database as BracketsDatabase } from "brackets-manager";
 import { Match, Status } from "brackets-model";
-import { Tournament, TournamentState } from "@common/Models/Tournament";
+import { useCallback, useContext, useEffect, useState } from "react";
 import { useLocation } from "wouter";
+import { MatchAPI } from "../../APIs/MatchAPI";
+import { TournamentAPI } from "../../APIs/TournamentAPI";
+import { Authenticated } from "../../Components/Authenticated";
+import { UserContext } from "../../Contexts/UserContext";
+import { useSocketState } from "../../Managers/SocketManager";
+import { LoadState } from "../../Utilities/LoadState";
 import { matchUrl } from "../../Utilities/RouteUtils";
 import { BracketsViewer } from "../../Wrappers/BracketsViewer";
-import { TournamentSocketAPI } from "@common/SocketAPIs/TournamentAPI";
-import { TournamentAPI } from "../../APIs/TournamentAPI";
-import { UserContext } from "../../Contexts/UserContext";
-import { Authenticated } from "../../Components/Authenticated";
 import { MatchMetadataModal } from "../MatchPage/MatchMetadataDialog";
-import { MatchMetadata } from "@common/Models/MatchMetadata";
-import { MatchAPI } from "../../APIs/MatchAPI";
-import { useSocketState } from "../../Managers/SocketManager";
 
 interface TournamentPageProps {
   tournamentId: string;
@@ -48,24 +48,36 @@ export const TournamentViewer: React.FC<TournamentPageProps> = (props) => {
     return componentWillUnmount;
   }
 
-  useEffect(componentWillMount, []);
+  const tournamentStateChanged = useCallback(async () => {
+    const data = await TournamentAPI.getTournamentData(props.tournamentId);
+    if (!data) {
+      setLoadingState(LoadState.FAILED);
+      return;
+    }
+    const [t, database] = data;
+    setLoadingState(LoadState.COMPLETE);
+    setTournament(t);
+    setTournamentData(database);
+  }, [props.tournamentId])
+
+  useEffect(componentWillMount);
 
   useEffect(() => {
     tournamentStateChanged();
-  }, [props.tournamentId]);
+  }, [props.tournamentId, tournamentStateChanged]);
 
   useEffect(() => {
     if (socketState === 'reconnected') {
       tournamentStateChanged();
     }
-  }, [socketState]);
+  }, [socketState, tournamentStateChanged]);
 
   function renderNotStarted() {
     return <h1>Tournament not started yet.</h1>
   }
 
   function shouldShowViewer() {
-    let shouldShow = false;
+    const shouldShow = false;
     if (tournament) {
       if (user) {
         return tournament.state >= TournamentState.Finalizing;
@@ -98,7 +110,7 @@ export const TournamentViewer: React.FC<TournamentPageProps> = (props) => {
                 onMatchClicked={onMatchClicked}
               />
               {matchToEdit && (
-                <Authenticated roles={['admin']}>
+                <Authenticated roles={['Admin']}>
                   <MatchMetadataModal
                     open={true}
                     match={matchToEdit}
@@ -117,21 +129,11 @@ export const TournamentViewer: React.FC<TournamentPageProps> = (props) => {
     }
   }
 
-  async function tournamentStateChanged() {
-    const data = await TournamentAPI.getTournamentData(props.tournamentId);
-    if (!data) {
-      setLoadingState(LoadState.FAILED);
-      return;
-    }
-    const [t, database] = data;
-    setLoadingState(LoadState.COMPLETE);
-    setTournament(t);
-    setTournamentData(database);
-  }
+
 
   async function onMatchClicked(match: Match) {
 
-    if (tournament && tournament.state === TournamentState.Finalizing && user?.role === 'admin') {
+    if (tournament && tournament.state === TournamentState.Finalizing && user?.roles.includes('Admin')) {
       setMatchToEdit(match);
       return;
     }

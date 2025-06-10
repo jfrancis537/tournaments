@@ -1,7 +1,6 @@
 import { CrudInterface, DataTypes, OmitId, Table } from "brackets-manager";
 import { InMemoryDatabase } from "brackets-memory-db";
 import { Id } from "brackets-model";
-import { Database } from "./Database";
 
 export class MemoryDatabaseShim implements CrudInterface {
 

@@ -1,7 +1,7 @@
+import { UserRole } from "@common/Models/User";
 import { ReactElement, useContext } from "react";
 import { DefaultParams, Path, Route, RouteProps } from "wouter";
 import { UserContext } from "../Contexts/UserContext";
-import { UserRole } from "@common/Models/User";
 import { Forbidden } from "../Pages/Forbidden";
 
 interface AuthenticatedRouteProps<T extends DefaultParams | undefined = undefined,
@@ -13,7 +13,7 @@ export function AuthenticatedRoute<T extends DefaultParams | undefined = undefin
 RoutePath extends Path = Path>(props: AuthenticatedRouteProps<T, RoutePath>): ReactElement {
   const { user } = useContext(UserContext);
 
-  if (!user || (props.roles && !props.roles.includes(user.role))) {
+  if (!user || (props.roles && !props.roles.every(role => user.roles.includes(role)))) {
     const updatedProps = {...props, children: undefined};
     return (
       <Route {...updatedProps}>

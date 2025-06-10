@@ -1,4 +1,4 @@
-import { UserRole } from "@common/Models/User"
+import { UserRole } from "@common/Models/User";
 import { PropsWithChildren, useContext } from "react";
 import { UserContext } from "../Contexts/UserContext";
 
@@ -8,7 +8,7 @@ interface AuthenticatedProps extends PropsWithChildren {
 
 export const Authenticated: React.FC<AuthenticatedProps> = (props) => {
   const { user } = useContext(UserContext);
-  if (!user || !props.roles.includes(user.role)) {
+  if (!user || !props.roles.every(role => user.roles.includes(role))) {
     return null;
   }
 

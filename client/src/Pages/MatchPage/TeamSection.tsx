@@ -1,9 +1,9 @@
-import { Team } from "@common/Models/Team"
-import { Box, Sheet, Typography } from "@mui/joy"
+import { Team } from "@common/Models/Team";
+import { Box, Sheet, Typography } from "@mui/joy";
 import { Match } from "brackets-model";
 
-import pageStyles from './MatchPage.module.css';
 import { Authenticated } from "../../Components/Authenticated";
+import pageStyles from './MatchPage.module.css';
 import { ScoreControls } from "./ScoreControls";
 
 interface TeamSectionProps {
@@ -24,7 +24,7 @@ export const TeamSection: React.FC<TeamSectionProps> = (props) => {
   function render() {
     return (
       <Box className={pageStyles["team-section-container"]}>
-        <Authenticated roles={['admin']}>
+        <Authenticated roles={['Admin']}>
           <ScoreControls {...props} score={score} />
         </Authenticated>
         <Sheet variant="soft" className={pageStyles["team-section"]}>

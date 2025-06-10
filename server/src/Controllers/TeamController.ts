@@ -1,16 +1,16 @@
 import { TeamAPIConstants } from "@common/Constants/TeamAPIConstants";
+import { RegistrationData } from "@common/Models/RegistrationData";
 import express, { Router } from "express";
 import { TeamManager } from "../Managers/TeamManager";
-import { RequireRole } from "../MiddleWare/RequireRoleMiddleware";
 import { TournamentManager } from "../Managers/TournamentManager";
+import { RequireRole } from "../MiddleWare/RequireRoleMiddleware";
 import { generateRegistrationCode } from "../Utilities/Crypto";
-import { RegistrationData } from "@common/Models/RegistrationData";
 
 namespace TeamController {
   export const path = TeamAPIConstants.BASE_PATH;
   export const router = express.Router();
 
-  router.post(TeamAPIConstants.ASSIGN_SEED_NUMBERS(), RequireRole('admin'),
+  router.post(TeamAPIConstants.ASSIGN_SEED_NUMBERS(), RequireRole('Admin'),
     async (req, resp) => {
       const teamIds: (string | null)[] = req.body;
       const pairs: ([string, number] | undefined)[] = teamIds.map((id, i) => {
@@ -29,7 +29,7 @@ namespace TeamController {
 
     });
 
-  router.post(TeamAPIConstants.SET_REGISTRATION_APPROVAL, RequireRole('admin'),
+  router.post(TeamAPIConstants.SET_REGISTRATION_APPROVAL, RequireRole('Admin'),
     async (req, resp) => {
       const request: TeamAPIConstants.SetRegistrationApprovalRequest = req.body;
       const result = await TeamManager.instance.updateRegistration(request.tournamentId,
@@ -52,7 +52,7 @@ namespace TeamController {
 
     });
 
-  router.put(TeamAPIConstants.SET_REGISTRATION_CODES, RequireRole('admin'),
+  router.put(TeamAPIConstants.SET_REGISTRATION_CODES, RequireRole('Admin'),
     async (req, resp) => {
       const body: TeamAPIConstants.SetRegistrationCodesRequest = req.body;
       const existing = await TeamManager.instance.getRegistrations(body.tournamentId);
@@ -158,7 +158,7 @@ namespace TeamController {
     }
   });
 
-  router.get(TeamAPIConstants.GET_REGISTRATIONS(), RequireRole('admin'), async (req, resp) => {
+  router.get(TeamAPIConstants.GET_REGISTRATIONS(), RequireRole('Admin'), async (req, resp) => {
     const tournamentId = req.params.id;
     const registrations = await TeamManager.instance.getRegistrations(tournamentId);
     if (!registrations) {

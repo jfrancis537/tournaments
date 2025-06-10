@@ -12,4 +12,8 @@ export namespace EnvironmentVariables {
   export const PSQL_PASSWORD = process.env.PSQL_PASSWORD;
   export const PSQL_DATABASE = process.env.PSQL_DATABASE ?? 'kgpb';
   export const JSON_DB_PATH = process.env.JSON_DB_PATH ?? './database.json'
+  export const OIDC_CLIENT_ID = process.env.OIDC_CLIENT_ID ?? ''
+  export const OIDC_CLIENT_SECRET = process.env.OIDC_CLIENT_SECRET ?? ''
+  export const OIDC_AUTHORITY = process.env.OIDC_AUTHORITY ?? ''
+  export const OIDC_BASE_URL = process.env.OIDC_RETURN_URL ?? 'http://localhost:3000'
 } 

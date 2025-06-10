@@ -4,6 +4,7 @@ import { UserRole } from "@common/Models/User";
 export namespace Tables {
   export enum Names {
     Users = 'users',
+    NewsPosts = 'news_posts',
     Tournaments = 'tournaments',
     TournamentMetadata = 'tournament_metadata',
     MatchMetadata = 'match_metadata',
@@ -17,6 +18,7 @@ export namespace Tables {
     export function asArray() {
       return [
         Names.Users,
+        Names.NewsPosts,
         Names.Tournaments,
         Names.TournamentMetadata,
         Names.MatchMetadata,
@@ -46,6 +48,28 @@ export namespace Tables {
           Users.Hash,
           Users.CreatedDate,
           Users.RegistrationToken
+        ]
+      }
+    }
+
+    export enum NewsPosts {
+      Id = 'id',
+      Author = 'author',
+      Title = 'title',
+      Markdown = 'markdown',
+      CreatedDate = 'createddate',
+      UpdatedDate = 'updateddate',
+    }
+
+    export namespace NewsPosts {
+      export function asArray() {
+        return [
+          NewsPosts.Id,
+          NewsPosts.Author,
+          NewsPosts.Title,
+          NewsPosts.Markdown,
+          NewsPosts.CreatedDate,
+          NewsPosts.UpdatedDate
         ]
       }
     }
@@ -184,6 +208,14 @@ export namespace Tables {
       [ColumnNames.Users.CreatedDate]: string;
       [ColumnNames.Users.RegistrationToken]: string | null;
     },
+    [Names.NewsPosts]: {
+      [ColumnNames.NewsPosts.Id]: string;
+      [ColumnNames.NewsPosts.Author]: string;
+      [ColumnNames.NewsPosts.Title]: string;
+      [ColumnNames.NewsPosts.Markdown]: string;
+      [ColumnNames.NewsPosts.CreatedDate]: string;
+      [ColumnNames.NewsPosts.UpdatedDate]: string;
+    }
     [Names.Tournaments]: {
       [ColumnNames.Tournaments.Id]: string;
       [ColumnNames.Tournaments.Name]: string;

@@ -10,6 +10,7 @@ import { Team } from "@common/Models/Team";
 import { SerializedTournament, Tournament, TournamentMetadata } from "@common/Models/Tournament";
 import { Database as BracketsDatabase } from "brackets-manager";
 import { RegistrationData } from "@common/Models/RegistrationData";
+import { NewsPost } from "@common/Models/NewsPost";
 
 
 const clone = rfdc();
@@ -18,10 +19,11 @@ interface JsonDatabaseSchema {
   version: string,
   users: { [id: string]: UserRecord };
   tournaments: { [id: string]: SerializedTournament };
-  tournamentMetadata: {[id: string]: TournamentMetadata}
+  tournamentMetadata: { [id: string]: TournamentMetadata }
   bracketData: BracketsDatabase;
   registrations: { [tid: string]: { [email: string]: RegistrationData } }
   teamData: { [tid: string]: { [id: string]: Team } };
+  newsPosts: { [id: string]: NewsPost }
   matchMetadata: {
     [tid: string]: {
       [mid: number]: MatchMetadata
@@ -65,6 +67,7 @@ export class JsonDatabase implements Database {
             matchMetadata: {},
             teamData: {
             },
+            newsPosts: {},
             tournaments: {},
             tournamentMetadata: {},
             registrations: {},
@@ -88,6 +91,7 @@ export class JsonDatabase implements Database {
             teamData: {
             },
             tournaments: {},
+            newsPosts: {},
             tournamentMetadata: {},
             registrations: {},
             bracketData: {
@@ -312,6 +316,50 @@ export class JsonDatabase implements Database {
     return metadata;
   }
 
+  public async addNewsPost(post: NewsPost): Promise<NewsPost> {
+    const existing = this.data.newsPosts[post.id];
+    if (existing) {
+      throw new DatabaseError('News post with this id already exists', DatabaseErrorType.ExistingRecord);
+    }
+    this.data.newsPosts[post.id] = clone(post);
+    await this.save();
+    return clone(post);
+  }
+
+  public async updateNewsPost(id: string,post: Omit<NewsPost,'id'>): Promise<NewsPost> {
+    const existing = this.data.newsPosts[id];
+    if(!existing) {
+      throw new DatabaseError('News post with this id does not exist', DatabaseErrorType.MissingRecord);
+    }
+
+    Object.assign(existing,post);
+    this.data.newsPosts[id] = existing;
+    await this.save();
+    return clone(existing);
+    
+  }
+  public async getNewsPost(id: string): Promise<NewsPost> {
+    const existing = this.data.newsPosts[id];
+    if(!existing) {
+      throw new DatabaseError('News post with this id does not exist', DatabaseErrorType.MissingRecord);
+    }
+    return clone(existing);
+  }
+  public async getNewsPosts(): Promise<NewsPost[]> {
+    const posts: NewsPost[] = [];
+    for(const id in this.data.newsPosts) {
+      posts.push(this.data.newsPosts[id]);
+    }
+    return posts;
+  }
+  public async deletePost(id: string): Promise<void> {
+    const existing = this.data.newsPosts[id];
+    if(existing) {
+      delete this.data.newsPosts[id];
+      await this.save();
+    }
+  }
+
   public async addRegistration(reg: RegistrationData): Promise<RegistrationData> {
     let tournamentRegistrations = this.data.registrations[reg.tournamentId];
     if (!tournamentRegistrations) {
@@ -345,11 +393,11 @@ export class JsonDatabase implements Database {
     tournamentId: string,
     email: string,
     update: Partial<Omit<RegistrationData, "contactEmail">>): Promise<RegistrationData> {
-      const tournamentRegistrations = this.data.registrations[tournamentId];
-      const registration = tournamentRegistrations[email];
-      Object.assign(registration,update);
-      await this.save()
-      return clone(registration);
+    const tournamentRegistrations = this.data.registrations[tournamentId];
+    const registration = tournamentRegistrations[email];
+    Object.assign(registration, update);
+    await this.save()
+    return clone(registration);
   }
 
   public async getRegistrations(tournamentId: string): Promise<RegistrationData[]> {
@@ -377,7 +425,7 @@ export class JsonDatabase implements Database {
   }
 
   private async save() {
-    await writeFile(this.pathName, JSON.stringify(this.data, undefined, ' '), 'utf-8')
+    await writeFile(this.pathName, JSON.stringify(this.data, undefined, ' '), 'utf-8');
   }
 
 }

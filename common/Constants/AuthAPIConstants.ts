@@ -41,11 +41,6 @@ export enum ConfirmAccountResult {
 export namespace AuthAPIConstants {
   export const BASE_PATH = '/api/v1/auth';
 
-  export interface LoginRequest {
-    email: string;
-    password: string;
-  }
-
   export interface AccountRegistrationRequest {
     password: string,
     email: string,

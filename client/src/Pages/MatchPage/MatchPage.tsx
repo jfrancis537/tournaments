@@ -1,19 +1,19 @@
-import { Match, Status } from "brackets-model"
-import { useEffect, useState } from "react"
-import { Link } from "wouter";
-import { tournamentUrl } from "../../Utilities/RouteUtils";
-import { TournamentSocketAPI } from "@common/SocketAPIs/TournamentAPI";
-import { TeamAPI } from "../../APIs/TeamAPI";
 import { Team } from "@common/Models/Team";
-import { MatchAPI } from "../../APIs/MatchAPI";
+import { TournamentSocketAPI } from "@common/SocketAPIs/TournamentAPI";
 import { Box, Button, ButtonGroup, Divider } from "@mui/joy";
+import { Match, Status } from "brackets-model";
+import { useEffect, useState } from "react";
+import { Link } from "wouter";
+import { MatchAPI } from "../../APIs/MatchAPI";
+import { TeamAPI } from "../../APIs/TeamAPI";
+import { tournamentUrl } from "../../Utilities/RouteUtils";
 
-import pageStyles from './MatchPage.module.css';
-import { TeamSection } from "./TeamSection";
+import { MatchMetadata } from "@common/Models/MatchMetadata";
 import { Authenticated } from "../../Components/Authenticated";
 import { useNavigation } from "../../Hooks/UseNavigation";
 import { MatchMetadataModal } from "./MatchMetadataDialog";
-import { MatchMetadata } from "@common/Models/MatchMetadata";
+import pageStyles from './MatchPage.module.css';
+import { TeamSection } from "./TeamSection";
 
 interface MatchPageProps {
   matchId: number,
@@ -82,7 +82,7 @@ export const MatchPage: React.FC<MatchPageProps> = (props) => {
           <Box className={pageStyles["page-box"]}>
             <Box className={pageStyles["button-container"]}>
               <Button className={pageStyles["back-button"]} onClick={backToTournament}>Back</Button>
-              <Authenticated roles={['admin']}>
+              <Authenticated roles={['Admin']}>
                 <ButtonGroup buttonFlex='0 1 30%' className={pageStyles['start-edit-button-container']} >
                   {match.status === Status.Ready &&
                     <Button onClick={startMatch}>Start</Button>}
@@ -97,7 +97,7 @@ export const MatchPage: React.FC<MatchPageProps> = (props) => {
               <TeamSection match={match} tournamentId={props.tournamentId} team={team2} />
             </Box>
           </Box>
-          <Authenticated roles={['admin']}>
+          <Authenticated roles={['Admin']}>
             <MatchMetadataModal
               tournamentId={props.tournamentId}
               match={match}

@@ -1,8 +1,8 @@
-export type UserRole = 'user' | 'admin';
+export type UserRole = 'User' | 'Admin';
 
 export interface User {
   email: string;
-  role: UserRole;
+  roles: UserRole[];
 }
 
 export interface UserRecord extends User{

@@ -1,7 +1,3 @@
-import React, { useContext, useEffect, useState } from "react";
-import { AuthAPI } from "../APIs/AuthAPI";
-import { HttpStatusError } from "../Errors/HttpStatusError";
-import { useLocation } from "wouter";
 import {
   Box,
   Button,
@@ -15,11 +11,14 @@ import {
   Link,
   Typography
 } from "@mui/joy";
+import React, { useContext, useState } from "react";
+import { useLocation } from "wouter";
+import { AuthAPI } from "../APIs/AuthAPI";
+import { HttpStatusError } from "../Errors/HttpStatusError";
 
-import PersonIcon from '@mui/icons-material/Person';
+import { Close, Email } from "@mui/icons-material";
 import Key from '@mui/icons-material/Key';
 import { UserContext } from "../Contexts/UserContext";
-import { Close, Email } from "@mui/icons-material";
 
 import pageStyles from './Login.module.css';
 

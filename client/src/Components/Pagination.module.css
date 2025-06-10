@@ -1,0 +1,17 @@
+.container {
+  display: flex;
+  justify-content: center;
+  padding: 1rem;
+}
+
+.previous {
+
+}
+
+.container .current {
+  margin: 0 .5rem;
+}
+
+.next {
+
+}

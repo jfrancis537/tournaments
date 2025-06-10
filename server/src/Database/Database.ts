@@ -1,21 +1,21 @@
-import { User, UserRecord } from "@common/Models/User";
-import { EnvironmentVariables } from "../Utilities/EnvironmentVariables";
-import { DataTypes, ValueToArray } from "brackets-manager";
-import { Tournament, TournamentMetadata } from "@common/Models/Tournament";
-import { Team } from "@common/Models/Team";
-import { JsonDatabase } from "./JsonDatabase";
 import { MatchMetadata } from "@common/Models/MatchMetadata";
+import { NewsPost } from "@common/Models/NewsPost";
 import { RegistrationData } from "@common/Models/RegistrationData";
+import { Team } from "@common/Models/Team";
+import { Tournament, TournamentMetadata } from "@common/Models/Tournament";
+import { DataTypes, ValueToArray } from "brackets-manager";
+import { EnvironmentVariables } from "../Utilities/EnvironmentVariables";
+import { JsonDatabase } from "./JsonDatabase";
 import { PostgresDatabase } from "./PostgresDatabase";
 
 
 export interface Database {
-  hasUser(email: string): Promise<boolean>;
-  getUser(email: string): Promise<UserRecord>;
-  addUser(user: UserRecord): Promise<UserRecord>;
-  updateUser(email: string, details: Partial<Omit<UserRecord, 'email'>>): Promise<UserRecord>;
-  findUser(user: Partial<UserRecord>): Promise<UserRecord | undefined>;
-  confirmUser(token: string): Promise<UserRecord>;
+  // hasUser(email: string): Promise<boolean>;
+  // getUser(email: string): Promise<UserRecord>;
+  // addUser(user: UserRecord): Promise<UserRecord>;
+  // updateUser(email: string, details: Partial<Omit<UserRecord, 'email'>>): Promise<UserRecord>;
+  // findUser(user: Partial<UserRecord>): Promise<UserRecord | undefined>;
+  // confirmUser(token: string): Promise<UserRecord>;
 
   getTournament(tournamentId: string): Promise<Tournament>;
   getAllTournaments(): Promise<Tournament[]>
@@ -47,6 +47,13 @@ export interface Database {
   updateRegistration(tournamentId: string, email: string, update: Partial<Omit<RegistrationData,'contactEmail'>>): Promise<RegistrationData>;
   deleteRegistrations(tournamentId: string): Promise<void>;
   deleteRegistration(tournamentId: string, email: string): Promise<void>;
+
+  addNewsPost(post: NewsPost): Promise<NewsPost>;
+  updateNewsPost(id: string, post: Omit<NewsPost,'id'>): Promise<NewsPost>;
+  getNewsPost(id: string): Promise<NewsPost>;
+  getNewsPosts(): Promise<NewsPost[]>;
+  deletePost(id: string): Promise<void>;
+
 }
 
 export namespace Database {

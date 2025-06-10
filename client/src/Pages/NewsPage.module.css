@@ -1,0 +1,20 @@
+.main-container {
+    height: 100%;
+    display: flex !important;
+    flex-flow: column;
+    overflow: hidden;
+}
+
+.heading {
+  /* flex: 1; */
+}
+
+.post-container {
+    flex: 1;
+    display: flex;
+    flex-flow: column;
+    align-items: center;
+    overflow-y: scroll;
+    padding: 0px 1rem;
+    max-height: 100%;
+}

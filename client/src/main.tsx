@@ -14,7 +14,7 @@ const EntryPoint: React.FC = () => {
     <React.StrictMode>
       <CssVarsProvider disableNestedContext defaultMode='light' defaultColorScheme='light'>
         <CssBaseline />
-        <App />
+          <App />
       </CssVarsProvider>
     </React.StrictMode>
   )

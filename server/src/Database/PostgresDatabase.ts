@@ -1,16 +1,16 @@
 import { MatchMetadata } from "@common/Models/MatchMetadata";
+import { NewsPost } from "@common/Models/NewsPost";
 import { RegistrationData } from "@common/Models/RegistrationData";
 import { Player, Team } from "@common/Models/Team";
 import { Tournament, TournamentMetadata } from "@common/Models/Tournament";
-import { UserRecord } from "@common/Models/User";
-import { Database as BracketsDatabase, Table } from "brackets-manager";
-import { Database } from "./Database";
+import { Values } from "@common/Utilities/TypeHelpers";
+import { Database as BracketsDatabase } from "brackets-manager";
+import { StageSettings, StageType } from "brackets-model";
 import * as pg from "pg";
 import { EnvironmentVariables } from "../Utilities/EnvironmentVariables";
+import { Database } from "./Database";
 import { DatabaseError, DatabaseErrorType } from "./DatabaseError";
 import { Tables } from "./PostgressDatabaseDescriptors";
-import { Values } from "@common/Utilities/TypeHelpers";
-import { StageSettings, StageType } from "brackets-model";
 
 
 type ColResult<T extends Tables.Names> = Tables.ColumnDefinitions[T]
@@ -33,125 +33,239 @@ export class PostgresDatabase implements Database {
     this.ready = this.init();
   }
 
-  async hasUser(email: string): Promise<boolean> {
-    const COLS = Tables.ColumnNames.Users;
-    const result = await this.query(`SELECT ${COLS.Email} FROM ${Tables.Names.Users} WHERE ${COLS.Email} = $1`, [email]);
+  // async hasUser(email: string): Promise<boolean> {
+  //   const COLS = Tables.ColumnNames.Users;
+  //   const result = await this.query(`SELECT ${COLS.Email} FROM ${Tables.Names.Users} WHERE ${COLS.Email} = $1`, [email]);
+  //   return (!!result.rows[0]);
+  // }
+
+  // async getUser(email: string): Promise<UserRecord> {
+  //   const COLS = Tables.ColumnNames.Users;
+  //   const result = await this.query<ColResult<Tables.Names.Users>>
+  //     (`SELECT * FROM ${Tables.Names.Users} WHERE ${COLS.Email} = $1`, [email]);
+  //   if (!result.rows[0]) {
+  //     throw new DatabaseError(`Failed to get user with email: ${email}`, DatabaseErrorType.MissingRecord);
+  //   }
+
+  //   const row = result.rows[0];
+
+  //   return {
+  //     email: row.email,
+  //     role: row.role,
+  //     salt: row.salt,
+  //     hash: row.hash,
+  //     createdDate: row.createddate,
+  //     registrationToken: row.registrationtoken ?? undefined
+  //   }
+  // }
+
+  // async addUser(user: UserRecord): Promise<UserRecord> {
+
+  //   if (await this.hasUser(user.email)) {
+  //     throw new DatabaseError(`User with email: ${user.email} already exists`, DatabaseErrorType.ExistingRecord);
+  //   }
+
+  //   const colNames = Tables.ColumnNames.Users.asArray();
+  //   const result = await this.query<ColResult<Tables.Names.Users>>(`
+  //   INSERT INTO ${Tables.Names.Users} (${colNames.join(',')})
+  //   VALUES ($1, $2, $3, $4, $5, $6)
+  //   RETURNING *;`,
+  //     [user.email, user.role, user.salt, user.hash, user.createdDate, user.registrationToken ?? null]);
+
+  //   const row = result.rows[0];
+
+  //   if (!row) {
+  //     throw new DatabaseError(`Failed to add user with email: ${user.email}`, DatabaseErrorType.Other);
+  //   }
+
+  //   return {
+  //     email: row.email,
+  //     role: row.role,
+  //     salt: row.salt,
+  //     hash: row.hash,
+  //     createdDate: row.createddate,
+  //     registrationToken: row.registrationtoken ?? undefined
+  //   }
+  // }
+  // async updateUser(email: string, details: Partial<Omit<UserRecord, "email">>): Promise<UserRecord> {
+
+  //   const existingUser = await this.getUser(email);
+  //   Object.assign(existingUser, details);
+
+  //   const COLS = Tables.ColumnNames.Users;
+  //   const result = await this.query<ColResult<Tables.Names.Users>>(
+  //     `UPDATE ${Tables.Names.Users}
+  //     SET ${COLS.Role} = $2, ${COLS.Salt} = $3, 
+  //         ${COLS.Hash} = $4, ${COLS.CreatedDate} = $5, ${COLS.RegistrationToken} = $6
+  //     WHERE ${COLS.Email} = $1
+  //     RETURNING *;
+  //     `,
+  //     [email, existingUser.role, existingUser.salt, existingUser.hash, existingUser.createdDate, existingUser.registrationToken ?? null]
+  //   );
+
+  //   const row = result.rows[0];
+
+  //   if (!row) {
+  //     throw new DatabaseError(`Failed to update user with email: ${email}`, DatabaseErrorType.Other);
+  //   }
+
+  //   return {
+  //     email: row.email,
+  //     role: row.role,
+  //     salt: row.salt,
+  //     hash: row.hash,
+  //     createdDate: row.createddate,
+  //     registrationToken: row.registrationtoken ?? undefined
+  //   }
+
+  // }
+  // async findUser(user: Partial<UserRecord>): Promise<UserRecord | undefined> {
+  //   try {
+  //     return await this.getUser(user.email!)
+  //   } catch (err) {
+  //     if (err instanceof DatabaseError && err.type === DatabaseErrorType.MissingRecord) {
+  //       return undefined;
+  //     }
+  //   }
+  // }
+
+  // async confirmUser(token: string): Promise<UserRecord> {
+
+  //   const COLS = Tables.ColumnNames.Users;
+  //   const colNames = Tables.ColumnNames.Users.asArray();
+  //   const result =
+  //     await this.query<ColResult<Tables.Names.Users>, [string]>(
+  //       `SELECT ${colNames.join(',')}
+  //      FROM ${Tables.Names.Users}
+  //      WHERE ${COLS.RegistrationToken} = $1;
+  //     `,
+  //       [token]
+  //     );
+  //   const row = result.rows[0];
+
+  //   if (!row) {
+  //     throw new DatabaseError('No user with specified registration token exists.', DatabaseErrorType.MissingRecord);
+  //   }
+
+  //   return await this.updateUser(row.email, {
+  //     registrationToken: undefined
+  //   });
+
+  // }
+
+  async hasNewsPost(id: string): Promise<boolean> {
+    const COLS = Tables.ColumnNames.NewsPosts;
+    const result = await this.query(`SELECT ${COLS.Id} FROM ${Tables.Names.NewsPosts} WHERE ${COLS.Id} = $1`, [id]);
     return (!!result.rows[0]);
   }
 
-  async getUser(email: string): Promise<UserRecord> {
-    const COLS = Tables.ColumnNames.Users;
-    const result = await this.query<ColResult<Tables.Names.Users>>
-      (`SELECT * FROM ${Tables.Names.Users} WHERE ${COLS.Email} = $1`, [email]);
-    if (!result.rows[0]) {
-      throw new DatabaseError(`Failed to get user with email: ${email}`, DatabaseErrorType.MissingRecord);
+  async addNewsPost(post: NewsPost): Promise<NewsPost> {
+    if (await this.hasNewsPost(post.id)) {
+      throw new DatabaseError(`Post with id: ${post.id} already exists`, DatabaseErrorType.ExistingRecord);
     }
 
-    const row = result.rows[0];
-
-    return {
-      email: row.email,
-      role: row.role,
-      salt: row.salt,
-      hash: row.hash,
-      createdDate: row.createddate,
-      registrationToken: row.registrationtoken ?? undefined
-    }
-  }
-
-  async addUser(user: UserRecord): Promise<UserRecord> {
-
-    if (await this.hasUser(user.email)) {
-      throw new DatabaseError(`User with email: ${user.email} already exists`, DatabaseErrorType.ExistingRecord);
-    }
-
-    const colNames = Tables.ColumnNames.Users.asArray();
-    const result = await this.query<ColResult<Tables.Names.Users>>(`
-    INSERT INTO ${Tables.Names.Users} (${colNames.join(',')})
-    VALUES ($1, $2, $3, $4, $5, $6)
+    const colNames = Tables.ColumnNames.NewsPosts.asArray();
+    const result = await this.query<ColResult<Tables.Names.NewsPosts>>(`
+    INSERT INTO ${Tables.Names.NewsPosts} (${colNames.join(',')})
+    VALUES ($1,$2,$3,$4,$5,$6)
     RETURNING *;`,
-      [user.email, user.role, user.salt, user.hash, user.createdDate, user.registrationToken ?? null]);
+      [post.id,post.author,post.title,post.markdown,post.createdDate.toString(),post.updatedDate.toString()]);
 
     const row = result.rows[0];
 
     if (!row) {
-      throw new DatabaseError(`Failed to add user with email: ${user.email}`, DatabaseErrorType.Other);
+      throw new DatabaseError(`Failed to news post with email: ${post.id}`, DatabaseErrorType.Other);
     }
 
     return {
-      email: row.email,
-      role: row.role,
-      salt: row.salt,
-      hash: row.hash,
-      createdDate: row.createddate,
-      registrationToken: row.registrationtoken ?? undefined
+      id: post.id,
+      author: post.author,
+      title: post.title,
+      markdown: post.markdown,
+      createdDate: post.createdDate,
+      updatedDate: post.updatedDate
     }
   }
-  async updateUser(email: string, details: Partial<Omit<UserRecord, "email">>): Promise<UserRecord> {
+  async updateNewsPost(id: string, post: Omit<NewsPost, "id">): Promise<NewsPost> {
 
-    let existingUser = await this.getUser(email);
-    Object.assign(existingUser, details);
+    const existing = await this.getNewsPost(id);
+    Object.assign(existing, post);
 
-    const COLS = Tables.ColumnNames.Users;
-    const result = await this.query<ColResult<Tables.Names.Users>>(
-      `UPDATE ${Tables.Names.Users}
-      SET ${COLS.Role} = $2, ${COLS.Salt} = $3, 
-          ${COLS.Hash} = $4, ${COLS.CreatedDate} = $5, ${COLS.RegistrationToken} = $6
-      WHERE ${COLS.Email} = $1
+    const COLS = Tables.ColumnNames.NewsPosts;
+    const result = await this.query<ColResult<Tables.Names.NewsPosts>>(
+      `UPDATE ${Tables.Names.NewsPosts}
+      SET ${COLS.Author} = $2, ${COLS.Title} = $3, ${COLS.Markdown} = $4, 
+          ${COLS.CreatedDate} = $5, ${COLS.UpdatedDate} = $6
+      WHERE ${COLS.Id} = $1
       RETURNING *;
       `,
-      [email, existingUser.role, existingUser.salt, existingUser.hash, existingUser.createdDate, existingUser.registrationToken ?? null]
+      [id, existing.author, existing.title ,existing.markdown, existing.createdDate.toString(), existing.updatedDate.toString()]
     );
 
     const row = result.rows[0];
 
     if (!row) {
-      throw new DatabaseError(`Failed to update user with email: ${email}`, DatabaseErrorType.Other);
+      throw new DatabaseError(`Failed to update news post with id: ${id}`, DatabaseErrorType.Other);
     }
 
-    return {
-      email: row.email,
-      role: row.role,
-      salt: row.salt,
-      hash: row.hash,
+    return NewsPost.Deserialize({
+      id: row.id,
+      author: row.author,
+      title: row.title,
+      markdown: row.markdown,
       createdDate: row.createddate,
-      registrationToken: row.registrationtoken ?? undefined
+      updatedDate: row.updateddate
+    });
+  }
+  async getNewsPost(id: string): Promise<NewsPost> {
+    const COLS = Tables.ColumnNames.NewsPosts;
+    const result = await this.query<ColResult<Tables.Names.NewsPosts>>
+      (`SELECT * FROM ${Tables.Names.NewsPosts} WHERE ${COLS.Id} = $1`, [id]);
+    if (!result.rows[0]) {
+      throw new DatabaseError(`Failed to get post with id: ${id}`, DatabaseErrorType.MissingRecord);
     }
 
-  }
-  async findUser(user: Partial<UserRecord>): Promise<UserRecord | undefined> {
-    try {
-      return await this.getUser(user.email!)
-    } catch (err) {
-      if (err instanceof DatabaseError && err.type === DatabaseErrorType.MissingRecord) {
-        return undefined;
-      }
-    }
-  }
-
-  async confirmUser(token: string): Promise<UserRecord> {
-
-    const COLS = Tables.ColumnNames.Users;
-    const colNames = Tables.ColumnNames.Users.asArray();
-    const result =
-      await this.query<ColResult<Tables.Names.Users>, [string]>(
-        `SELECT ${colNames.join(',')}
-       FROM ${Tables.Names.Users}
-       WHERE ${COLS.RegistrationToken} = $1;
-      `,
-        [token]
-      );
     const row = result.rows[0];
 
-    if (!row) {
-      throw new DatabaseError('No user with specified registration token exists.', DatabaseErrorType.MissingRecord);
+    return NewsPost.Deserialize({
+      id: row.id,
+      author: row.author,
+      title: row.title,
+      markdown: row.markdown,
+      createdDate: row.createddate,
+      updatedDate: row.updateddate
+    });
+  }
+  async getNewsPosts(): Promise<NewsPost[]> {
+    const result = await this.query<ColResult<Tables.Names.NewsPosts>, [string]>(
+      `SELECT * FROM ${Tables.Names.NewsPosts};`
+    );
+
+    const posts: NewsPost[] = [];
+
+    for (const row of result.rows) {
+      posts.push(NewsPost.Deserialize({
+        id: row.id,
+        author: row.author,
+        title: row.title,
+        markdown: row.markdown,
+        createdDate: row.createddate,
+        updatedDate: row.updateddate
+      }));
     }
 
-    return await this.updateUser(row.email, {
-      registrationToken: undefined
-    });
-
+    return posts;
   }
+
+  async deletePost(id: string): Promise<void> {
+    const COLS = Tables.ColumnNames.NewsPosts;
+    await this.query<ColResult<Tables.Names.NewsPosts>, [string]>(
+      `DELETE FROM ${Tables.Names.NewsPosts}
+       WHERE ${COLS.Id} = $1`,
+      [id]
+    )
+  }
+
 
   async getTournament(tournamentId: string): Promise<Tournament> {
     const COLS = Tables.ColumnNames.Tournaments;
@@ -218,6 +332,13 @@ export class PostgresDatabase implements Database {
       if (err instanceof DatabaseError && err.type === DatabaseErrorType.MissingRecord) {
         exists = false;
       }
+    }
+
+    if(exists) {
+      throw new DatabaseError(
+        `Failed to add tournament with id: ${tournament.id} and name: ${tournament.name}`,
+        DatabaseErrorType.ExistingRecord
+      );
     }
 
     const colNames = Tables.ColumnNames.Tournaments.asArray();

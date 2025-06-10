@@ -1,26 +1,20 @@
-import { Route, Switch } from 'wouter';
-import { TournamentViewer } from './Pages/TournamentPage/TournamentViewer';
-import { MatchPage } from './Pages/MatchPage/MatchPage';
-import { NotFound } from './Pages/NotFound';
-import { NEW_TOURNAMENT_ID } from './Utilities/RouteUtils';
-import { TournamentCreator } from './Pages/TournamentPage/TournamentCreator';
-import { AccountRegistration } from './Pages/AccountRegistration';
-import { Login } from './Pages/Login';
-import { HomePage } from './Pages/HomePage';
-import React, { useEffect, useState } from 'react';
-import { UserContext } from './Contexts/UserContext';
 import { User } from '@common/Models/User';
+import { Snackbar, Typography, useColorScheme } from '@mui/joy';
+import React, { useEffect, useState } from 'react';
+import { Route, Switch } from 'wouter';
 import { AuthAPI } from './APIs/AuthAPI';
 import { NavBar } from './Components/NavBar';
-import { SeedAssignmentTool } from './Pages/TournamentPage/SeedAssignmentTool';
-import { AuthenticatedRoute } from './Components/AuthenticatedRoute';
-import { TournamentManagment } from './Pages/TournamentPage/TournamentManagement';
-import { Snackbar, Typography, useColorScheme } from '@mui/joy';
-import { ConfirmRegistration } from './Pages/ConfirmRegistration';
+import { UserContext } from './Contexts/UserContext';
 import { useSocketState } from './Managers/SocketManager';
-import { TournamentRegistration } from './Pages/TournamentPage/TournamentRegistration';
-import { RegistrationManagement } from './Pages/TournamentPage/RegistrationManagement';
-import { TeamAssignment } from './Pages/TournamentPage/TeamAssignment';
+import { AccountRegistration } from './Pages/AccountRegistration';
+import { ConfirmRegistration } from './Pages/ConfirmRegistration';
+import { HomePage } from './Pages/HomePage';
+import { Login } from './Pages/Login';
+import { NewsPage } from './Pages/NewsPage';
+import { NotFound } from './Pages/NotFound';
+import { TournamentPickerPage } from './Pages/TournamentPickerPage';
+import { TournamentRoutes } from './RouteGroups/TournamentRoutes';
+
 
 export const App: React.FC = () => {
 
@@ -28,6 +22,7 @@ export const App: React.FC = () => {
   const [connectionMessageOpen, setConnectionMessageOpen] = useState(false);
 
   const { setMode } = useColorScheme();
+
   const socketState = useSocketState();
 
   useEffect(() => {
@@ -39,7 +34,7 @@ export const App: React.FC = () => {
   useEffect(() => {
     AuthAPI.getCurrentUser().then(setUser);
     setMode('light');
-  }, []);
+  }, [setMode]);
 
   function closeConnectionMessage() {
     setConnectionMessageOpen(false);
@@ -71,6 +66,9 @@ export const App: React.FC = () => {
           <Route path='/'>
             <HomePage />
           </Route>
+          <Route path='/tournaments/all'>
+            <TournamentPickerPage />
+          </Route>
           <Route path='/account/register'>
             <AccountRegistration />
           </Route>
@@ -82,84 +80,9 @@ export const App: React.FC = () => {
           <Route path='/account/login'>
             <Login />
           </Route>
-          <Route path='/tournament/:id'>
-            {(params) => {
-              if (params.id === NEW_TOURNAMENT_ID) {
-                return (
-                  <TournamentCreator />
-                )
-              }
-              return <TournamentViewer tournamentId={params.id} />
-            }}
-          </Route>
-          <Route path='/tournament/:id/register'>
-            {(params) => {
-              if (params.id === NEW_TOURNAMENT_ID) {
-                return (
-                  <NotFound />
-                )
-              }
-              return <TournamentRegistration tournamentId={params.id} />
-            }}
-          </Route>
-          <AuthenticatedRoute roles={['admin']} path='/tournament/:id/manage'>
-            {(params) => {
-              if (params.id === NEW_TOURNAMENT_ID) {
-                return (
-                  <NotFound />
-                )
-              }
-              return <TournamentManagment tournamentId={params.id} />
-            }}
-          </AuthenticatedRoute>
-          <AuthenticatedRoute roles={['admin']} path='/tournament/:id/assigning'>
-            {(params) => {
-              if (params.id === NEW_TOURNAMENT_ID) {
-                return (
-                  <NotFound />
-                )
-              }
-              return <SeedAssignmentTool tournamentId={params.id} />
-            }}
-          </AuthenticatedRoute>
-          <AuthenticatedRoute roles={['admin']} path='/tournament/:id/registration-approval'>
-            {(params) => {
-              if (params.id === NEW_TOURNAMENT_ID) {
-                return (
-                  <NotFound />
-                )
-              }
-              return <RegistrationManagement editable tournamentId={params.id} />
-            }}
-          </AuthenticatedRoute>
-          <AuthenticatedRoute roles={['admin']} path='/tournament/:id/registrations'>
-            {(params) => {
-              if (params.id === NEW_TOURNAMENT_ID) {
-                return (
-                  <NotFound />
-                )
-              }
-              return <RegistrationManagement editable={false} tournamentId={params.id} />
-            }}
-          </AuthenticatedRoute>
-          <AuthenticatedRoute roles={['admin']} path='/tournament/:id/team-assignment'>
-            {(params) => {
-              if (params.id === NEW_TOURNAMENT_ID) {
-                return (
-                  <NotFound />
-                )
-              }
-              return <TeamAssignment tournamentId={params.id}/>
-            }}
-          </AuthenticatedRoute>
-          <Route path='/tournament/:tournamentId/match/:matchId'>
-            {(params) => {
-              const matchIdNumber = Number(params.matchId);
-              if (isNaN(matchIdNumber)) {
-                return <NotFound />
-              }
-              return <MatchPage tournamentId={params.tournamentId} matchId={matchIdNumber} />
-            }}
+          {TournamentRoutes}
+          <Route path={'/news'}>
+            <NewsPage />
           </Route>
           <Route>
             <NotFound />

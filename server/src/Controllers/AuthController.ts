@@ -1,134 +1,39 @@
-import { AuthAPIConstants, ConfirmAccountResult, LoginResult, RegistrationResult } from "@common/Constants/AuthAPIConstants";
-import { User } from "@common/Models/User";
+import { AuthAPIConstants } from "@common/Constants/AuthAPIConstants";
 import express, { Router } from "express";
-import { Session } from "express-session";
-import { UserManager } from "../Managers/UserManager";
-
-export interface AuthSession extends Session {
-  user?: User
-}
 
 namespace AuthController {
   export const path = AuthAPIConstants.BASE_PATH;
   export const router = express.Router();
 
-  function destorySession(authSession: AuthSession) {
-    return new Promise<void>((resolve, reject) => {
-      authSession.destroy((err) => {
-        if (err) {
-          reject(err);
-          return;
-        }
-        resolve();
-      });
-    });
-  }
-
-  function regenSession(authSession: AuthSession) {
-    return new Promise<AuthSession>((resolve, reject) => {
-      let retval = authSession.regenerate((err) => {
-        if (err) {
-          reject(err);
-          return;
-        }
-        resolve(retval);
-      });
-    });
-  }
-
-  router.post(AuthAPIConstants.LOGIN, async (req, resp) => {
-    let authSession = req.session as AuthSession;
-    try {
-      // Destroy any existing session.
-      await regenSession(authSession);
-      authSession = req.session;
-    } catch (err) {
-      resp.sendStatus(500);
+  router.get(AuthAPIConstants.LOGIN, async (req, resp) => {
+    if (!req.oidc.isAuthenticated()) {
+      resp.oidc.login();
       return;
     }
-    // Verify Login details
-    const body = req.body as AuthAPIConstants.LoginRequest;
-    if (body.password && body.email) {
-      const [result, user] = await UserManager.instance.loginUser(body);
-      if (result === LoginResult.SUCCESS) {
-        authSession.user = user;
-        resp.json(user);
-      } else if (result === LoginResult.INVALID_CREDENTIALS) {
-        resp.status(401).send('Credentials invalid.');
-      } else {
-        resp.sendStatus(500);
-      }
-      return;
-    } else {
-      resp.sendStatus(400);
-      return;
-    }
+    resp.redirect('/');
+    return;
   });
 
-  router.post(AuthAPIConstants.LOGOUT, async (req, resp) => {
-    try {
-      await regenSession(req.session);
-      resp.redirect("/");
-    } catch (err) {
-      resp.sendStatus(500);
+  router.get(AuthAPIConstants.LOGOUT, async (req, resp) => {
+    if (req.oidc.isAuthenticated()) {
+      resp.oidc.logout();
       return;
     }
-  });
-
-  router.put(AuthAPIConstants.REGISTER, async (req, resp) => {
-    const body: AuthAPIConstants.AccountRegistrationRequest = req.body;
-    if (!body) {
-      // Send bad request if no body.
-      resp.sendStatus(400);
-      return;
-    }
-
-    const result = await UserManager.instance.registerUser(body);
-    let responseBody: AuthAPIConstants.AccountRegistrationResponse = { result };
-    switch (result) {
-      case RegistrationResult.SUCCESS:
-        resp.status(200).json(responseBody);
-        break;
-      case RegistrationResult.FAILED_USER_EXISTS:
-      case RegistrationResult.FAILED_EMAIL_EXISTS:
-      case RegistrationResult.FAILED_BAD_PASSWORD:
-      case RegistrationResult.FAILED_BAD_EMAIL:
-        resp.status(400).json(responseBody);
-        break;
-      case RegistrationResult.FAILED_UNK:
-        resp.status(500).json(responseBody);
-        break;
-    }
-  });
-
-  router.post(AuthAPIConstants.CONFIRM, async (req, resp) => {
-    const body = req.body as AuthAPIConstants.ConfirmAccountRequest;
-    if (!body) {
-      // Send bad request if no body.
-      resp.sendStatus(400);
-      return;
-    }
-
-    const result = await UserManager.instance.confirmUser(body.token);
-    const bodyToSend: AuthAPIConstants.ConfirmAccountResponse = {
-      result
-    }
-    switch (result) {
-      case ConfirmAccountResult.SUCCESS:
-        resp.status(200).json(bodyToSend);
-        return;
-      case ConfirmAccountResult.NO_SUCH_USER:
-        resp.status(400).json(bodyToSend);
-        return;
-      case ConfirmAccountResult.SERVER_ERROR:
-        resp.status(500).json(bodyToSend);
-        return;
-    }
+    resp.sendStatus(200);
+    return;
   });
 
   router.get(AuthAPIConstants.CURRENT_USER, async (req, resp) => {
-    let authSession = req.session as AuthSession;
-    resp.json(authSession.user ?? null);
+    if (req.oidc.isAuthenticated() && req.oidc.user) {
+      resp.json({
+        username: req.oidc.user["preferred_username"],
+        email: req.oidc.user['email'],
+        roles: req.oidc.user['roles']
+      })
+      // resp.json(req.oidc.user);
+      return;
+    }
+    resp.json(null);
   });
 }
 

@@ -1,3 +1,6 @@
+import { Tournament, TournamentState } from "@common/Models/Tournament";
+import { TournamentSocketAPI } from "@common/SocketAPIs/TournamentAPI";
+import { AssignmentInd, DeleteForeverOutlined, EventAvailable, EventBusy, Person } from "@mui/icons-material";
 import {
   Box,
   Button, Card, CardContent,
@@ -5,23 +8,20 @@ import {
   IconButton,
   List, ListItem, ListItemDecorator, Typography
 } from "@mui/joy";
+import { DateTime } from "luxon";
 import { useEffect, useState } from "react";
+import { TeamAPI } from "../../APIs/TeamAPI";
 import { TournamentAPI } from "../../APIs/TournamentAPI";
-import { tournamentUrl } from "../../Utilities/RouteUtils";
 import { useNavigation } from "../../Hooks/UseNavigation";
 import { LoadState } from "../../Utilities/LoadState";
-import { Tournament, TournamentState } from "@common/Models/Tournament";
+import { tournamentUrl } from "../../Utilities/RouteUtils";
 import { NotFound } from "../NotFound";
-import { TournamentSocketAPI } from "@common/SocketAPIs/TournamentAPI";
-import { DateTime } from "luxon";
-import { AssignmentInd, EventBusy, EventAvailable, Person, DeleteForeverOutlined } from "@mui/icons-material";
-import { TeamAPI } from "../../APIs/TeamAPI";
 
-import pageStyles from './TournamentManagement.module.css';
-import { useLocation } from "wouter";
-import { TeamSocketAPI } from "@common/SocketAPIs/TeamAPI";
-import { useSocketState } from "../../Managers/SocketManager";
 import { RegistrationData } from "@common/Models/RegistrationData";
+import { TeamSocketAPI } from "@common/SocketAPIs/TeamAPI";
+import { useLocation } from "wouter";
+import { useSocketState } from "../../Managers/SocketManager";
+import pageStyles from './TournamentManagement.module.css';
 
 interface TournamentManagmentProps {
   tournamentId: string;
@@ -117,6 +117,7 @@ export const TournamentManagment: React.FC<TournamentManagmentProps> = (props) =
             </Button>
           )
         }
+        break;
       case TournamentState.RegistrationOpen:
         return (
           <Button
@@ -161,8 +162,8 @@ export const TournamentManagment: React.FC<TournamentManagmentProps> = (props) =
           </>
         )
       case TournamentState.Active:
-      // TODO have controls for when the tournament is running
       case TournamentState.Complete:
+        // TODO have controls for when the tournament is running
         return null;
     }
   }
@@ -194,60 +195,62 @@ export const TournamentManagment: React.FC<TournamentManagmentProps> = (props) =
           <NotFound />
         );
       case LoadState.COMPLETE:
+        {
 
-        const controls = renderTournamentControls();
+          const controls = renderTournamentControls();
 
-        return (
-          <Container maxWidth='sm'>
-            <Card>
-              <Box className={pageStyles["title-container"]}>
-                <Typography level="title-lg">{tournament!.name}</Typography>
-                <IconButton onClick={deleteTournament}>
-                  <DeleteForeverOutlined htmlColor="#cf4343" />
-                </IconButton>
-              </Box>
-              <Divider />
-              <CardContent>
-                <List>
-                  <ListItem onClick={gotoRegistrationViewer} className={pageStyles['registration-counter']}>
-                    <ListItemDecorator>
-                      <Person color="primary" />
-                    </ListItemDecorator>
-                    {renderPlayerCount()}
-                  </ListItem>
-                  <ListItem>
-                    <ListItemDecorator>
-                      <AssignmentInd />
-                    </ListItemDecorator>
-                    <Typography>
-                      {TournamentState.toRegistrationStatusString(tournament!.state, tournament!.registrationOpenDate)}
-                    </Typography>
-                  </ListItem>
-                  <ListItem>
-                    <ListItemDecorator>
-                      <EventAvailable color='success' />
-                    </ListItemDecorator>
-                    <Typography>{tournament!.startDate.toFormat('DD')}</Typography>
-                  </ListItem>
-                  <ListItem>
-                    <ListItemDecorator>
-                      <EventBusy htmlColor="#cf4343" />
-                    </ListItemDecorator>
-                    <Typography>{tournament!.endDate.toFormat('DD')}</Typography>
-                  </ListItem>
-                </List>
-              </CardContent>
-              {!!controls && (
-                <>
-                  <Divider />
-                  <CardContent className={pageStyles["button-container"]}>
-                    {controls}
-                  </CardContent>
-                </>
-              )}
-            </Card>
-          </Container>
-        );
+          return (
+            <Container maxWidth='sm'>
+              <Card>
+                <Box className={pageStyles["title-container"]}>
+                  <Typography level="title-lg">{tournament!.name}</Typography>
+                  <IconButton onClick={deleteTournament}>
+                    <DeleteForeverOutlined htmlColor="#cf4343" />
+                  </IconButton>
+                </Box>
+                <Divider />
+                <CardContent>
+                  <List>
+                    <ListItem onClick={gotoRegistrationViewer} className={pageStyles['registration-counter']}>
+                      <ListItemDecorator>
+                        <Person color="primary" />
+                      </ListItemDecorator>
+                      {renderPlayerCount()}
+                    </ListItem>
+                    <ListItem>
+                      <ListItemDecorator>
+                        <AssignmentInd />
+                      </ListItemDecorator>
+                      <Typography>
+                        {TournamentState.toRegistrationStatusString(tournament!.state, tournament!.registrationOpenDate)}
+                      </Typography>
+                    </ListItem>
+                    <ListItem>
+                      <ListItemDecorator>
+                        <EventAvailable color='success' />
+                      </ListItemDecorator>
+                      <Typography>{tournament!.startDate.toFormat('DD')}</Typography>
+                    </ListItem>
+                    <ListItem>
+                      <ListItemDecorator>
+                        <EventBusy htmlColor="#cf4343" />
+                      </ListItemDecorator>
+                      <Typography>{tournament!.endDate.toFormat('DD')}</Typography>
+                    </ListItem>
+                  </List>
+                </CardContent>
+                {!!controls && (
+                  <>
+                    <Divider />
+                    <CardContent className={pageStyles["button-container"]}>
+                      {controls}
+                    </CardContent>
+                  </>
+                )}
+              </Card>
+            </Container>
+          );
+        }
     }
   }
 

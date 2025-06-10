@@ -1,18 +1,19 @@
-import express, { Express } from "express";
-import { EnvironmentVariables } from "./Utilities/EnvironmentVariables";
-import { TournamentManagerController } from "./Controllers/TournamentManagementController";
-import { ViteProxyMiddleware } from "./MiddleWare/ProxyMiddleware";
-import { Server } from "socket.io";
-import { TournamentSocketAPI } from "@common/SocketAPIs/TournamentAPI";
-import { TeamController } from "./Controllers/TeamController";
-import { MatchController } from "./Controllers/MatchController";
-import path from 'path';
-import session, { MemoryStore, SessionOptions } from "express-session";
-import { AuthController } from "./Controllers/AuthController";
-import { TeamManager } from "./Managers/TeamManager";
-import { TournamentManager } from "./Managers/TournamentManager";
-import { generateTokenSync } from "./Utilities/Crypto";
 import { TeamSocketAPI } from "@common/SocketAPIs/TeamAPI";
+import { TournamentSocketAPI } from "@common/SocketAPIs/TournamentAPI";
+import express, { Express } from "express";
+import { auth } from "express-openid-connect";
+import session, { MemoryStore, SessionOptions } from "express-session";
+import path from 'path';
+import { Server } from "socket.io";
+import { AuthController } from "./Controllers/AuthController";
+import { MatchController } from "./Controllers/MatchController";
+import { NewsController } from "./Controllers/NewsController";
+import { TeamController } from "./Controllers/TeamController";
+import { TournamentManagerController } from "./Controllers/TournamentManagementController";
+import { TournamentManager } from "./Managers/TournamentManager";
+import { ViteProxyMiddleware } from "./MiddleWare/ProxyMiddleware";
+import { generateTokenSync } from "./Utilities/Crypto";
+import { EnvironmentVariables } from "./Utilities/EnvironmentVariables";
 
 class App {
 
@@ -21,7 +22,8 @@ class App {
 
   constructor() {
     this.expressApp.use(express.json());
-    this.addSessions();
+    // this.addSessions();
+    this.addOidc();
     this.addControllers();
     this.addStaticAssets();
   }
@@ -47,6 +49,26 @@ class App {
     this.expressApp.use(...TeamController);
     this.expressApp.use(...MatchController);
     this.expressApp.use(...AuthController);
+    this.expressApp.use(...NewsController);
+  }
+
+  public addOidc() {
+    this.expressApp.use(auth({
+      authRequired: false,
+      issuerBaseURL: EnvironmentVariables.OIDC_AUTHORITY,
+      baseURL: EnvironmentVariables.OIDC_BASE_URL,
+      clientID: EnvironmentVariables.OIDC_CLIENT_ID,
+      secret: generateTokenSync(),
+      clientSecret: EnvironmentVariables.OIDC_CLIENT_SECRET,
+      routes: {
+        login: '/oidc/login',
+        logout: '/oidc/logout',
+        callback: '/oidc/callback'
+      },
+      authorizationParams: {
+        response_type: 'code'
+      }
+    }))
   }
 
   public addSessions() {
@@ -91,4 +113,5 @@ class App {
 }
 
 const instance = new App();
-export { instance as App }
+export { instance as App };
+
