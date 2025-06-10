@@ -6,10 +6,7 @@ import { AuthAPI } from './APIs/AuthAPI';
 import { NavBar } from './Components/NavBar';
 import { UserContext } from './Contexts/UserContext';
 import { useSocketState } from './Managers/SocketManager';
-import { AccountRegistration } from './Pages/AccountRegistration';
-import { ConfirmRegistration } from './Pages/ConfirmRegistration';
 import { HomePage } from './Pages/HomePage';
-import { Login } from './Pages/Login';
 import { NewsPage } from './Pages/NewsPage';
 import { NotFound } from './Pages/NotFound';
 import { TournamentPickerPage } from './Pages/TournamentPickerPage';
@@ -68,17 +65,6 @@ export const App: React.FC = () => {
           </Route>
           <Route path='/tournaments/all'>
             <TournamentPickerPage />
-          </Route>
-          <Route path='/account/register'>
-            <AccountRegistration />
-          </Route>
-          <Route path='/account/confirm/:token'>
-            {(params) => (
-              <ConfirmRegistration token={params.token} />
-            )}
-          </Route>
-          <Route path='/account/login'>
-            <Login />
           </Route>
           {TournamentRoutes}
           <Route path={'/news'}>
