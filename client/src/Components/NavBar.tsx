@@ -65,7 +65,7 @@ export const NavBar: React.FC = () => {
         </Box>
         <Box sx={{display: 'flex'}}>
           <NavBarButton url='/'>Home</NavBarButton>
-          <NavBarButton url='/news'>News</NavBarButton>
+          {/* <NavBarButton url='/news'>News</NavBarButton> */}
           <NavBarButton url='/tournaments/all'>Tournaments</NavBarButton>
           {renderUserOrLogin()}
         </Box>

@@ -6,8 +6,6 @@ import { AuthAPI } from './APIs/AuthAPI';
 import { NavBar } from './Components/NavBar';
 import { UserContext } from './Contexts/UserContext';
 import { useSocketState } from './Managers/SocketManager';
-import { HomePage } from './Pages/HomePage';
-import { NewsPage } from './Pages/NewsPage';
 import { NotFound } from './Pages/NotFound';
 import { TournamentPickerPage } from './Pages/TournamentPickerPage';
 import { TournamentRoutes } from './RouteGroups/TournamentRoutes';
@@ -61,15 +59,16 @@ export const App: React.FC = () => {
         <NavBar />
         <Switch>
           <Route path='/'>
-            <HomePage />
+            {/* <HomePage /> */}
+            <TournamentPickerPage />
           </Route>
           <Route path='/tournaments/all'>
             <TournamentPickerPage />
           </Route>
           {TournamentRoutes}
-          <Route path={'/news'}>
+          {/* <Route path={'/news'}>
             <NewsPage />
-          </Route>
+          </Route> */}
           <Route>
             <NotFound />
           </Route>
