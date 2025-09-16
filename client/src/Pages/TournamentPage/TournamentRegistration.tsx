@@ -1,22 +1,31 @@
 import {
-  Container, FormControl, FormLabel, Input,
-  Button, Card, Typography, Divider,
-  CardContent, Box, IconButton, CircularProgress, RadioGroup, Radio,
-  Textarea
+  Box,
+  Button, Card,
+  CardContent,
+  CircularProgress,
+  Container,
+  Divider,
+  FormControl, FormLabel,
+  IconButton,
+  Input,
+  Radio,
+  RadioGroup,
+  Textarea,
+  Typography
 } from "@mui/joy";
 
-import pageStyles from './TournamentRegistration.module.css';
-import { Validators } from "@common/Utilities/Validators";
-import React, { useContext, useEffect, useState } from "react";
-import { Close, ContentCopy, CopyAll } from "@mui/icons-material";
-import { TeamAPI } from "../../APIs/TeamAPI";
 import { TeamAPIConstants } from "@common/Constants/TeamAPIConstants";
-import { useNavigation } from "../../Hooks/UseNavigation";
-import { UserContext } from "../../Contexts/UserContext";
-import { Tournament, TournamentMetadata } from "@common/Models/Tournament";
-import { TournamentAPI } from "../../APIs/TournamentAPI";
-import { copy } from "../../Utilities/Clipboard";
 import { CodeChoice } from "@common/Enums/RegistrationEnums";
+import { Tournament, TournamentMetadata } from "@common/Models/Tournament";
+import { Validators } from "@common/Utilities/Validators";
+import { Close, ContentCopy } from "@mui/icons-material";
+import React, { useContext, useEffect, useState } from "react";
+import { TeamAPI } from "../../APIs/TeamAPI";
+import { TournamentAPI } from "../../APIs/TournamentAPI";
+import { UserContext } from "../../Contexts/UserContext";
+import { useNavigation } from "../../Hooks/UseNavigation";
+import { copy } from "../../Utilities/Clipboard";
+import pageStyles from './TournamentRegistration.module.css';
 
 interface TournamentRegistrationProps {
   tournamentId: string;
@@ -48,7 +57,7 @@ export const TournamentRegistration: React.FC<TournamentRegistrationProps> = (pr
   const [errorMessage, setErrorMessage] = useState('');
   const [tournament, setTournament] = useState<Tournament>();
   const [waitingForCode, setWaitingForCode] = useState(false);
-  const [details,setDetails] = useState("");
+  const [details, setDetails] = useState("");
   const [tournamentMetadata, setTournamentMetadata] = useState<TournamentMetadata>();
 
   const goHome = useNavigation("/");
@@ -75,13 +84,15 @@ export const TournamentRegistration: React.FC<TournamentRegistrationProps> = (pr
         });
         break;
       case CodeChoice.NEW:
-        setWaitingForCode(true);
-        const code = (await TeamAPI.createRegistrationCode()).code;
-        setCodeState({
-          choice,
-          code
-        });
-        setWaitingForCode(false);
+        {
+          setWaitingForCode(true);
+          const code = (await TeamAPI.createRegistrationCode()).code;
+          setCodeState({
+            choice,
+            code
+          });
+          setWaitingForCode(false);
+        }
         break;
       case CodeChoice.EXISTING:
         setCodeState({
@@ -117,6 +128,9 @@ export const TournamentRegistration: React.FC<TournamentRegistrationProps> = (pr
     switch (result.result) {
       case ResultType.SUCCESS:
         setState(RegistrationState.Complete);
+        break;
+      case ResultType.NO_TEAMMATE:
+        setErrorMessage(ResultType.toErrorMessage(result.result));
         break;
       case ResultType.INVALID_EMAIL:
       case ResultType.REGISTRATION_CLOSED:
