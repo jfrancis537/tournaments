@@ -1,44 +1,57 @@
 
-import { useEffect, useState } from "react";
 import { Team } from "@common/Models/Team";
-import styles from "./SeedAssignmentTool.module.css";
-import { nextPowerOf2 } from "../../../../common/Utilities/Math";
-import { TeamAPI } from "../../APIs/TeamAPI";
+import { TournamentSocketAPI } from "@common/SocketAPIs/TournamentAPI";
 import { Box, Button, Card, CardContent, Container, Divider, Grid, Sheet } from "@mui/joy";
+import { useEffect, useState } from "react";
 import { v4 as uuid } from "uuid";
 import { useLocation } from "wouter";
+import { nextPowerOf2 } from "../../../../common/Utilities/Math";
+import { TeamAPI } from "../../APIs/TeamAPI";
 import { tournamentUrl } from "../../Utilities/RouteUtils";
-import { TournamentSocketAPI } from "@common/SocketAPIs/TournamentAPI";
+import styles from "./SeedAssignmentTool.module.css";
 
 interface SeedAssignmentToolProps {
   tournamentId: string;
+  review?: boolean;
 }
 
-export const SeedAssignmentTool: React.FC<SeedAssignmentToolProps> = (props) => {
+export const SeedAssignmentTool: React.FC<SeedAssignmentToolProps> = ({ review = false, tournamentId }) => {
 
   const [assigned, setAssigned] = useState<(string | undefined)[]>([]);
   const [teams, setTeams] = useState<Team[]>();
   const [, setLocation] = useLocation();
 
+
   useEffect(() => {
     // Don't list for team changes since this page should only be visited when no more registrations are allowed.
-    TeamAPI.getTeams(props.tournamentId).then(setTeams);
+    TeamAPI.getTeams(tournamentId).then((teams) => {
+      setTeams(teams);
+      if (review) {
+        for (const team of teams) {
+          if (team.seedNumber) {
+            assigned[team.seedNumber] = team.id;
+          }
+
+        }
+        setAssigned([...assigned]);
+      }
+    });
     TournamentSocketAPI.ontournamentdeleted.addListener(handleTournamentDeleted);
     return () => {
       TournamentSocketAPI.ontournamentdeleted.removeListener(handleTournamentDeleted);
     }
-  }, [props.tournamentId])
+  }, [tournamentId])
 
   function handleTournamentDeleted(id: string) {
-    if (props.tournamentId === id) {
+    if (tournamentId === id) {
       setLocation('/');
     }
   }
 
   async function acceptSeeding(teamIds: (string | undefined)[]) {
-    await TeamAPI.assignSeedNumbers(props.tournamentId, teamIds);
+    await TeamAPI.assignSeedNumbers(tournamentId, teamIds);
     // Go back to tournament page.
-    setLocation(`${tournamentUrl(props.tournamentId)}/manage`);
+    setLocation(`${tournamentUrl(tournamentId)}/manage`);
   }
 
   function handleDragStart(event: React.DragEvent<HTMLDivElement>, team: Team) {
@@ -179,12 +192,14 @@ export const SeedAssignmentTool: React.FC<SeedAssignmentToolProps> = (props) => 
             </CardContent>
           </Card>
         </Grid>
-        <Box className={styles["accept-button-container"]}>
-          <Button
-            onClick={() => acceptSeeding(assigned)}
-          >
-            Accept</Button>
-        </Box>
+        {review && (
+          <Box className={styles["accept-button-container"]}>
+            <Button
+              onClick={() => acceptSeeding(assigned)}
+            >
+              Accept</Button>
+          </Box>
+        )}
       </Container>
     )
   }

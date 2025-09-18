@@ -30,6 +30,7 @@ interface TournamentManagmentProps {
 export const TournamentManagment: React.FC<TournamentManagmentProps> = (props) => {
 
   const navigateToAssigning = useNavigation(`${tournamentUrl(props.tournamentId)}/assigning`);
+  const navigateToReview = useNavigation(`${tournamentUrl(props.tournamentId)}/review-seeding`);
   const navigateToTournament = useNavigation(`${tournamentUrl(props.tournamentId)}`);
   const gotoRegistrationApproval = useNavigation(`${tournamentUrl(props.tournamentId)}/registration-approval`);
   const gotoRegistrationViewer = useNavigation(`${tournamentUrl(props.tournamentId)}/registrations`);
@@ -148,6 +149,7 @@ export const TournamentManagment: React.FC<TournamentManagmentProps> = (props) =
               Lock
             </Button>
             <Button onClick={navigateToAssigning}>Assign Players</Button>
+            <Button disabled={!tournament?.playersSeeded} onClick={navigateToReview}>Review</Button>
           </>
         );
       case TournamentState.Finalizing:

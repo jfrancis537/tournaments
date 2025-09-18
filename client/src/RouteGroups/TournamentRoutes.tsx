@@ -53,6 +53,16 @@ export const TournamentRoutes = (
         return <SeedAssignmentTool tournamentId={params.id} />
       }}
     </AuthenticatedRoute>
+        <AuthenticatedRoute roles={['Admin']} path='/tournament/:id/review-seeding'>
+      {(params) => {
+        if (params.id === NEW_TOURNAMENT_ID) {
+          return (
+            <NotFound />
+          )
+        }
+        return <SeedAssignmentTool tournamentId={params.id} review />
+      }}
+    </AuthenticatedRoute>
     <AuthenticatedRoute roles={['Admin']} path='/tournament/:id/registration-approval'>
       {(params) => {
         if (params.id === NEW_TOURNAMENT_ID) {
