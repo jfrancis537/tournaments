@@ -192,7 +192,7 @@ export const SeedAssignmentTool: React.FC<SeedAssignmentToolProps> = ({ review =
             </CardContent>
           </Card>
         </Grid>
-        {review && (
+        {!review && (
           <Box className={styles["accept-button-container"]}>
             <Button
               onClick={() => acceptSeeding(assigned)}
