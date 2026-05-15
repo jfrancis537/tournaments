@@ -30,7 +30,6 @@ namespace AuthController {
         email: req.oidc.user['email'],
         roles: req.oidc.user['roles']
       })
-      // resp.json(req.oidc.user);
       return;
     }
     resp.json(null);

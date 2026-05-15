@@ -91,4 +91,11 @@ export namespace TeamAPIConstants {
     tournamentId: string,
     registrations: RegistrationData[];
   }
+
+  export const SEND_REMINDER_EMAIL = '/send/reminder_email';
+
+  export interface SendReminderEmailRequest {
+    tournamentId: string;
+    contactEmail: string;
+  }
 }

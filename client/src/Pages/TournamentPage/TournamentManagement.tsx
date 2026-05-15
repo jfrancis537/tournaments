@@ -106,7 +106,7 @@ export const TournamentManagment: React.FC<TournamentManagmentProps> = (props) =
 
   function renderTournamentControls() {
     switch (tournament!.state) {
-      //@ts-ignore allow fallthrough
+      // @ts-expect-error allow fallthrough
       case TournamentState.New:
         // If the registration open date passed, treat like registration opened instead of new.
         if (!tournament!.registrationOpenDate || tournament!.registrationOpenDate >= DateTime.now()) {
@@ -118,7 +118,7 @@ export const TournamentManagment: React.FC<TournamentManagmentProps> = (props) =
             </Button>
           )
         }
-        break;
+      // eslint-disable-next-line no-fallthrough
       case TournamentState.RegistrationOpen:
         return (
           <Button

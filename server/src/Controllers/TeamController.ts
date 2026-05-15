@@ -1,9 +1,12 @@
 import { TeamAPIConstants } from "@common/Constants/TeamAPIConstants";
 import { RegistrationData } from "@common/Models/RegistrationData";
 import express, { Router } from "express";
+import { MailManager } from "../Managers/MailManager";
 import { TeamManager } from "../Managers/TeamManager";
 import { TournamentManager } from "../Managers/TournamentManager";
 import { RequireRole } from "../MiddleWare/RequireRoleMiddleware";
+import PartnerReminderEmail from "../Templates/PartnerReminderEmail";
+import { EnvironmentVariables } from "../Utilities/EnvironmentVariables";
 import { generateRegistrationCode } from "../Utilities/Crypto";
 
 namespace TeamController {
@@ -81,11 +84,13 @@ namespace TeamController {
 
           if (!matched.approved) {
             resp.status(400).send("Can't set team code for unapproved registration.");
+            return;
           }
 
           // TODO: decide if we will want to be able to rearrange teams later.
           if (matched.teamCode !== undefined) {
             resp.status(400).send("Can not override an existing team code.");
+            return;
           }
 
           updates.set(registration.contactEmail, {
@@ -184,6 +189,29 @@ namespace TeamController {
       return;
     }
     resp.send(teams);
+  });
+
+  router.post(TeamAPIConstants.SEND_REMINDER_EMAIL, RequireRole('Admin'), async (req, resp) => {
+    const body: TeamAPIConstants.SendReminderEmailRequest = req.body;
+    const [registrations, tournament] = await Promise.all([
+      TeamManager.instance.getRegistrations(body.tournamentId),
+      TournamentManager.instance.getTournament(body.tournamentId),
+    ]);
+
+    const registration = registrations?.find(r => r.contactEmail === body.contactEmail);
+    if (!registration || !tournament) {
+      resp.sendStatus(404);
+      return;
+    }
+
+    const sent = await MailManager.sendEmail({
+      from: EnvironmentVariables.EMAIL_SENDER,
+      to: registration.contactEmail,
+      subject: `Partner reminder for ${tournament.name}`,
+      html: PartnerReminderEmail(registration.name, tournament.name, registration.teamCode!),
+    });
+
+    resp.sendStatus(sent ? 200 : 500);
   });
 }
 

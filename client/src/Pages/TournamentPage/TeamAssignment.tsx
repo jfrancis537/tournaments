@@ -32,6 +32,7 @@ export const TeamAssignment: React.FC<TeamAssignmentProps> = (props) => {
   const [prePairedCodes, setPrePairedCodes] = useState<Set<string>>(new Set());
   // Set of emails.
   const [selectedUnpairedRegistrations, setSelectedUnpairedRegistrations] = useState<Set<string>>(new Set());
+  const [error, setError] = useState<string>();
   // Set of team codes.
   const [selectedPairedRegistrations, setSelectedPairedRegistrations] = useState<Set<string>>(new Set());
   const goBack = useNavigation(`${tournamentUrl(props.tournamentId)}/manage`);
@@ -101,7 +102,7 @@ export const TeamAssignment: React.FC<TeamAssignmentProps> = (props) => {
       setUnpairedRegistrations(new Map(unpairedRegistrations));
       setSelectedUnpairedRegistrations(new Set());
     } catch (err) {
-      // TODO handle failed to generate code.
+      setError('Failed to generate team code. Please try again.');
     }
   }
 
@@ -225,7 +226,7 @@ export const TeamAssignment: React.FC<TeamAssignmentProps> = (props) => {
       await TeamAPI.assignRegistrationCodes(props.tournamentId, registrationsToSave);
       setLocation(`${tournamentUrl(props.tournamentId)}/manage`);
     } catch {
-      // TODO display an error.
+      setError('Failed to save team assignments. Please try again.');
     }
 
   }
@@ -247,6 +248,7 @@ export const TeamAssignment: React.FC<TeamAssignmentProps> = (props) => {
         <Box>
           <Button onClick={goBack}>Back</Button>
         </Box>
+        {error && <Typography color='danger'>{error}</Typography>}
         <Box className={pageStyles["card-container"]}>
           <Card>
             <Typography level="title-lg">Awaiting Assignment</Typography>

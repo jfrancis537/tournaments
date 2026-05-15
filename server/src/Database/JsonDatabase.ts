@@ -55,10 +55,6 @@ export class JsonDatabase implements Database {
           let loaded: JsonDatabaseSchema | { version?: string };
           try {
             loaded = JSON.parse(fs.readFileSync(this.pathName, 'utf-8'));
-            // TODO remove in the future once version is always there.
-            if (loaded.version === undefined) {
-              loaded = {};
-            }
           } catch {
             loaded = {};
           }
@@ -156,7 +152,7 @@ export class JsonDatabase implements Database {
   }
 
   public async addUser(user: UserRecord): Promise<UserRecord> {
-    if (!this.hasUser(user.email)) {
+    if (await this.hasUser(user.email)) {
       throw new DatabaseError(`User with email: ${user.email} already exists`, DatabaseErrorType.MissingRecord);
     }
     this.data.users[user.email] = clone(user);

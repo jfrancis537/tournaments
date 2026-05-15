@@ -1,5 +1,6 @@
 import nodemailer, { Transporter } from 'nodemailer';
 import { EnvironmentVariables } from '../Utilities/EnvironmentVariables';
+import { logger } from '../Logger';
 import Mail from 'nodemailer/lib/mailer';
 
 class MailManager {
@@ -48,9 +49,10 @@ class MailManager {
     return new Promise((resolve) => {
       this.transporter.sendMail(message, (err, info) => {
         if (err) {
+          logger.error('Failed to send email', { error: err.message, to: message.to });
           resolve(false);
         } else {
-          // TODO something with info.
+          logger.info('Email sent', { messageId: info.messageId, response: info.response, to: message.to });
           resolve(true);
         }
       })

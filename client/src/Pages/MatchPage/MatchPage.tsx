@@ -41,7 +41,7 @@ export const MatchPage: React.FC<MatchPageProps> = (props) => {
     TournamentSocketAPI.onmatchstarted.addListener(matchStarted);
     return () => {
       TournamentSocketAPI.onmatchupdated.removeListener(matchChanged);
-      TournamentSocketAPI.onmatchupdated.removeListener(matchChanged);
+      TournamentSocketAPI.onmatchstarted.removeListener(matchStarted);
     }
   }, []);
 

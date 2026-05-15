@@ -81,6 +81,18 @@ export namespace TeamAPI {
     throw new HttpStatusError("Failed to get teams", response.status);
   }
 
+  export async function sendReminderEmail(tournamentId: string, contactEmail: string) {
+    const body: TeamAPIConstants.SendReminderEmailRequest = { tournamentId, contactEmail };
+    const response = await fetch(`${TeamAPIConstants.BASE_PATH}${TeamAPIConstants.SEND_REMINDER_EMAIL}`, {
+      body: JSON.stringify(body),
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+    });
+    if (!response.ok) {
+      throw new HttpStatusError('Failed to send reminder email', response.status);
+    }
+  }
+
   export async function assignSeedNumbers(tournamentId: string,teamIds: (string | undefined)[]) {
     const response = await fetch(`${TeamAPIConstants.BASE_PATH}${TeamAPIConstants.ASSIGN_SEED_NUMBERS(tournamentId)}`, {
       body: JSON.stringify(teamIds),

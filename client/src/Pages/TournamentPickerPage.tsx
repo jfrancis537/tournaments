@@ -76,6 +76,10 @@ export const TournamentPickerPage: React.FC = () => {
 
   function handleTournamentStateChanged(tournament: Tournament) {
     const index = tournaments.findIndex(t => tournament.id === t.id);
+    if (index === -1) {
+      console.warn('Received state update for unknown tournament', tournament.id);
+      return;
+    }
     // Replace in the current list
     tournaments[index] = tournament;
     // Copy to a new list for react.

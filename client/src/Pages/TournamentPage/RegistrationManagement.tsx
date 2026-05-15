@@ -1,13 +1,13 @@
 import { RegistrationData } from "@common/Models/RegistrationData";
-import { Box, Button, Container, IconButton, Sheet, Table, Typography } from "@mui/joy";
+import { TeamSocketAPI } from "@common/SocketAPIs/TeamAPI";
+import { Cancel, Check, Email } from "@mui/icons-material";
+import { Box, Button, Container, IconButton, Sheet, Snackbar, Table, Typography } from "@mui/joy";
 import { useEffect, useState } from "react";
 import { TeamAPI } from "../../APIs/TeamAPI";
-import { Cancel, Check } from "@mui/icons-material";
-import { TeamSocketAPI } from "@common/SocketAPIs/TeamAPI";
 
-import pageStyles from './RegistrationManagement.module.css';
 import { useNavigation } from "../../Hooks/UseNavigation";
 import { tournamentUrl } from "../../Utilities/RouteUtils";
+import pageStyles from './RegistrationManagement.module.css';
 
 interface RegistrationManagementProps {
   tournamentId: string;
@@ -17,6 +17,7 @@ interface RegistrationManagementProps {
 export const RegistrationManagement: React.FC<RegistrationManagementProps> = (props) => {
 
   const [registrations, setRegistrations] = useState<RegistrationData[]>([]);
+  const [reminderError, setReminderError] = useState<string>();
 
   const goBack = useNavigation(`${tournamentUrl(props.tournamentId)}/manage`);
 
@@ -29,7 +30,7 @@ export const RegistrationManagement: React.FC<RegistrationManagementProps> = (pr
     return () => {
       TeamSocketAPI.onregistrationchanged.removeListener(handleRegistrationChanged);
     }
-  }, [registrations]);
+  }, []);
 
   function handleRegistrationChanged(registration: RegistrationData) {
     if (!registrations) {
@@ -57,6 +58,39 @@ export const RegistrationManagement: React.FC<RegistrationManagementProps> = (pr
     TeamAPI.setRegistrationApproval(props.tournamentId, registration.contactEmail, true);
   }
 
+  async function sendReminderEmail(registration: RegistrationData) {
+    try {
+      await TeamAPI.sendReminderEmail(props.tournamentId, registration.contactEmail);
+    } catch {
+      setReminderError('Failed to send reminder email. Please try again.');
+    }
+  }
+
+  function renderRegistrationRowButtons(registration: RegistrationData, markMissingPartner: boolean) {
+    if (props.editable && markMissingPartner) {
+      return (
+        <td>
+          <IconButton onClick={() => sendReminderEmail(registration)}>
+            <Email htmlColor="#e89715ff" />
+          </IconButton>
+        </td>
+      )
+    } else {
+      return (
+        <td>{registration.approved ? (
+          <IconButton disabled={!props.editable} onClick={() => rejectRegistration(registration)}>
+            <Cancel htmlColor="#cf4343" />
+          </IconButton>
+        ) : (
+          <IconButton disabled={!props.editable} onClick={() => acceptRegistration(registration)}>
+            <Check color='success' />
+          </IconButton>
+        )}</td>
+      )
+    }
+
+  }
+
   function renderRegistrationRow(registration: RegistrationData, all: RegistrationData[]) {
     let markMissingPartner = false;
 
@@ -69,20 +103,14 @@ export const RegistrationManagement: React.FC<RegistrationManagementProps> = (pr
       }
     }
 
+
+
     return (
       <tr key={registration.contactEmail}>
         <td>{registration.name}</td>
         <td>{registration.contactEmail}</td>
         <td style={{ color: markMissingPartner ? 'red' : 'inherit' }}>{registration.teamCode ?? 'N/A'}</td>
-        <td>{registration.approved ? (
-          <IconButton disabled={!props.editable} onClick={() => rejectRegistration(registration)}>
-            <Cancel htmlColor="#cf4343" />
-          </IconButton>
-        ) : (
-          <IconButton disabled={!props.editable} onClick={() => acceptRegistration(registration)}>
-            <Check color='success' />
-          </IconButton>
-        )}</td>
+        {renderRegistrationRowButtons(registration, markMissingPartner)}
       </tr>
     );
   }
@@ -121,6 +149,16 @@ export const RegistrationManagement: React.FC<RegistrationManagementProps> = (pr
       }
     });
 
+    const errorSnackbar = (
+      <Snackbar
+        open={!!reminderError}
+        color='danger'
+        onClose={() => setReminderError(undefined)}
+      >
+        {reminderError}
+      </Snackbar>
+    );
+
     if (!props.editable) {
       return (
         <Container maxWidth='md' className={pageStyles.container}>
@@ -131,6 +169,7 @@ export const RegistrationManagement: React.FC<RegistrationManagementProps> = (pr
             <Typography level='title-lg'>Registrations</Typography>
             {renderTable(registrations, false)}
           </Box>
+          {errorSnackbar}
         </Container>
       );
     } else {
@@ -147,6 +186,7 @@ export const RegistrationManagement: React.FC<RegistrationManagementProps> = (pr
             <Typography level='title-lg'>Approved Registrations</Typography>
             {renderTable(registrations.filter(r => r.approved), true)}
           </Box>
+          {errorSnackbar}
         </Container>
       );
     }

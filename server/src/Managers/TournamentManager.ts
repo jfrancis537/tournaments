@@ -166,7 +166,7 @@ class TournamentManager {
         await this.createStage(tournament, stage, settings);
       }
       // Save occurs here.
-      this.setTournamentState(id, TournamentState.Finalizing, TournamentSocketAPI.ontournamentstateupdated);
+      await this.setTournamentState(id, TournamentState.Finalizing, TournamentSocketAPI.ontournamentstateupdated);
       return true;
     }
     return false;
@@ -177,7 +177,7 @@ class TournamentManager {
     // Only start allow starting the tournament once it's finalized.
     if (tournament && tournament.state === TournamentState.Finalizing) {
       // Save occurs here.
-      this.setTournamentState(id, TournamentState.Active, TournamentSocketAPI.ontournamentstarted);
+      await this.setTournamentState(id, TournamentState.Active, TournamentSocketAPI.ontournamentstarted);
       return true;
     }
     return false;
@@ -322,7 +322,7 @@ class TournamentManager {
       case 'gt':
         return match.status >= status;
       case 'lt':
-        return match.status >= status;
+        return match.status <= status;
     }
   }
 

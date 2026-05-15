@@ -60,7 +60,7 @@ export const TournamentViewer: React.FC<TournamentPageProps> = (props) => {
     setTournamentData(database);
   }, [props.tournamentId])
 
-  useEffect(componentWillMount);
+  useEffect(componentWillMount, []);
 
   useEffect(() => {
     tournamentStateChanged();
@@ -77,15 +77,10 @@ export const TournamentViewer: React.FC<TournamentPageProps> = (props) => {
   }
 
   function shouldShowViewer() {
-    const shouldShow = false;
     if (tournament) {
-      if (user) {
-        return tournament.state >= TournamentState.Finalizing;
-      } else {
-        return tournament.state >= TournamentState.Finalizing;
-      }
+      return tournament.state >= TournamentState.Finalizing;
     }
-    return shouldShow;
+    return false;
   }
 
   async function onMetadataChanged(metadata: MatchMetadata) {
@@ -132,20 +127,24 @@ export const TournamentViewer: React.FC<TournamentPageProps> = (props) => {
 
 
   async function onMatchClicked(match: Match) {
-
+    
     if (tournament && tournament.state === TournamentState.Finalizing && user?.roles.includes('Admin')) {
       setMatchToEdit(match);
       return;
     }
 
-    if (match.status >= Status.Ready) {
+    if (tournament && tournament.state === TournamentState.Active && match.status >= Status.Ready) {
       setLocation(matchUrl(props.tournamentId, match.id as number));
     }
   }
 
   async function onMatchUpdated() {
-    // Assert not null since this must be called when a match exists.
-    const [, data] = (await TournamentAPI.getTournamentData(props.tournamentId))!;
+    const result = await TournamentAPI.getTournamentData(props.tournamentId);
+    if (!result) {
+      console.warn('Failed to refresh bracket data for tournament', props.tournamentId);
+      return;
+    }
+    const [, data] = result;
     setTournamentData(data);
   }
 

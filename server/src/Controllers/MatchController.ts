@@ -53,6 +53,7 @@ namespace MatchController {
     const metadata: MatchMetadata = req.body;
     if (metadata.matchId !== Number(req.params.mid) || metadata.tournamentId !== req.params.tid) {
       resp.sendStatus(400);
+      return;
     }
 
     await Database.instance.addMatchMetadata(metadata);
@@ -65,8 +66,7 @@ namespace MatchController {
       const body: MatchAPIConstants.WinnerUpdate = req.body;
       const success = await TournamentManager.instance.selectWinner(req.params.tid, body.winnerId, Number(req.params.mid));
       if (!success) {
-        // TODO check if this is the correct code to send.
-        resp.sendStatus(404);
+        resp.sendStatus(400);
         return;
       }
       resp.sendStatus(200);
@@ -77,8 +77,7 @@ namespace MatchController {
       const body: MatchAPIConstants.ForfeitUpdate = req.body;
       const success = await TournamentManager.instance.forfeit(req.params.tid, body.forfeitId, Number(req.params.mid));
       if (!success) {
-        // TODO check if this is the correct code to send.
-        resp.sendStatus(404);
+        resp.sendStatus(400);
         return;
       }
       resp.sendStatus(200);
@@ -90,8 +89,7 @@ namespace MatchController {
 
       const success = await TournamentManager.instance.updateScore(req.params.tid, body.teamId, Number(req.params.mid), body.delta);
       if (!success) {
-        // TODO check if this is the correct code to send.
-        resp.sendStatus(404);
+        resp.sendStatus(400);
         return;
       }
       resp.sendStatus(200);
