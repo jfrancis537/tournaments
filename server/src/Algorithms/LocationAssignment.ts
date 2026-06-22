@@ -1,4 +1,5 @@
 import { LocationAssignmentAPIConstants } from "@common/Constants/LocationAssignmentAPIConstants";
+import { Team } from "@common/Models/Team";
 import { Tournament } from "@common/Models/Tournament";
 import { Match } from "brackets-model";
 import { DateTime } from "luxon";
@@ -16,6 +17,7 @@ export interface AlgorithmParams {
 export interface TournamentWithMatches {
   tournament: Tournament;
   matches: Match[];
+  teams?: Team[];
 }
 
 function advanceToWindow(time: DateTime, params: AlgorithmParams): DateTime {
@@ -32,6 +34,32 @@ function advanceToWindow(time: DateTime, params: AlgorithmParams): DateTime {
   return time;
 }
 
+function buildParticipantMap(teams: Team[]): Map<number, Team> {
+  const map = new Map<number, Team>();
+  for (const team of teams) {
+    if (team.seedNumber !== undefined) {
+      map.set(team.seedNumber, team);
+    }
+  }
+  return map;
+}
+
+function getMatchPlayerEmails(match: Match, participantMap: Map<number, Team>): string[] {
+  const emails: string[] = [];
+  const opp1Id = (match.opponent1 as { id?: number } | null)?.id;
+  const opp2Id = (match.opponent2 as { id?: number } | null)?.id;
+
+  if (opp1Id != null) {
+    const team = participantMap.get(opp1Id);
+    if (team) emails.push(...team.players.map(p => p.contactEmail));
+  }
+  if (opp2Id != null) {
+    const team = participantMap.get(opp2Id);
+    if (team) emails.push(...team.players.map(p => p.contactEmail));
+  }
+  return emails;
+}
+
 export function assignLocations(
   tournamentsWithMatches: TournamentWithMatches[],
   params: AlgorithmParams
@@ -45,13 +73,16 @@ export function assignLocations(
     locationNextAvailable.set(location, DateTime.fromMillis(0));
   }
 
+  // Tracks when each player (by email) is next free — shared across all tournaments.
+  const playerNextAvailable = new Map<string, DateTime>();
+
   const results: LocationAssignmentAPIConstants.MatchAssignment[] = [];
 
   const sorted = [...tournamentsWithMatches].sort(
     (a, b) => a.tournament.startDate.toMillis() - b.tournament.startDate.toMillis()
   );
 
-  for (const { tournament, matches } of sorted) {
+  for (const { tournament, matches, teams } of sorted) {
     const tournamentStart = tournament.startDate.startOf('day').set({
       hour: params.windowStartHour,
       minute: params.windowStartMinute,
@@ -59,6 +90,8 @@ export function assignLocations(
       millisecond: 0,
     });
     const tournamentEnd = tournament.endDate.endOf('day');
+
+    const participantMap = buildParticipantMap(teams ?? []);
 
     const schedulableMatches = matches
       .filter(m => m.opponent1 !== null && m.opponent2 !== null)
@@ -68,15 +101,24 @@ export function assignLocations(
       });
 
     for (const match of schedulableMatches) {
+      const playerEmails = getMatchPlayerEmails(match, participantMap);
+
+      // Find the earliest time all players in this match are free.
+      let playerBusyUntil = DateTime.fromMillis(0);
+      for (const email of playerEmails) {
+        const free = playerNextAvailable.get(email) ?? DateTime.fromMillis(0);
+        if (free > playerBusyUntil) playerBusyUntil = free;
+      }
+
       let bestLocation: string | null = null;
       let bestTime: DateTime | null = null;
 
       for (const location of params.locations) {
         let candidate = locationNextAvailable.get(location)!;
 
-        if (candidate < tournamentStart) {
-          candidate = tournamentStart;
-        }
+        // Must be after both the court is free AND all players are free.
+        if (playerBusyUntil > candidate) candidate = playerBusyUntil;
+        if (candidate < tournamentStart) candidate = tournamentStart;
 
         candidate = advanceToWindow(candidate, params);
 
@@ -115,8 +157,14 @@ export function assignLocations(
         scheduledTime: bestTime.toISO()!,
       });
 
-      const slotEnd = bestTime.plus({ minutes: params.matchDurationMinutes + params.gapMinutes });
-      locationNextAvailable.set(bestLocation, slotEnd);
+      // Advance court availability by duration + gap (court turnaround time).
+      locationNextAvailable.set(bestLocation, bestTime.plus({ minutes: params.matchDurationMinutes + params.gapMinutes }));
+
+      // Block players until match ends (no extra gap — gap is for court turnaround only).
+      const matchEnd = bestTime.plus({ minutes: params.matchDurationMinutes });
+      for (const email of playerEmails) {
+        playerNextAvailable.set(email, matchEnd);
+      }
     }
   }
 

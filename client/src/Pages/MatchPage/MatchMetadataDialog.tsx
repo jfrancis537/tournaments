@@ -1,7 +1,8 @@
 import { MatchMetadata } from "@common/Models/MatchMetadata";
-import { EditOutlined, Title } from "@mui/icons-material";
-import { Button, CircularProgress, DialogActions, DialogContent, DialogTitle, Divider, FormControl, Input, Modal, ModalDialog } from "@mui/joy";
+import { AccessTime, EditOutlined, LocationOn, Title } from "@mui/icons-material";
+import { Button, CircularProgress, DialogActions, DialogContent, DialogTitle, Divider, FormControl, FormLabel, Input, Modal, ModalDialog } from "@mui/joy";
 import { Match } from "brackets-model"
+import { DateTime } from "luxon";
 import { useEffect, useState } from "react";
 import { MatchAPI } from "../../APIs/MatchAPI";
 import { LoadState } from "../../Utilities/LoadState";
@@ -70,14 +71,39 @@ export const MatchMetadataModal: React.FC<MatchMetadataModal> = (props) => {
       case LoadState.COMPLETE:
         return (
           <>
-            <DialogContent>
+            <DialogContent sx={{ display: 'flex', flexDirection: 'column', gap: 1.5 }}>
               <FormControl>
+                <FormLabel>Title</FormLabel>
                 <Input
                   value={metadata.title}
                   startDecorator={<Title />}
                   placeholder="Title"
                   type="text"
                   onChange={handleTitleChanged} />
+              </FormControl>
+              <FormControl>
+                <FormLabel>Location</FormLabel>
+                <Input
+                  value={metadata.location ?? ''}
+                  startDecorator={<LocationOn />}
+                  placeholder="e.g. Court 1"
+                  type="text"
+                  onChange={e => setMetadata(prev => ({ ...prev, location: e.target.value || undefined }))}
+                />
+              </FormControl>
+              <FormControl>
+                <FormLabel>Scheduled Time</FormLabel>
+                <Input
+                  startDecorator={<AccessTime />}
+                  type="datetime-local"
+                  value={metadata.scheduledTime
+                    ? DateTime.fromISO(metadata.scheduledTime).toFormat("yyyy-MM-dd'T'HH:mm")
+                    : ''}
+                  onChange={e => setMetadata(prev => ({
+                    ...prev,
+                    scheduledTime: e.target.value ? DateTime.fromISO(e.target.value).toISO()! : undefined,
+                  }))}
+                />
               </FormControl>
             </DialogContent>
             <DialogActions>

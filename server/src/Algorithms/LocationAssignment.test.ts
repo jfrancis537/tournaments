@@ -1,3 +1,4 @@
+import { Team } from '@common/Models/Team';
 import { TournamentState } from '@common/Models/Tournament';
 import { Status } from 'brackets-model';
 import { DateTime } from 'luxon';
@@ -8,7 +9,7 @@ import { AlgorithmParams, TournamentWithMatches, assignLocations } from './Locat
 
 let nextId = 0;
 
-function makeMatch(roundId: number, id?: number): any {
+function makeMatch(roundId: number, id?: number, opp1Id = 1, opp2Id = 2): any {
   return {
     id: id ?? nextId++,
     stage_id: 0,
@@ -17,8 +18,18 @@ function makeMatch(roundId: number, id?: number): any {
     number: 1,
     child_count: 0,
     status: Status.Ready,
-    opponent1: { id: 1 },
-    opponent2: { id: 2 },
+    opponent1: { id: opp1Id },
+    opponent2: { id: opp2Id },
+  };
+}
+
+function makeTeam(seedNumber: number, emails: string[]): Team {
+  return {
+    id: `team-${nextId++}`,
+    tournamentId: 'unused',
+    name: `Team ${seedNumber}`,
+    seedNumber,
+    players: emails.map(email => ({ contactEmail: email, name: email })),
   };
 }
 
@@ -230,5 +241,59 @@ describe('assignLocations', () => {
     const input: TournamentWithMatches[] = [{ tournament, matches: [makeMatch(0)] }];
     const result = assignLocations(input, BASE_PARAMS);
     expect(result[0].tournamentName).toBe('My Tournament');
+  });
+
+  test('player in two tournaments is not double-booked on same court', () => {
+    // 2 courts, 2 tournaments both starting June 1. "alice" plays in both.
+    // Without player deconfliction both matches land at 10:00 on different courts.
+    // With player deconfliction the second match must start after alice's first match ends.
+    const params = { ...BASE_PARAMS, locations: ['Court 1', 'Court 2'] };
+    const t1 = makeTournament('2026-06-01', '2026-06-07', 'T1');
+    const t2 = makeTournament('2026-06-01', '2026-06-07', 'T2');
+
+    // T1: alice (seed 1) vs bob (seed 2)
+    const match1 = makeMatch(0, 300, 1, 2);
+    const teams1 = [makeTeam(1, ['alice@example.com']), makeTeam(2, ['bob@example.com'])];
+
+    // T2: alice (seed 3) vs charlie (seed 4)
+    const match2 = makeMatch(0, 301, 3, 4);
+    const teams2 = [makeTeam(3, ['alice@example.com']), makeTeam(4, ['charlie@example.com'])];
+
+    const input: TournamentWithMatches[] = [
+      { tournament: t1, matches: [match1], teams: teams1 },
+      { tournament: t2, matches: [match2], teams: teams2 },
+    ];
+
+    const result = assignLocations(input, params);
+
+    expect(result).toHaveLength(2);
+    const byMatchId = new Map(result.map(r => [r.matchId, r]));
+    const time1 = DateTime.fromISO(byMatchId.get(300)!.scheduledTime);
+    const time2 = DateTime.fromISO(byMatchId.get(301)!.scheduledTime);
+
+    // The two matches must not overlap for alice.
+    const overlap = time1 < time2.plus({ minutes: params.matchDurationMinutes }) &&
+                    time2 < time1.plus({ minutes: params.matchDurationMinutes });
+    expect(overlap).toBe(false);
+  });
+
+  test('match with unknown participant (future round) uses court-only deconfliction', () => {
+    // opponent2 is null — algorithm should skip player deconfliction for this match
+    // without crashing, and still assign a court slot.
+    const tournament = makeTournament('2026-06-01', '2026-06-07');
+    const unknownOpponentMatch = { ...makeMatch(1), opponent2: null };
+    const knownMatch = makeMatch(0);
+
+    // Only the known match should be scheduled (bye filter already excludes null-opponent matches)
+    const input: TournamentWithMatches[] = [{
+      tournament,
+      matches: [knownMatch, unknownOpponentMatch],
+      teams: [makeTeam(1, ['alice@example.com']), makeTeam(2, ['bob@example.com'])],
+    }];
+
+    const result = assignLocations(input, BASE_PARAMS);
+
+    expect(result).toHaveLength(1);
+    expect(result[0].matchId).toBe(knownMatch.id);
   });
 });

@@ -6,6 +6,7 @@ import express, { Router } from 'express';
 import { AlgorithmParams, TournamentWithMatches, assignLocations } from '../Algorithms/LocationAssignment';
 import { Database } from '../Database/Database';
 import { DatabaseError, DatabaseErrorType } from '../Database/DatabaseError';
+import { TeamManager } from '../Managers/TeamManager';
 import { TournamentManager } from '../Managers/TournamentManager';
 import { RequireRole } from '../MiddleWare/RequireRoleMiddleware';
 import { asyncHandler } from '../Utilities/AsyncHandler';
@@ -43,7 +44,8 @@ namespace LocationAssignmentController {
         return;
       }
       const matches = await TournamentManager.instance.getMatchesForTournament(tid);
-      tournamentsWithMatches.push({ tournament, matches });
+      const teams = await TeamManager.instance.getTeams(tid) ?? [];
+      tournamentsWithMatches.push({ tournament, matches, teams });
     }
 
     const params: AlgorithmParams = {
