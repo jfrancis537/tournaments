@@ -80,6 +80,17 @@ export function assignLocations(
 
         candidate = advanceToWindow(candidate, params);
 
+        // If the match would run past today's window end, roll to next day's window start.
+        const windowEndToday = candidate.set({
+          hour: params.windowEndHour, minute: params.windowEndMinute, second: 0, millisecond: 0,
+        });
+        if (candidate.plus({ minutes: params.matchDurationMinutes }) > windowEndToday) {
+          const nextDay = candidate.plus({ days: 1 }).startOf('day');
+          candidate = nextDay.set({
+            hour: params.windowStartHour, minute: params.windowStartMinute, second: 0, millisecond: 0,
+          });
+        }
+
         if (candidate > tournamentEnd) {
           continue;
         }
