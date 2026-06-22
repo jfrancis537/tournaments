@@ -24,13 +24,9 @@ import { TournamentAPI } from '../../APIs/TournamentAPI';
 
 type Phase = 'setup' | 'preview' | 'confirming' | 'done';
 
-interface Params {
-  matchDurationMinutes: number;
-  gapMinutes: number;
-  windowStartHour: number;
-  windowStartMinute: number;
-  windowEndHour: number;
-  windowEndMinute: number;
+function parseTime(t: string): [number, number] {
+  const [h, m] = t.split(':').map(Number);
+  return [h ?? 0, m ?? 0];
 }
 
 export const LocationAssignmentPage: React.FC = () => {
@@ -40,14 +36,10 @@ export const LocationAssignmentPage: React.FC = () => {
   const [locationInput, setLocationInput] = useState('');
   const [allTournaments, setAllTournaments] = useState<Tournament[]>([]);
   const [selectedTournamentIds, setSelectedTournamentIds] = useState<string[]>([]);
-  const [params, setParams] = useState<Params>({
-    matchDurationMinutes: 15,
-    gapMinutes: 5,
-    windowStartHour: 10,
-    windowStartMinute: 0,
-    windowEndHour: 20,
-    windowEndMinute: 0,
-  });
+  const [matchDurationMinutes, setMatchDurationMinutes] = useState(15);
+  const [gapMinutes, setGapMinutes] = useState(5);
+  const [windowStart, setWindowStart] = useState('10:00');
+  const [windowEnd, setWindowEnd] = useState('20:00');
   const [preview, setPreview] = useState<LocationAssignmentAPIConstants.MatchAssignment[]>([]);
   const [phase, setPhase] = useState<Phase>('setup');
   const [error, setError] = useState<string | undefined>();
@@ -76,16 +68,19 @@ export const LocationAssignmentPage: React.FC = () => {
     );
   }
 
-  function updateParam<K extends keyof Params>(key: K, value: number) {
-    setParams(prev => ({ ...prev, [key]: value }));
-  }
-
   async function runAlgorithm() {
     setError(undefined);
+    const [windowStartHour, windowStartMinute] = parseTime(windowStart);
+    const [windowEndHour, windowEndMinute] = parseTime(windowEnd);
     const request: LocationAssignmentAPIConstants.PreviewRequest = {
       tournamentIds: selectedTournamentIds,
       locations,
-      ...params,
+      matchDurationMinutes,
+      gapMinutes,
+      windowStartHour,
+      windowStartMinute,
+      windowEndHour,
+      windowEndMinute,
     };
     try {
       const result = await LocationAssignmentAPI.preview(request);
@@ -115,7 +110,7 @@ export const LocationAssignmentPage: React.FC = () => {
     const canRun =
       locations.length > 0 &&
       selectedTournamentIds.length > 0 &&
-      params.matchDurationMinutes > 0;
+      matchDurationMinutes > 0;
 
     return (
       <Container maxWidth='md'>
@@ -186,8 +181,8 @@ export const LocationAssignmentPage: React.FC = () => {
                 <FormLabel>Match Duration (minutes)</FormLabel>
                 <Input
                   type='number'
-                  value={params.matchDurationMinutes}
-                  onChange={e => updateParam('matchDurationMinutes', Number(e.target.value))}
+                  value={matchDurationMinutes}
+                  onChange={e => setMatchDurationMinutes(Number(e.target.value))}
                   slotProps={{ input: { min: 1 } }}
                 />
               </FormControl>
@@ -195,45 +190,25 @@ export const LocationAssignmentPage: React.FC = () => {
                 <FormLabel>Gap Between Matches (minutes)</FormLabel>
                 <Input
                   type='number'
-                  value={params.gapMinutes}
-                  onChange={e => updateParam('gapMinutes', Number(e.target.value))}
+                  value={gapMinutes}
+                  onChange={e => setGapMinutes(Number(e.target.value))}
                   slotProps={{ input: { min: 0 } }}
                 />
               </FormControl>
               <FormControl>
-                <FormLabel>Window Start (hour)</FormLabel>
+                <FormLabel>Daily Window Start</FormLabel>
                 <Input
-                  type='number'
-                  value={params.windowStartHour}
-                  onChange={e => updateParam('windowStartHour', Number(e.target.value))}
-                  slotProps={{ input: { min: 0, max: 23 } }}
+                  type='time'
+                  value={windowStart}
+                  onChange={e => setWindowStart(e.target.value)}
                 />
               </FormControl>
               <FormControl>
-                <FormLabel>Window Start (minute)</FormLabel>
+                <FormLabel>Daily Window End</FormLabel>
                 <Input
-                  type='number'
-                  value={params.windowStartMinute}
-                  onChange={e => updateParam('windowStartMinute', Number(e.target.value))}
-                  slotProps={{ input: { min: 0, max: 59 } }}
-                />
-              </FormControl>
-              <FormControl>
-                <FormLabel>Window End (hour)</FormLabel>
-                <Input
-                  type='number'
-                  value={params.windowEndHour}
-                  onChange={e => updateParam('windowEndHour', Number(e.target.value))}
-                  slotProps={{ input: { min: 0, max: 23 } }}
-                />
-              </FormControl>
-              <FormControl>
-                <FormLabel>Window End (minute)</FormLabel>
-                <Input
-                  type='number'
-                  value={params.windowEndMinute}
-                  onChange={e => updateParam('windowEndMinute', Number(e.target.value))}
-                  slotProps={{ input: { min: 0, max: 59 } }}
+                  type='time'
+                  value={windowEnd}
+                  onChange={e => setWindowEnd(e.target.value)}
                 />
               </FormControl>
             </Box>

@@ -59,25 +59,27 @@ export const App: React.FC = () => {
     return (
       <UserContext.Provider value={{ user, setUser }}>
         <NavBar />
-        <Switch>
-          <Route path='/'>
-            {/* <HomePage /> */}
-            <TournamentPickerPage />
-          </Route>
-          <Route path='/tournaments/all'>
-            <TournamentPickerPage />
-          </Route>
-          {TournamentRoutes}
-          <AuthenticatedRoute roles={['Admin']} path='/location-assignment'>
-            <LocationAssignmentPage />
-          </AuthenticatedRoute>
-          {/* <Route path={'/news'}>
-            <NewsPage />
-          </Route> */}
-          <Route>
-            <NotFound />
-          </Route>
-        </Switch>
+        <div id="content">
+          <Switch>
+            <Route path='/'>
+              {/* <HomePage /> */}
+              <TournamentPickerPage />
+            </Route>
+            <Route path='/tournaments/all'>
+              <TournamentPickerPage />
+            </Route>
+            {TournamentRoutes}
+            <AuthenticatedRoute roles={['Admin']} path='/location-assignment'>
+              <LocationAssignmentPage />
+            </AuthenticatedRoute>
+            {/* <Route path={'/news'}>
+              <NewsPage />
+            </Route> */}
+            <Route>
+              <NotFound />
+            </Route>
+          </Switch>
+        </div>
         {renderConnectionNotification()}
       </UserContext.Provider>
     );

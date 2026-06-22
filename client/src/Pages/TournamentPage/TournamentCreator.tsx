@@ -138,16 +138,16 @@ export const TournamentCreator: React.FC<TournamentCreatorProps> = (props) => {
           <Input type="text" onChange={(e) => setName(e.currentTarget.value)} />
         </FormControl>
         <FormControl>
-          <FormLabel>Start Date</FormLabel>
-          <Input onChange={handleStartDateChanged} type="date" />
+          <FormLabel>Start Date &amp; Time</FormLabel>
+          <Input onChange={handleStartDateChanged} type="datetime-local" />
         </FormControl>
         <FormControl>
-          <FormLabel>End Date</FormLabel>
-          <Input onChange={handleEndDateChanged} type="date" />
+          <FormLabel>End Date &amp; Time</FormLabel>
+          <Input onChange={handleEndDateChanged} type="datetime-local" />
         </FormControl>
         <FormControl>
-          <FormLabel>Registration Open Date</FormLabel>
-          <Input onChange={handleRegistrationOpenDateChanged} type="date" />
+          <FormLabel>Registration Open Date &amp; Time</FormLabel>
+          <Input onChange={handleRegistrationOpenDateChanged} type="datetime-local" />
         </FormControl>
         <FormControl>
           <FormLabel>Team Size</FormLabel>

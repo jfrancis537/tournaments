@@ -17,3 +17,9 @@ html,body,#root {
   flex-flow: column;
   overflow: hidden;
 }
+
+#content {
+  flex: 1;
+  overflow-y: auto;
+  min-height: 0;
+}

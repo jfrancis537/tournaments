@@ -304,6 +304,16 @@ export const TournamentPickerPage: React.FC = () => {
       <>
         <Authenticated roles={['Admin']}>
           <Box className={pageStyles["admin-controls"]}>
+            {loadState === LoadState.COMPLETE && tournaments.some(t => t.state === TournamentState.Finalizing) && (
+              <Button
+                color="primary"
+                variant="outlined"
+                onClick={() => setLocation('/location-assignment')}
+                sx={{ mr: 1 }}
+              >
+                Assign Locations
+              </Button>
+            )}
             <Button
               color="primary"
               variant="outlined"
