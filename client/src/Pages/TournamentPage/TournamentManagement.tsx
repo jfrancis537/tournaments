@@ -161,6 +161,7 @@ export const TournamentManagment: React.FC<TournamentManagmentProps> = (props) =
               Start
             </Button>
             <Button onClick={navigateToTournament}>Set Match Details</Button>
+            <Button onClick={() => setLocation('/location-assignment')}>Assign Locations</Button>
           </>
         )
       case TournamentState.Active:

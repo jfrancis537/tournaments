@@ -451,6 +451,21 @@ class TournamentManager {
     return selection[0];
   }
 
+  public async getMatchesForTournament(tournamentId: string): Promise<Match[]> {
+    const stages = await this.bracketManager.storage.select('stage', { tournament_id: tournamentId });
+    if (!stages || stages.length === 0) {
+      return [];
+    }
+    const allMatches: Match[] = [];
+    for (const stage of stages) {
+      const matches = await this.bracketManager.storage.select('match', { stage_id: stage.id as number });
+      if (matches) {
+        allMatches.push(...matches);
+      }
+    }
+    return allMatches;
+  }
+
   private async createStage(tournament: Readonly<Tournament>, stageType: Readonly<StageType>, settings: StageSettings) {
 
     // Get the teams for the tournament

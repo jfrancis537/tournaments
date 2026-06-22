@@ -495,17 +495,41 @@ export class PostgresDatabase implements Database {
 
 
   async addMatchMetadata(metadata: MatchMetadata): Promise<void> {
-
     const COLS = Tables.ColumnNames.MatchMetadata;
     const colNames = COLS.asArray();
     await this.query<ColResult<Tables.Names.MatchMetadata>>(
-      `INSERT INTO ${Tables.Names.MatchMetadata} 
-      (${colNames.join(',')}) 
-      VALUES ($1, $2, $3) 
-      ON CONFLICT (${COLS.TournamentId}, ${COLS.MatchId}) 
-      DO UPDATE SET ${COLS.Title} = EXCLUDED.${COLS.Title};`,
-      [metadata.tournamentId, metadata.matchId, metadata.title]
+      `INSERT INTO ${Tables.Names.MatchMetadata}
+      (${colNames.join(',')})
+      VALUES ($1, $2, $3, $4, $5)
+      ON CONFLICT (${COLS.TournamentId}, ${COLS.MatchId})
+      DO UPDATE SET
+        ${COLS.Title} = EXCLUDED.${COLS.Title},
+        ${COLS.Location} = EXCLUDED.${COLS.Location},
+        ${COLS.ScheduledTime} = EXCLUDED.${COLS.ScheduledTime};`,
+      [metadata.tournamentId, metadata.matchId, metadata.title, metadata.location ?? null, metadata.scheduledTime ?? null]
     )
+  }
+
+  async bulkUpsertMatchMetadata(entries: MatchMetadata[]): Promise<void> {
+    if (entries.length === 0) return;
+    const COLS = Tables.ColumnNames.MatchMetadata;
+    await this.query(
+      `INSERT INTO ${Tables.Names.MatchMetadata} (${COLS.TournamentId}, ${COLS.MatchId}, ${COLS.Title}, ${COLS.Location}, ${COLS.ScheduledTime})
+       SELECT * FROM UNNEST($1::text[], $2::int[], $3::text[], $4::text[], $5::text[])
+         AS t(${COLS.TournamentId}, ${COLS.MatchId}, ${COLS.Title}, ${COLS.Location}, ${COLS.ScheduledTime})
+       ON CONFLICT (${COLS.TournamentId}, ${COLS.MatchId})
+       DO UPDATE SET
+         ${COLS.Title} = EXCLUDED.${COLS.Title},
+         ${COLS.Location} = EXCLUDED.${COLS.Location},
+         ${COLS.ScheduledTime} = EXCLUDED.${COLS.ScheduledTime};`,
+      [
+        entries.map(e => e.tournamentId),
+        entries.map(e => e.matchId),
+        entries.map(e => e.title),
+        entries.map(e => e.location ?? null),
+        entries.map(e => e.scheduledTime ?? null),
+      ]
+    );
   }
 
   async deleteMatchMetadata(tournamentId: string): Promise<void> {
@@ -534,7 +558,9 @@ export class PostgresDatabase implements Database {
         metadata.push({
           tournamentId: row.tournamentid,
           matchId: row.matchid,
-          title: row.title
+          title: row.title,
+          location: row.location ?? undefined,
+          scheduledTime: row.scheduled_time ?? undefined,
         });
       }
       return metadata;
@@ -544,13 +570,14 @@ export class PostgresDatabase implements Database {
         return {
           tournamentId: row.tournamentid,
           matchId: row.matchid,
-          title: row.title
+          title: row.title,
+          location: row.location ?? undefined,
+          scheduledTime: row.scheduled_time ?? undefined,
         }
       } else {
         throw new DatabaseError(`match: ${matchId} does not have metadata for tournament: ${tournamentId}`
           , DatabaseErrorType.MissingRecord);
       }
-
     }
   }
 

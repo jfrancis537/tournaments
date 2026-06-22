@@ -28,6 +28,7 @@ export interface Database {
   deleteTournamentMetadata(id: string): Promise<void>;
 
   addMatchMetadata(metadata: MatchMetadata): Promise<void>;
+  bulkUpsertMatchMetadata(entries: MatchMetadata[]): Promise<void>;
   deleteMatchMetadata(tournamentId: string): Promise<void>;
   getMatchMetadata(tournamentId: string): Promise<MatchMetadata[]>
   getMatchMetadata(tournamentId: string, matchId: number): Promise<MatchMetadata>

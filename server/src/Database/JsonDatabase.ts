@@ -230,6 +230,18 @@ export class JsonDatabase implements Database {
     await this.save();
   }
 
+  public async bulkUpsertMatchMetadata(entries: MatchMetadata[]): Promise<void> {
+    for (const entry of entries) {
+      let inTournament = this.data.matchMetadata[entry.tournamentId];
+      if (!inTournament) {
+        inTournament = {};
+        this.data.matchMetadata[entry.tournamentId] = inTournament;
+      }
+      inTournament[entry.matchId] = clone(entry);
+    }
+    await this.save();
+  }
+
   public async deleteMatchMetadata(tournamentId: string): Promise<void> {
     delete this.data.matchMetadata[tournamentId];
     await this.save();

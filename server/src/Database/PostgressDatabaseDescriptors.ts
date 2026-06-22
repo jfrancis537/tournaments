@@ -119,14 +119,18 @@ export namespace Tables {
     export enum MatchMetadata {
       TournamentId = 'tournamentid',
       MatchId = 'matchid',
-      Title = 'title'
+      Title = 'title',
+      Location = 'location',
+      ScheduledTime = 'scheduled_time'
     }
     export namespace MatchMetadata {
       export function asArray() {
         return [
           MatchMetadata.TournamentId,
           MatchMetadata.MatchId,
-          MatchMetadata.Title
+          MatchMetadata.Title,
+          MatchMetadata.Location,
+          MatchMetadata.ScheduledTime
         ]
       }
     }
@@ -236,6 +240,8 @@ export namespace Tables {
       [ColumnNames.MatchMetadata.TournamentId]: string,
       [ColumnNames.MatchMetadata.MatchId]: number,
       [ColumnNames.MatchMetadata.Title]: string,
+      [ColumnNames.MatchMetadata.Location]: string | null,
+      [ColumnNames.MatchMetadata.ScheduledTime]: string | null,
     },
     [Names.BracketsData]: {
       [ColumnNames.BracketsData.TournamentId]: string,

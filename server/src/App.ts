@@ -6,6 +6,7 @@ import session, { MemoryStore, SessionOptions } from "express-session";
 import path from 'path';
 import { Server } from "socket.io";
 import { AuthController } from "./Controllers/AuthController";
+import { LocationAssignmentController } from "./Controllers/LocationAssignmentController";
 import { MatchController } from "./Controllers/MatchController";
 import { NewsController } from "./Controllers/NewsController";
 import { TeamController } from "./Controllers/TeamController";
@@ -50,6 +51,7 @@ class App {
     this.expressApp.use(...MatchController);
     this.expressApp.use(...AuthController);
     this.expressApp.use(...NewsController);
+    this.expressApp.use(...LocationAssignmentController);
   }
 
   public addOidc() {

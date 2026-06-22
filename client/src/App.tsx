@@ -3,9 +3,11 @@ import { Snackbar, Typography, useColorScheme } from '@mui/joy';
 import React, { useEffect, useState } from 'react';
 import { Route, Switch } from 'wouter';
 import { AuthAPI } from './APIs/AuthAPI';
+import { AuthenticatedRoute } from './Components/AuthenticatedRoute';
 import { NavBar } from './Components/NavBar';
 import { UserContext } from './Contexts/UserContext';
 import { useSocketState } from './Managers/SocketManager';
+import { LocationAssignmentPage } from './Pages/LocationAssignment/LocationAssignmentPage';
 import { NotFound } from './Pages/NotFound';
 import { TournamentPickerPage } from './Pages/TournamentPickerPage';
 import { TournamentRoutes } from './RouteGroups/TournamentRoutes';
@@ -66,6 +68,9 @@ export const App: React.FC = () => {
             <TournamentPickerPage />
           </Route>
           {TournamentRoutes}
+          <AuthenticatedRoute roles={['Admin']} path='/location-assignment'>
+            <LocationAssignmentPage />
+          </AuthenticatedRoute>
           {/* <Route path={'/news'}>
             <NewsPage />
           </Route> */}
