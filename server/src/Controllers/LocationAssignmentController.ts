@@ -8,12 +8,13 @@ import { Database } from '../Database/Database';
 import { DatabaseError, DatabaseErrorType } from '../Database/DatabaseError';
 import { TournamentManager } from '../Managers/TournamentManager';
 import { RequireRole } from '../MiddleWare/RequireRoleMiddleware';
+import { asyncHandler } from '../Utilities/AsyncHandler';
 
 namespace LocationAssignmentController {
   export const path = LocationAssignmentAPIConstants.BASE_PATH;
   export const router = express.Router();
 
-  router.post(LocationAssignmentAPIConstants.PREVIEW, RequireRole('Admin'), async (req, resp) => {
+  router.post(LocationAssignmentAPIConstants.PREVIEW, RequireRole('Admin'), asyncHandler(async (req, resp) => {
     const body: LocationAssignmentAPIConstants.PreviewRequest = req.body;
 
     if (!body.tournamentIds || body.tournamentIds.length === 0) {
@@ -59,11 +60,12 @@ namespace LocationAssignmentController {
       const assignments = assignLocations(tournamentsWithMatches, params);
       resp.json(assignments);
     } catch (err) {
+      // Algorithm errors (e.g. no slot fits) are user-facing 400s, not server errors.
       resp.status(400).json({ error: err instanceof Error ? err.message : 'Algorithm failed.' });
     }
-  });
+  }));
 
-  router.post(LocationAssignmentAPIConstants.CONFIRM, RequireRole('Admin'), async (req, resp) => {
+  router.post(LocationAssignmentAPIConstants.CONFIRM, RequireRole('Admin'), asyncHandler(async (req, resp) => {
     const body: LocationAssignmentAPIConstants.ConfirmRequest = req.body;
 
     if (!body.assignments || body.assignments.length === 0) {
@@ -109,7 +111,7 @@ namespace LocationAssignmentController {
     }
 
     resp.sendStatus(200);
-  });
+  }));
 }
 
 const both: [string, Router] = [LocationAssignmentController.path, LocationAssignmentController.router];

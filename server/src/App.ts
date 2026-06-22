@@ -1,6 +1,6 @@
 import { TeamSocketAPI } from "@common/SocketAPIs/TeamAPI";
 import { TournamentSocketAPI } from "@common/SocketAPIs/TournamentAPI";
-import express, { Express } from "express";
+import express, { Express, NextFunction, Request, Response } from "express";
 import { auth } from "express-openid-connect";
 import session, { MemoryStore, SessionOptions } from "express-session";
 import path from 'path';
@@ -27,6 +27,7 @@ class App {
     this.addOidc();
     this.addControllers();
     this.addStaticAssets();
+    this.addErrorHandling();
   }
 
   public get socket(): Readonly<Server> {
@@ -43,6 +44,16 @@ class App {
         resp.sendFile(path.resolve('./public/index.html'));
       });
     }
+  }
+
+  public addErrorHandling() {
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    this.expressApp.use((err: unknown, _req: Request, res: Response, _next: NextFunction) => {
+      console.error('[Error]', err);
+      if (!res.headersSent) {
+        res.sendStatus(500);
+      }
+    });
   }
 
   public addControllers() {

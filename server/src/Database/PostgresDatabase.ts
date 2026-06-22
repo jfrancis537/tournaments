@@ -515,7 +515,7 @@ export class PostgresDatabase implements Database {
     const COLS = Tables.ColumnNames.MatchMetadata;
     await this.query(
       `INSERT INTO ${Tables.Names.MatchMetadata} (${COLS.TournamentId}, ${COLS.MatchId}, ${COLS.Title}, ${COLS.Location}, ${COLS.ScheduledTime})
-       SELECT * FROM UNNEST($1::text[], $2::int[], $3::text[], $4::text[], $5::text[])
+       SELECT * FROM UNNEST($1::uuid[], $2::int[], $3::text[], $4::text[], $5::text[])
          AS t(${COLS.TournamentId}, ${COLS.MatchId}, ${COLS.Title}, ${COLS.Location}, ${COLS.ScheduledTime})
        ON CONFLICT (${COLS.TournamentId}, ${COLS.MatchId})
        DO UPDATE SET
