@@ -8,6 +8,8 @@ import { NavBar } from './Components/NavBar';
 import { UserContext } from './Contexts/UserContext';
 import { useSocketState } from './Managers/SocketManager';
 import { LocationAssignmentPage } from './Pages/LocationAssignment/LocationAssignmentPage';
+import { NewsPage } from './Pages/NewsPage';
+import { NewsPostEditorPage } from './Pages/NewsPostEditorPage';
 import { NotFound } from './Pages/NotFound';
 import { TournamentPickerPage } from './Pages/TournamentPickerPage';
 import { TournamentRoutes } from './RouteGroups/TournamentRoutes';
@@ -62,8 +64,7 @@ export const App: React.FC = () => {
         <div id="content">
           <Switch>
             <Route path='/'>
-              {/* <HomePage /> */}
-              <TournamentPickerPage />
+              <NewsPage />
             </Route>
             <Route path='/tournaments/all'>
               <TournamentPickerPage />
@@ -72,9 +73,9 @@ export const App: React.FC = () => {
             <AuthenticatedRoute roles={['Admin']} path='/location-assignment'>
               <LocationAssignmentPage />
             </AuthenticatedRoute>
-            {/* <Route path={'/news'}>
-              <NewsPage />
-            </Route> */}
+            <AuthenticatedRoute roles={['Admin']} path='/news/edit/:id'>
+              {(params) => <NewsPostEditorPage postId={params.id} />}
+            </AuthenticatedRoute>
             <Route>
               <NotFound />
             </Route>

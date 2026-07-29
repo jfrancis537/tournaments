@@ -9,6 +9,11 @@
   /* flex: 1; */
 }
 
+.new-post-button {
+  align-self: flex-start;
+  margin: 0 1rem 1rem;
+}
+
 .post-container {
     flex: 1;
     display: flex;

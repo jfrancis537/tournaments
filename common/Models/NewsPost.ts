@@ -18,6 +18,8 @@ export interface NewsPost {
   id: string;
 }
 
+export type NewsPostOptions = Omit<Omit<NewsPost, 'id'>, 'createdDate' | 'updatedDate'>;
+
 export namespace NewsPost {
   export function Serialize(data: NewsPost): SerializedNewsPost {
     return {

@@ -236,9 +236,19 @@ export class PostgresDatabase implements Database {
       updatedDate: row.updateddate
     });
   }
-  async getNewsPosts(): Promise<NewsPost[]> {
-    const result = await this.query<ColResult<Tables.Names.NewsPosts>, [string]>(
-      `SELECT * FROM ${Tables.Names.NewsPosts};`
+  async getNewsPosts(page: number, pageSize: number): Promise<{ posts: NewsPost[]; totalCount: number }> {
+    const COLS = Tables.ColumnNames.NewsPosts;
+    const offset = (page - 1) * pageSize;
+
+    const result = await this.query<ColResult<Tables.Names.NewsPosts>, [number, number]>(
+      `SELECT * FROM ${Tables.Names.NewsPosts}
+       ORDER BY ${COLS.CreatedDate} DESC
+       LIMIT $1 OFFSET $2;`,
+      [pageSize, offset]
+    );
+
+    const countResult = await this.query<{ count: string }>(
+      `SELECT COUNT(*) FROM ${Tables.Names.NewsPosts};`
     );
 
     const posts: NewsPost[] = [];
@@ -254,7 +264,7 @@ export class PostgresDatabase implements Database {
       }));
     }
 
-    return posts;
+    return { posts, totalCount: Number(countResult.rows[0]?.count ?? 0) };
   }
 
   async deletePost(id: string): Promise<void> {

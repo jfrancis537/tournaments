@@ -10,7 +10,7 @@ import { Team } from "@common/Models/Team";
 import { SerializedTournament, Tournament, TournamentMetadata } from "@common/Models/Tournament";
 import { Database as BracketsDatabase } from "brackets-manager";
 import { RegistrationData } from "@common/Models/RegistrationData";
-import { NewsPost } from "@common/Models/NewsPost";
+import { NewsPost, SerializedNewsPost } from "@common/Models/NewsPost";
 
 
 const clone = rfdc();
@@ -23,7 +23,7 @@ interface JsonDatabaseSchema {
   bracketData: BracketsDatabase;
   registrations: { [tid: string]: { [email: string]: RegistrationData } }
   teamData: { [tid: string]: { [id: string]: Team } };
-  newsPosts: { [id: string]: NewsPost }
+  newsPosts: { [id: string]: SerializedNewsPost }
   matchMetadata: {
     [tid: string]: {
       [mid: number]: MatchMetadata
@@ -329,9 +329,9 @@ export class JsonDatabase implements Database {
     if (existing) {
       throw new DatabaseError('News post with this id already exists', DatabaseErrorType.ExistingRecord);
     }
-    this.data.newsPosts[post.id] = clone(post);
+    this.data.newsPosts[post.id] = clone(NewsPost.Serialize(post));
     await this.save();
-    return clone(post);
+    return NewsPost.Deserialize(NewsPost.Serialize(post));
   }
 
   public async updateNewsPost(id: string,post: Omit<NewsPost,'id'>): Promise<NewsPost> {
@@ -340,25 +340,26 @@ export class JsonDatabase implements Database {
       throw new DatabaseError('News post with this id does not exist', DatabaseErrorType.MissingRecord);
     }
 
-    Object.assign(existing,post);
-    this.data.newsPosts[id] = existing;
+    const updated: NewsPost = { ...NewsPost.Deserialize(existing), ...post };
+    this.data.newsPosts[id] = NewsPost.Serialize(updated);
     await this.save();
-    return clone(existing);
-    
+    return NewsPost.Deserialize(NewsPost.Serialize(updated));
+
   }
   public async getNewsPost(id: string): Promise<NewsPost> {
     const existing = this.data.newsPosts[id];
     if(!existing) {
       throw new DatabaseError('News post with this id does not exist', DatabaseErrorType.MissingRecord);
     }
-    return clone(existing);
+    return NewsPost.Deserialize(clone(existing));
   }
-  public async getNewsPosts(): Promise<NewsPost[]> {
-    const posts: NewsPost[] = [];
-    for(const id in this.data.newsPosts) {
-      posts.push(this.data.newsPosts[id]);
-    }
-    return posts;
+  public async getNewsPosts(page: number, pageSize: number): Promise<{ posts: NewsPost[]; totalCount: number }> {
+    const all = Object.values(this.data.newsPosts)
+      .map(p => NewsPost.Deserialize(clone(p)))
+      .sort((a, b) => b.createdDate.toMillis() - a.createdDate.toMillis());
+    const start = (page - 1) * pageSize;
+    const posts = all.slice(start, start + pageSize);
+    return { posts, totalCount: all.length };
   }
   public async deletePost(id: string): Promise<void> {
     const existing = this.data.newsPosts[id];

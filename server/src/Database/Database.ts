@@ -52,7 +52,7 @@ export interface Database {
   addNewsPost(post: NewsPost): Promise<NewsPost>;
   updateNewsPost(id: string, post: Omit<NewsPost,'id'>): Promise<NewsPost>;
   getNewsPost(id: string): Promise<NewsPost>;
-  getNewsPosts(): Promise<NewsPost[]>;
+  getNewsPosts(page: number, pageSize: number): Promise<{ posts: NewsPost[]; totalCount: number }>;
   deletePost(id: string): Promise<void>;
 
 }

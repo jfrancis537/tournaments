@@ -1,19 +1,27 @@
-import { useEffect, useState } from "react";
+import { useCallback, useContext, useEffect, useState } from "react";
+import { useLocation } from "wouter";
 import { NewsAPI } from "../APIs/NewsAPI";
 import { NewsPost } from "@common/Models/NewsPost";
-import { Container, Typography } from "@mui/joy";
+import { Button, Container, Typography } from "@mui/joy";
 import { NewsPostDisplay } from "../Components/NewsPostDisplay";
+import { UserContext } from "../Contexts/UserContext";
+import { newsPostEditUrl, NEW_POST_ID } from "../Utilities/RouteUtils";
 
 import pageStyles from './NewsPage.module.css';
 import { Pagination } from "../Components/Pagination";
 
 export const NewsPage: React.FC = () => {
 
+  const { user } = useContext(UserContext);
+  const [, setLocation] = useLocation();
+
   const [page, setPage] = useState(1);
   const [posts, setPosts] = useState<NewsPost[]>();
   const [totalPages, setTotalPages] = useState<number>(0);
 
-  useEffect(() => {
+  const isAdmin = !!user?.roles.includes('Admin');
+
+  const refresh = useCallback(() => {
     NewsAPI.getNewsPosts(page).then(r => {
       setPosts(r.posts);
       setPage(r.page);
@@ -21,9 +29,9 @@ export const NewsPage: React.FC = () => {
     });
   }, [page]);
 
-  // function handlePageChange(page: number) {
-  //   setPage(page);
-  // }
+  useEffect(() => {
+    refresh();
+  }, [refresh]);
 
   function render() {
     return (
@@ -31,9 +39,17 @@ export const NewsPage: React.FC = () => {
         <Typography className={pageStyles.heading} marginBottom='1rem' level='h1' >
           Kingsgate Pickleball News
         </Typography>
+        {isAdmin && (
+          <Button
+            className={pageStyles["new-post-button"]}
+            onClick={() => setLocation(newsPostEditUrl(NEW_POST_ID))}
+          >
+            New Post
+          </Button>
+        )}
         <div className={pageStyles["post-container"]}>
           {posts ? posts.map(p => (
-            <NewsPostDisplay post={p} key={p.id} />
+            <NewsPostDisplay post={p} key={p.id} onDeleted={refresh} />
           )) : 'Loading...'}
         </div>
         <Pagination
@@ -41,15 +57,6 @@ export const NewsPage: React.FC = () => {
           page={page}
           onChange={setPage}
         />
-        {/* <ThemeProvider theme={createTheme()}>
-          <Pagination
-            count={totalPages}
-            page={page}
-            shape='rounded'
-            variant='outlined'
-            onChange={handlePageChange}
-          />
-        </ThemeProvider> */}
       </Container>
     )
   }

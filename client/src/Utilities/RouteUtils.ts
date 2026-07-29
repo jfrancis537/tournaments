@@ -1,6 +1,12 @@
 export const NEW_TOURNAMENT_ID: 'new' = 'new';
 
+export const NEW_POST_ID = 'new' as const;
+
 export const HOME_PAGE_URL = '/';
+
+export function newsPostEditUrl(id: string) {
+  return `/news/edit/${id}`;
+}
 
 export function tournamentUrl(id: string) {
   return `/tournament/${id}`;

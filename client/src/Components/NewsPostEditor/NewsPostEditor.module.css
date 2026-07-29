@@ -1,0 +1,13 @@
+.editor-card {
+  width: 100%;
+  padding: 0;
+}
+
+.editor-content {
+  padding: 0.5rem 1rem 1rem;
+  min-height: 200px;
+}
+
+.editor-content :global(.ProseMirror) {
+  outline: none;
+}
