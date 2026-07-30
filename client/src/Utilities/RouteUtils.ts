@@ -4,6 +4,10 @@ export const NEW_POST_ID = 'new' as const;
 
 export const HOME_PAGE_URL = '/';
 
+export const TOURNAMENTS_LIST_URL = '/tournaments/all';
+
+export const NEWS_PAGE_URL = '/news';
+
 export function newsPostEditUrl(id: string) {
   return `/news/edit/${id}`;
 }

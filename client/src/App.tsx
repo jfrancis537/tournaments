@@ -64,10 +64,13 @@ export const App: React.FC = () => {
         <div id="content">
           <Switch>
             <Route path='/'>
-              <NewsPage />
+              <TournamentPickerPage />
             </Route>
             <Route path='/tournaments/all'>
               <TournamentPickerPage />
+            </Route>
+            <Route path='/news'>
+              <NewsPage />
             </Route>
             {TournamentRoutes}
             <AuthenticatedRoute roles={['Admin']} path='/location-assignment'>

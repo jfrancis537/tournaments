@@ -4,7 +4,7 @@ import { Button, Container, FormControl, FormLabel, Input } from "@mui/joy";
 import { NewsAPI } from "../APIs/NewsAPI";
 import { UserContext } from "../Contexts/UserContext";
 import { NewsPostEditor } from "../Components/NewsPostEditor/NewsPostEditor";
-import { HOME_PAGE_URL, NEW_POST_ID } from "../Utilities/RouteUtils";
+import { NEWS_PAGE_URL, NEW_POST_ID } from "../Utilities/RouteUtils";
 
 interface INewsPostEditorPageProps {
   postId: string;
@@ -40,7 +40,7 @@ export const NewsPostEditorPage: React.FC<INewsPostEditorPageProps> = (props) =>
     } else {
       await NewsAPI.updateNewsPost(props.postId, options);
     }
-    setLocation(HOME_PAGE_URL);
+    setLocation(NEWS_PAGE_URL);
   }
 
   function canSubmit() {

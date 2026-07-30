@@ -3,7 +3,7 @@ import { Tournament } from "@common/Models/Tournament";
 import { useState } from "react";
 import { DateTime } from "luxon";
 import { useLocation } from "wouter";
-import { HOME_PAGE_URL } from "../../Utilities/RouteUtils";
+import { TOURNAMENTS_LIST_URL } from "../../Utilities/RouteUtils";
 import { TournamentAPI } from "../../APIs/TournamentAPI";
 import { Container, FormControl, FormLabel, Input, Select, Option, Button, Textarea } from "@mui/joy";
 
@@ -119,7 +119,7 @@ export const TournamentCreator: React.FC<TournamentCreatorProps> = (props) => {
       }
     });
     props.onAccept?.call(undefined, t);
-    setLocation(HOME_PAGE_URL);
+    setLocation(TOURNAMENTS_LIST_URL);
   }
 
   function canCreate() {
