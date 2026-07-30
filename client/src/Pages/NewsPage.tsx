@@ -41,7 +41,7 @@ export const NewsPage: React.FC = () => {
         </Typography>
         {isAdmin && (
           <Button
-            className={pageStyles["new-post-button"]}
+            sx={{ alignSelf: 'flex-start', margin: '0 1rem 1rem' }}
             onClick={() => setLocation(newsPostEditUrl(NEW_POST_ID))}
           >
             New Post

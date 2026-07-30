@@ -6,8 +6,6 @@ import { UserContext } from "../Contexts/UserContext";
 import { NewsPostEditor } from "../Components/NewsPostEditor/NewsPostEditor";
 import { HOME_PAGE_URL, NEW_POST_ID } from "../Utilities/RouteUtils";
 
-import pageStyles from './NewsPostEditorPage.module.css';
-
 interface INewsPostEditorPageProps {
   postId: string;
 }
@@ -51,20 +49,20 @@ export const NewsPostEditorPage: React.FC<INewsPostEditorPageProps> = (props) =>
 
   function render() {
     return (
-      <Container className={pageStyles.container} maxWidth="md">
+      <Container maxWidth="md" sx={{ display: 'flex', flexDirection: 'column', gap: 2, pt: 2, pb: 4 }}>
         <FormControl>
           <FormLabel>Title</FormLabel>
           <Input value={title} onChange={(e) => setTitle(e.currentTarget.value)} />
         </FormControl>
         <FormControl>
           <FormLabel>Author</FormLabel>
-          <Input value={author} onChange={(e) => setAuthor(e.currentTarget.value)} />
+          <Input readOnly value={author} />
         </FormControl>
         <FormControl>
           <FormLabel>Content</FormLabel>
           {loaded && <NewsPostEditor initialMarkdown={markdown} onChange={setMarkdown} />}
         </FormControl>
-        <Button className={pageStyles.submit} disabled={!canSubmit()} onClick={submit}>
+        <Button sx={{ alignSelf: 'flex-start' }} disabled={!canSubmit()} onClick={submit}>
           {isNew ? 'Publish' : 'Save'}
         </Button>
       </Container>
