@@ -1,6 +1,7 @@
 export interface Player {
   contactEmail: string,
-  name: string
+  name: string,
+  skillLevel: number,
 }
 
 export interface Team {

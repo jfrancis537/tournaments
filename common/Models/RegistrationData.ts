@@ -5,4 +5,5 @@ export interface RegistrationData {
   details: string,
   teamCode?: string,
   approved: boolean,
+  skillLevel: number,
 }

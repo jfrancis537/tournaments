@@ -8,8 +8,10 @@ import {
   FormControl, FormLabel,
   IconButton,
   Input,
+  Option,
   Radio,
   RadioGroup,
+  Select,
   Textarea,
   Typography
 } from "@mui/joy";
@@ -58,6 +60,7 @@ export const TournamentRegistration: React.FC<TournamentRegistrationProps> = (pr
   const [tournament, setTournament] = useState<Tournament>();
   const [waitingForCode, setWaitingForCode] = useState(false);
   const [details, setDetails] = useState("");
+  const [skillLevel, setSkillLevel] = useState(1);
   const [tournamentMetadata, setTournamentMetadata] = useState<TournamentMetadata>();
 
   const goHome = useNavigation("/");
@@ -122,7 +125,8 @@ export const TournamentRegistration: React.FC<TournamentRegistrationProps> = (pr
       contactEmail: email,
       teamCode: codeState.choice === CodeChoice.EXISTING ? enteredCode : codeState.code,
       details: details,
-      teamCodeMode: codeState.choice
+      teamCodeMode: codeState.choice,
+      skillLevel: skillLevel
     });
     const ResultType = TeamAPIConstants.TeamRegistrationResult;
     switch (result.result) {
@@ -176,6 +180,17 @@ export const TournamentRegistration: React.FC<TournamentRegistrationProps> = (pr
                 disabled={!tournamentMetadata}
                 onChange={e => setDetails(e.target.value)}
               />
+            </FormControl>
+            <FormControl>
+              <FormLabel>Skill Level</FormLabel>
+              <Select
+                value={skillLevel}
+                onChange={(_, value) => setSkillLevel(value ?? 1)}
+              >
+                <Option value={1}>1</Option>
+                <Option value={2}>2</Option>
+                <Option value={3}>3</Option>
+              </Select>
             </FormControl>
             {tournament!.teamSize > 1 && (
               <FormControl sx={{ marginTop: '1rem' }}>

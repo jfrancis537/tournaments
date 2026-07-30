@@ -54,6 +54,14 @@ export const SeedAssignmentTool: React.FC<SeedAssignmentToolProps> = ({ review =
     setLocation(`${tournamentUrl(tournamentId)}/manage`);
   }
 
+  function teamSkill(team: Team): string {
+    if (team.players.length === 0) {
+      return '0';
+    }
+    const average = team.players.reduce((sum, player) => sum + player.skillLevel, 0) / team.players.length;
+    return average.toFixed(1);
+  }
+
   function handleDragStart(event: React.DragEvent<HTMLDivElement>, team: Team) {
     event.dataTransfer.setData('text/plain', team.id);
     event.dataTransfer.dropEffect = 'move';
@@ -109,7 +117,7 @@ export const SeedAssignmentTool: React.FC<SeedAssignmentToolProps> = ({ review =
             className={styles["unassigned-team"]}
             draggable
             onDragStart={(event) => handleDragStart(event, team)}>
-            {team.name}
+            {team.name} ({teamSkill(team)})
           </Box>
         </Sheet>
       )
@@ -127,7 +135,7 @@ export const SeedAssignmentTool: React.FC<SeedAssignmentToolProps> = ({ review =
             onDragOver={handleDragOver}
             onDrop={(e) => handleDropOnOccupied(e, id, index)}
           >
-            {team.name}
+            {team.name} ({teamSkill(team)})
           </Box>
         </Sheet>
       )

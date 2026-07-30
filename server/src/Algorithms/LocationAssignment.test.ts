@@ -29,7 +29,7 @@ function makeTeam(seedNumber: number, emails: string[]): Team {
     tournamentId: 'unused',
     name: `Team ${seedNumber}`,
     seedNumber,
-    players: emails.map(email => ({ contactEmail: email, name: email })),
+    players: emails.map(email => ({ contactEmail: email, name: email, skillLevel: 1 })),
   };
 }
 

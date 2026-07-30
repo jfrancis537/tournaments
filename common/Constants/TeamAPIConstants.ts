@@ -98,4 +98,12 @@ export namespace TeamAPIConstants {
     tournamentId: string;
     contactEmail: string;
   }
+
+  export const SET_REGISTRATION_SKILL = '/set/registration_skill';
+
+  export interface SetRegistrationSkillRequest {
+    tournamentId: string,
+    contactEmail: string,
+    skillLevel: number,
+  }
 }

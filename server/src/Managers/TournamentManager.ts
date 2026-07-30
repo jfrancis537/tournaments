@@ -120,7 +120,8 @@ class TournamentManager {
           name: teamRegistrations.map(r => r.name).join(' & '),
           players: teamRegistrations.map(r => ({
             contactEmail: r.contactEmail,
-            name: r.name
+            name: r.name,
+            skillLevel: r.skillLevel
           })),
           tournamentId: tournament.id
         });

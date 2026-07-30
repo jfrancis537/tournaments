@@ -56,6 +56,26 @@ export namespace TeamAPI {
     }
   }
 
+  export async function setRegistrationSkill(tournamentId: string, contactEmail: string, skillLevel: number) {
+    const body: TeamAPIConstants.SetRegistrationSkillRequest = {
+      contactEmail,
+      skillLevel,
+      tournamentId
+    }
+
+    const response = await fetch(`${TeamAPIConstants.BASE_PATH}${TeamAPIConstants.SET_REGISTRATION_SKILL}`, {
+      body: JSON.stringify(body),
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      }
+    });
+
+    if (!response.ok) {
+      throw new HttpStatusError("Failed to set registration skill level", response.status);
+    }
+  }
+
   export async function assignRegistrationCodes(tournamentId: string, registrations: RegistrationData[]) {
     const body: TeamAPIConstants.SetRegistrationCodesRequest = {
       tournamentId,

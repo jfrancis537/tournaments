@@ -1,7 +1,7 @@
 import { RegistrationData } from "@common/Models/RegistrationData";
 import { TeamSocketAPI } from "@common/SocketAPIs/TeamAPI";
 import { Cancel, Check, Email } from "@mui/icons-material";
-import { Box, Button, Container, IconButton, Sheet, Snackbar, Table, Typography } from "@mui/joy";
+import { Box, Button, Container, IconButton, Option, Select, Sheet, Snackbar, Table, Typography } from "@mui/joy";
 import { useEffect, useState } from "react";
 import { TeamAPI } from "../../APIs/TeamAPI";
 
@@ -58,6 +58,10 @@ export const RegistrationManagement: React.FC<RegistrationManagementProps> = (pr
     TeamAPI.setRegistrationApproval(props.tournamentId, registration.contactEmail, true);
   }
 
+  function setSkillLevel(registration: RegistrationData, skillLevel: number) {
+    TeamAPI.setRegistrationSkill(props.tournamentId, registration.contactEmail, skillLevel);
+  }
+
   async function sendReminderEmail(registration: RegistrationData) {
     try {
       await TeamAPI.sendReminderEmail(props.tournamentId, registration.contactEmail);
@@ -110,6 +114,19 @@ export const RegistrationManagement: React.FC<RegistrationManagementProps> = (pr
         <td>{registration.name}</td>
         <td>{registration.contactEmail}</td>
         <td style={{ color: markMissingPartner ? 'red' : 'inherit' }}>{registration.teamCode ?? 'N/A'}</td>
+        <td>
+          {props.editable ? (
+            <Select
+              size="sm"
+              value={registration.skillLevel}
+              onChange={(_, value) => setSkillLevel(registration, value ?? registration.skillLevel)}
+            >
+              <Option value={1}>1</Option>
+              <Option value={2}>2</Option>
+              <Option value={3}>3</Option>
+            </Select>
+          ) : registration.skillLevel}
+        </td>
         {renderRegistrationRowButtons(registration, markMissingPartner)}
       </tr>
     );
@@ -124,6 +141,7 @@ export const RegistrationManagement: React.FC<RegistrationManagementProps> = (pr
               <th>Name</th>
               <th>Email</th>
               <th>Code</th>
+              <th>Skill</th>
               <th>{approved ? 'Reject' : 'Approve'}</th>
             </tr>
           </thead>

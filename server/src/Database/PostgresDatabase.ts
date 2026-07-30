@@ -658,10 +658,10 @@ export class PostgresDatabase implements Database {
       const playerCols = Tables.ColumnNames.Players.asArray();
       const insertResult = await this.query<ColResult<Tables.Names.Players>>(
         `INSERT INTO ${Tables.Names.Players} (${playerCols.join(',')})
-           VALUES ($1, $2, $3)
+           VALUES ($1, $2, $3, $4)
            RETURNING *;
           `,
-        [player.contactEmail, team.id, player.name]
+        [player.contactEmail, team.id, player.name, player.skillLevel]
       )
 
       const playerRow = insertResult.rows[0];
@@ -672,6 +672,7 @@ export class PostgresDatabase implements Database {
       players.push({
         contactEmail: playerRow.contactemail,
         name: playerRow.name,
+        skillLevel: playerRow.skilllevel,
       });
     }
 
@@ -714,7 +715,8 @@ export class PostgresDatabase implements Database {
     for (const playerRow of playerSelection.rows) {
       team.players.push({
         contactEmail: playerRow.contactemail,
-        name: playerRow.name
+        name: playerRow.name,
+        skillLevel: playerRow.skilllevel
       });
     }
 
@@ -759,7 +761,8 @@ export class PostgresDatabase implements Database {
     for (const playerRow of playerSelection.rows) {
       team.players.push({
         contactEmail: playerRow.contactemail,
-        name: playerRow.name
+        name: playerRow.name,
+        skillLevel: playerRow.skilllevel
       });
     }
 
@@ -803,7 +806,8 @@ export class PostgresDatabase implements Database {
       }
       team.players.push({
         contactEmail: row.contactemail,
-        name: row.name
+        name: row.name,
+        skillLevel: row.skilllevel
       });
     }
 
@@ -839,7 +843,8 @@ export class PostgresDatabase implements Database {
       details: row.details,
       approved: row.approved,
       teamCode: row.teamcode ?? undefined,
-      tournamentId: row.tournamentid
+      tournamentId: row.tournamentid,
+      skillLevel: row.skilllevel
     }
 
   }
@@ -861,7 +866,8 @@ export class PostgresDatabase implements Database {
         name: row.name,
         approved: row.approved,
         teamCode: row.teamcode ?? undefined,
-        tournamentId: row.tournamentid
+        tournamentId: row.tournamentid,
+        skillLevel: row.skilllevel
       });
     }
 
@@ -886,7 +892,7 @@ export class PostgresDatabase implements Database {
     const colNames = Tables.ColumnNames.Registrations.asArray();
     const result = await this.query<ColResult<Tables.Names.Registrations>>(`
     INSERT INTO ${Tables.Names.Registrations} (${colNames.join(',')})
-    VALUES ($1, $2, $3, $4, $5, $6)
+    VALUES ($1, $2, $3, $4, $5, $6, $7)
     RETURNING *;`,
       [
         reg.name,
@@ -894,7 +900,8 @@ export class PostgresDatabase implements Database {
         reg.details,
         reg.tournamentId,
         reg.teamCode ?? null,
-        reg.approved
+        reg.approved,
+        reg.skillLevel
       ]);
 
     const row = result.rows[0];
@@ -912,7 +919,8 @@ export class PostgresDatabase implements Database {
       name: row.name,
       approved: row.approved,
       teamCode: row.teamcode ?? undefined,
-      tournamentId: row.tournamentid
+      tournamentId: row.tournamentid,
+      skillLevel: row.skilllevel
     }
   }
 
@@ -928,11 +936,12 @@ export class PostgresDatabase implements Database {
     const COLS = Tables.ColumnNames.Registrations;
     const result = await this.query<ColResult<Tables.Names.Registrations>>(
       `UPDATE ${Tables.Names.Registrations}
-       SET 
+       SET
          ${COLS.Name} = $3,
          ${COLS.Details} = $4,
          ${COLS.TeamCode} = $5,
-         ${COLS.Approved} = $6
+         ${COLS.Approved} = $6,
+         ${COLS.SkillLevel} = $7
        WHERE ${COLS.TournamentId} = $1 AND ${COLS.Email} = $2
        RETURNING *;
       `,
@@ -942,7 +951,8 @@ export class PostgresDatabase implements Database {
         existing.name,
         existing.details,
         existing.teamCode ?? null,
-        existing.approved
+        existing.approved,
+        existing.skillLevel
       ]
     );
 
@@ -961,7 +971,8 @@ export class PostgresDatabase implements Database {
       name: row.name,
       approved: row.approved,
       teamCode: row.teamcode ?? undefined,
-      tournamentId: row.tournamentid
+      tournamentId: row.tournamentid,
+      skillLevel: row.skilllevel
     }
   }
 

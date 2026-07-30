@@ -169,13 +169,15 @@ export namespace Tables {
       Email = 'contactemail',
       TeamId = 'teamid',
       Name = 'name',
+      SkillLevel = 'skilllevel',
     }
     export namespace Players {
       export function asArray() {
         return [
           Players.Email,
           Players.TeamId,
-          Players.Name
+          Players.Name,
+          Players.SkillLevel
         ]
       }
     }
@@ -186,7 +188,8 @@ export namespace Tables {
       Details = 'details',
       TournamentId = 'tournamentid',
       TeamCode = 'teamcode',
-      Approved = 'approved'
+      Approved = 'approved',
+      SkillLevel = 'skilllevel'
     }
 
     export namespace Registrations {
@@ -198,6 +201,7 @@ export namespace Tables {
           Registrations.TournamentId,
           Registrations.TeamCode,
           Registrations.Approved,
+          Registrations.SkillLevel,
         ];
       }
     }
@@ -257,6 +261,7 @@ export namespace Tables {
       [ColumnNames.Players.Email]: string,
       [ColumnNames.Players.TeamId]: string,
       [ColumnNames.Players.Name]: string,
+      [ColumnNames.Players.SkillLevel]: number,
     },
     [Names.Registrations]: {
       [ColumnNames.Registrations.Name]: string,
@@ -264,7 +269,8 @@ export namespace Tables {
       [ColumnNames.Registrations.Details]: string,
       [ColumnNames.Registrations.TournamentId]: string,
       [ColumnNames.Registrations.TeamCode]: string | null,
-      [ColumnNames.Registrations.Approved]: boolean
+      [ColumnNames.Registrations.Approved]: boolean,
+      [ColumnNames.Registrations.SkillLevel]: number
     }
   }
 }

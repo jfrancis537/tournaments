@@ -52,6 +52,27 @@ namespace TeamController {
     }
   }));
 
+  router.post(TeamAPIConstants.SET_REGISTRATION_SKILL, RequireRole('Admin'), asyncHandler(async (req, resp) => {
+    const request: TeamAPIConstants.SetRegistrationSkillRequest = req.body;
+    const result = await TeamManager.instance.updateRegistration(request.tournamentId,
+      request.contactEmail,
+      {
+        skillLevel: request.skillLevel
+      });
+
+    switch (result) {
+      case TeamAPIConstants.RegistrationUpdateResult.SUCCESS:
+        resp.sendStatus(200);
+        break;
+      case TeamAPIConstants.RegistrationUpdateResult.ERROR:
+        resp.sendStatus(500);
+        break;
+      case TeamAPIConstants.RegistrationUpdateResult.NO_SUCH_REGISTRATION:
+        resp.sendStatus(400);
+        break;
+    }
+  }));
+
   router.put(TeamAPIConstants.SET_REGISTRATION_CODES, RequireRole('Admin'), asyncHandler(async (req, resp) => {
     const body: TeamAPIConstants.SetRegistrationCodesRequest = req.body;
     const existing = await TeamManager.instance.getRegistrations(body.tournamentId);
