@@ -248,7 +248,7 @@ export const TournamentRegistration: React.FC<TournamentRegistrationProps> = (pr
         <Card>
           <CardContent>
             <Typography level="title-lg">Registration Submitted!</Typography>
-            <Typography level="body-md">You will get an email when your registration is confirmed.</Typography>
+            <Typography level="body-md">You will get an email when your registration is approved by the organizers.</Typography>
           </CardContent>
           {codeState.choice === CodeChoice.NEW && (
             <>

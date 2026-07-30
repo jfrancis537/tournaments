@@ -6,3 +6,4 @@ CREATE TABLE IF NOT EXISTS news_posts (
   createddate TEXT NOT NULL,
   updateddate TEXT NOT NULL
 );
+ 

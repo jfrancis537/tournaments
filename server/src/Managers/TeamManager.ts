@@ -9,6 +9,9 @@ import { TeamSocketAPI } from "@common/SocketAPIs/TeamAPI";
 import { DatabaseError, DatabaseErrorType } from "../Database/DatabaseError";
 import { RegistrationData } from "@common/Models/RegistrationData";
 import { CodeChoice } from "@common/Enums/RegistrationEnums";
+import { MailManager } from "./MailManager";
+import { EnvironmentVariables } from "../Utilities/EnvironmentVariables";
+import RegistrationReceivedEmail from "../Templates/RegistrationReceivedEmail";
 
 type TeamOptions = Omit<Omit<Team, 'id'>, 'seedNumber'>
 
@@ -104,6 +107,18 @@ class TeamManager {
     try {
       await Database.instance.addRegistration(registration);
       TeamSocketAPI.onregistrationcreated.invoke(registration);
+      if (!registration.contactEmail.startsWith("UNK")) {
+        MailManager.sendEmail({
+          from: EnvironmentVariables.EMAIL_SENDER,
+          to: registration.contactEmail,
+          subject: `Registration received for ${tournament.name}`,
+          html: RegistrationReceivedEmail(registration.name, tournament.name)
+        }).then(success => {
+          if (!success) {
+            console.error('Failed to send registration received email to: ' + registration.contactEmail);
+          }
+        });
+      }
       return [TeamAPIConstants.TeamRegistrationResult.SUCCESS, registration];
     } catch (err) {
       if (err instanceof DatabaseError && err.type === DatabaseErrorType.ExistingRecord) {
