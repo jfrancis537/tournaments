@@ -42,6 +42,7 @@ export const TournamentCreator: React.FC<TournamentCreatorProps> = (props) => {
   const [registrationDate, setRegistrationDate] = useState<DateTime>(DateTime.invalid('No Value'));
   const [endDate, setEndDate] = useState<DateTime>(DateTime.invalid('No Value'));
   const [teamSize, setTeamSize] = useState<number>(1);
+  const [groupCount, setGroupCount] = useState<number | undefined>(undefined);
   const [additionalDetails, setAdditionalDetails] = useState("");
 
 
@@ -70,6 +71,15 @@ export const TournamentCreator: React.FC<TournamentCreatorProps> = (props) => {
     setTeamSize(size);
   }
 
+  function handleGroupCountChanged(event: React.ChangeEvent<HTMLInputElement>) {
+    const value = event.currentTarget.value;
+    setGroupCount(value === '' ? undefined : Number(value));
+  }
+
+  function isGroupCountValid() {
+    return groupCount !== undefined && Number.isInteger(groupCount) && groupCount > 0;
+  }
+
   function getStageSettings(): StageSettings[] {
 
     const result: StageSettings = {};
@@ -81,6 +91,7 @@ export const TournamentCreator: React.FC<TournamentCreatorProps> = (props) => {
       case 'single_elimination':
         break;
       case 'round_robin':
+        result.groupCount = groupCount;
         break;
     }
 
@@ -127,7 +138,8 @@ export const TournamentCreator: React.FC<TournamentCreatorProps> = (props) => {
       endDate.isValid &&
       name !== '' &&
       (endDate.diff(startDate).toMillis() >= 0) &&
-      teamSize > 0;
+      teamSize > 0 &&
+      (mode !== 'round_robin' || isGroupCountValid());
   }
 
   function render() {
@@ -165,6 +177,17 @@ export const TournamentCreator: React.FC<TournamentCreatorProps> = (props) => {
             })}
           </Select>
         </FormControl>
+        {mode === 'round_robin' && (
+          <FormControl error={!isGroupCountValid()}>
+            <FormLabel>Group Count</FormLabel>
+            <Input
+              value={groupCount ?? ''}
+              onChange={handleGroupCountChanged}
+              type="number"
+              slotProps={{ input: { min: 1, step: 1 } }}
+            />
+          </FormControl>
+        )}
         <FormControl>
           <FormLabel>Seeding Mode</FormLabel>
           <Select value={seedingMode} onChange={(_, v) => setSeedingMode(v!)}>

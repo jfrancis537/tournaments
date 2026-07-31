@@ -99,6 +99,15 @@ namespace TournamentManagerController {
 
   router.put(TournamentAPIConstants.CREATE_TOURNAMENT(), RequireRole('Admin'), asyncHandler(async (req, resp) => {
     const options: TournamentOptions = Tournament.Deserialize(req.body);
+    for (let i = 0; i < options.stages.length; i++) {
+      if (options.stages[i] === 'round_robin') {
+        const groupCount = options.stageSettings[i]?.groupCount;
+        if (groupCount === undefined || !Number.isInteger(groupCount) || groupCount <= 0) {
+          resp.status(400).send('A strictly positive integer group count is required for round-robin stages.');
+          return;
+        }
+      }
+    }
     const t = await TournamentManager.instance.createNewTournament(options);
     resp.status(201).json(t);
   }));
