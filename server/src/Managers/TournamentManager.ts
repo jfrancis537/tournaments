@@ -1,23 +1,23 @@
-import { BracketsManager, CrudInterface, DataTypes, Database as BracketsDatabase } from "brackets-manager";
-import { InMemoryDatabase } from "brackets-memory-db";
-import { v4 as uuid } from "uuid";
-import { Tournament, TournamentMetadata, TournamentOptions, TournamentState } from "@common/Models/Tournament";
-import { Match, Participant, StageSettings, StageType, Status } from "brackets-model";
-import { TeamManager } from "./TeamManager";
+import { TeamAPIConstants } from "@common/Constants/TeamAPIConstants";
+import { RegistrationData } from "@common/Models/RegistrationData";
 import { Team } from "@common/Models/Team";
+import { Tournament, TournamentMetadata, TournamentOptions, TournamentState } from "@common/Models/Tournament";
+import { TournamentSocketAPI } from "@common/SocketAPIs/TournamentAPI";
 import { Lazy } from "@common/Utilities/Lazy";
 import { nextPowerOf2 } from "@common/Utilities/Math";
-import { TournamentSocketAPI } from "@common/SocketAPIs/TournamentAPI";
 import { SocketAction } from "@common/Utilities/SocketAction";
+import { Database as BracketsDatabase, BracketsManager, CrudInterface, DataTypes } from "brackets-manager";
+import { InMemoryDatabase } from "brackets-memory-db";
+import { Match, Participant, StageSettings, StageType, Status } from "brackets-model";
+import { v4 as uuid } from "uuid";
 import { Database } from "../Database/Database";
 import { DatabaseError, DatabaseErrorType } from "../Database/DatabaseError";
 import { MemoryDatabaseShim } from "../Database/MemoryDatabaseShim";
 import { PostgresDatabase } from "../Database/PostgresDatabase";
-import { RegistrationData } from "@common/Models/RegistrationData";
-import { TeamAPIConstants } from "@common/Constants/TeamAPIConstants";
+import TournamentRegistrationConfirmation from "../Templates/TournamentRegistrationConfirmation";
 import { EnvironmentVariables } from "../Utilities/EnvironmentVariables";
 import { MailManager } from "./MailManager";
-import TournamentRegistrationConfirmation from "../Templates/TournamentRegistrationConfirmation";
+import { TeamManager } from "./TeamManager";
 
 class TournamentManager {
 
@@ -178,6 +178,7 @@ class TournamentManager {
       for (let i = 0; i < tournament.stages.length; i++) {
         const stage = tournament.stages[i];
         const settings = tournament.stageSettings[i];
+        settings.groupCount = 4;
         await this.createStage(tournament, stage, settings);
       }
       // Save occurs here.

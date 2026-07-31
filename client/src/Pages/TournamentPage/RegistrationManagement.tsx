@@ -33,21 +33,18 @@ export const RegistrationManagement: React.FC<RegistrationManagementProps> = (pr
   }, []);
 
   function handleRegistrationChanged(registration: RegistrationData) {
-    if (!registrations) {
-      // This should be impossible.
-      console.warn('Attempted to update a registration when registrations are undefined.')
-      return;
-    }
-    const index = registrations.findIndex(reg => reg.contactEmail === registration.contactEmail);
-    if (index === -1) {
-      // This should be impossible.
-      console.warn('Attempted to update a registration that is not present.')
-      return;
-    }
+    setRegistrations(current => {
+      const index = current.findIndex(reg => reg.contactEmail === registration.contactEmail);
+      if (index === -1) {
+        // This should be impossible.
+        console.warn('Attempted to update a registration that is not present.')
+        return current;
+      }
 
-    registrations[index] = registration;
-
-    setRegistrations([...registrations]);
+      const updated = [...current];
+      updated[index] = registration;
+      return updated;
+    });
   }
 
   function rejectRegistration(registration: RegistrationData) {
