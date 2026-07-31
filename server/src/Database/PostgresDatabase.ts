@@ -4,12 +4,13 @@ import { RegistrationData } from "@common/Models/RegistrationData";
 import { Player, Team } from "@common/Models/Team";
 import { Tournament, TournamentMetadata } from "@common/Models/Tournament";
 import { Values } from "@common/Utilities/TypeHelpers";
-import { Database as BracketsDatabase } from "brackets-manager";
+import { CrudInterface, Database as BracketsDatabase } from "brackets-manager";
 import { StageSettings, StageType } from "brackets-model";
 import * as pg from "pg";
 import { EnvironmentVariables } from "../Utilities/EnvironmentVariables";
 import { Database } from "./Database";
 import { DatabaseError, DatabaseErrorType } from "./DatabaseError";
+import { PostgresBracketDatabase } from "./PostgresBracketDatabase";
 import { Tables } from "./PostgressDatabaseDescriptors";
 
 
@@ -22,6 +23,9 @@ export class PostgresDatabase implements Database {
   private readonly pool: pg.Pool;
   private readonly ready: Promise<boolean>;
 
+  /** Native brackets-manager storage backed by the `brackets_*` tables. */
+  public readonly bracketStorage: CrudInterface;
+
   constructor() {
     this.pool = new pg.Pool({
       password: EnvironmentVariables.PSQL_PASSWORD,
@@ -30,6 +34,7 @@ export class PostgresDatabase implements Database {
       user: EnvironmentVariables.PSQL_USERNAME
     });
 
+    this.bracketStorage = new PostgresBracketDatabase(this.pool);
     this.ready = this.init();
   }
 

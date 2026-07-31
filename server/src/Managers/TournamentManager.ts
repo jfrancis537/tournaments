@@ -12,6 +12,7 @@ import { SocketAction } from "@common/Utilities/SocketAction";
 import { Database } from "../Database/Database";
 import { DatabaseError, DatabaseErrorType } from "../Database/DatabaseError";
 import { MemoryDatabaseShim } from "../Database/MemoryDatabaseShim";
+import { PostgresDatabase } from "../Database/PostgresDatabase";
 import { RegistrationData } from "@common/Models/RegistrationData";
 import { TeamAPIConstants } from "@common/Constants/TeamAPIConstants";
 import { EnvironmentVariables } from "../Utilities/EnvironmentVariables";
@@ -24,13 +25,26 @@ class TournamentManager {
   private readonly bracketManager: BracketsManager;
 
   constructor() {
-    this.storage = new MemoryDatabaseShim(new InMemoryDatabase(), async () => {
-      await Database.instance.setBracketData(await this.bracketManager.export());
-    });
+    if (Database.instance instanceof PostgresDatabase) {
+      // Postgres path: brackets-manager reads/writes the `brackets_*` tables
+      // directly. No in-memory working copy and no periodic-save flush.
+      this.storage = Database.instance.bracketStorage;
+    } else {
+      // JSON/dev path: keep the in-memory shim that flushes the whole bracket
+      // export back into the file-backed database.
+      this.storage = new MemoryDatabaseShim(new InMemoryDatabase(), async () => {
+        await Database.instance.setBracketData(await this.bracketManager.export());
+      });
+    }
     this.bracketManager = new BracketsManager(this.storage);
   }
 
   public async populateBracketData() {
+    // The Postgres backend already holds bracket data in relational tables and
+    // is read live, so there is nothing to import.
+    if (Database.instance instanceof PostgresDatabase) {
+      return;
+    }
     const data = await Database.instance.getBracketData();
     this.bracketManager.import(data);
   }
