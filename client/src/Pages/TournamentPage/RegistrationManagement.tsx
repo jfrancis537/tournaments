@@ -18,6 +18,7 @@ export const RegistrationManagement: React.FC<RegistrationManagementProps> = (pr
 
   const [registrations, setRegistrations] = useState<RegistrationData[]>([]);
   const [reminderError, setReminderError] = useState<string>();
+  const [reminderSuccess, setReminderSuccess] = useState<string>();
 
   const goBack = useNavigation(`${tournamentUrl(props.tournamentId)}/manage`);
 
@@ -62,6 +63,7 @@ export const RegistrationManagement: React.FC<RegistrationManagementProps> = (pr
   async function sendReminderEmail(registration: RegistrationData) {
     try {
       await TeamAPI.sendReminderEmail(props.tournamentId, registration.contactEmail);
+      setReminderSuccess(`Reminder email sent to ${registration.contactEmail}.`);
     } catch {
       setReminderError('Failed to send reminder email. Please try again.');
     }
@@ -176,14 +178,24 @@ export const RegistrationManagement: React.FC<RegistrationManagementProps> = (pr
       }
     });
 
-    const errorSnackbar = (
-      <Snackbar
-        open={!!reminderError}
-        color='danger'
-        onClose={() => setReminderError(undefined)}
-      >
-        {reminderError}
-      </Snackbar>
+    const snackbars = (
+      <>
+        <Snackbar
+          open={!!reminderError}
+          color='danger'
+          onClose={() => setReminderError(undefined)}
+        >
+          {reminderError}
+        </Snackbar>
+        <Snackbar
+          open={!!reminderSuccess}
+          color='success'
+          autoHideDuration={4000}
+          onClose={() => setReminderSuccess(undefined)}
+        >
+          {reminderSuccess}
+        </Snackbar>
+      </>
     );
 
     if (!props.editable) {
@@ -196,7 +208,7 @@ export const RegistrationManagement: React.FC<RegistrationManagementProps> = (pr
             <Typography level='title-lg'>Registrations</Typography>
             {renderTable(registrations, false)}
           </Box>
-          {errorSnackbar}
+          {snackbars}
         </Container>
       );
     } else {
@@ -213,7 +225,7 @@ export const RegistrationManagement: React.FC<RegistrationManagementProps> = (pr
             <Typography level='title-lg'>Approved Registrations</Typography>
             {renderTable(registrations.filter(r => r.approved), true)}
           </Box>
-          {errorSnackbar}
+          {snackbars}
         </Container>
       );
     }
