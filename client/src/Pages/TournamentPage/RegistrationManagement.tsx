@@ -68,6 +68,18 @@ export const RegistrationManagement: React.FC<RegistrationManagementProps> = (pr
   }
 
   function renderRegistrationRowButtons(registration: RegistrationData, markMissingPartner: boolean) {
+    if (!props.editable) {
+      return (
+        <td>
+          {markMissingPartner && (
+            <IconButton onClick={() => sendReminderEmail(registration)}>
+              <Email htmlColor="#e89715ff" />
+            </IconButton>
+          )}
+        </td>
+      )
+    }
+
     if (props.editable && markMissingPartner) {
       return (
         <td>
@@ -139,7 +151,7 @@ export const RegistrationManagement: React.FC<RegistrationManagementProps> = (pr
               <th>Email</th>
               <th>Code</th>
               <th>Skill</th>
-              <th>{approved ? 'Reject' : 'Approve'}</th>
+              <th>{props.editable ? (approved ? 'Reject' : 'Approve') : 'Remind'}</th>
             </tr>
           </thead>
           <tbody>
