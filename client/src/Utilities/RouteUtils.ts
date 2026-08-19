@@ -19,3 +19,7 @@ export function tournamentUrl(id: string) {
 export function matchUrl(tournamentId: string, matchId: number) {
   return `${tournamentUrl(tournamentId)}/match/${matchId}`;
 }
+
+export function registrationUrl(id: string) {
+  return `${tournamentUrl(id)}/register`;
+}

@@ -22,11 +22,13 @@ import { Tournament, TournamentMetadata } from "@common/Models/Tournament";
 import { Validators } from "@common/Utilities/Validators";
 import { Close, ContentCopy } from "@mui/icons-material";
 import React, { useContext, useEffect, useState } from "react";
+import { useSearch } from "wouter";
 import { TeamAPI } from "../../APIs/TeamAPI";
 import { TournamentAPI } from "../../APIs/TournamentAPI";
 import { UserContext } from "../../Contexts/UserContext";
 import { useNavigation } from "../../Hooks/UseNavigation";
 import { copy } from "../../Utilities/Clipboard";
+import { registrationUrl } from "../../Utilities/RouteUtils";
 import pageStyles from './TournamentRegistration.module.css';
 
 interface TournamentRegistrationProps {
@@ -51,10 +53,16 @@ export const TournamentRegistration: React.FC<TournamentRegistrationProps> = (pr
 
   const { user } = useContext(UserContext);
 
+  const searchParams = new URLSearchParams(useSearch());
+  const linkCode = searchParams.get('teamCode')?.toUpperCase() || undefined;
+  const simpleMode = !!linkCode || searchParams.get('simple') === '1';
+
   const [name, setName] = useState('');
   const [email, setEmail] = useState(user?.email ?? '');
-  const [codeState, setCodeState] = useState<CodeState>({ choice: CodeChoice.NONE });
-  const [enteredCode, setEnteredCode] = useState('');
+  const [codeState, setCodeState] = useState<CodeState>(
+    linkCode ? { choice: CodeChoice.EXISTING } : { choice: CodeChoice.NONE }
+  );
+  const [enteredCode, setEnteredCode] = useState(linkCode ?? '');
   const [state, setState] = useState(RegistrationState.Composing);
   const [errorMessage, setErrorMessage] = useState('');
   const [tournament, setTournament] = useState<Tournament>();
@@ -192,7 +200,12 @@ export const TournamentRegistration: React.FC<TournamentRegistrationProps> = (pr
                 <Option value={3}>3</Option>
               </Select>
             </FormControl>
-            {tournament!.teamSize > 1 && (
+            {tournament!.teamSize > 1 && simpleMode && (
+              <Typography level="body-sm" sx={{ marginTop: '1rem' }}>
+                Registering with your partner's team code — just add your name.
+              </Typography>
+            )}
+            {tournament!.teamSize > 1 && !simpleMode && (
               <FormControl sx={{ marginTop: '1rem' }}>
                 <FormLabel>Team Information</FormLabel>
                 <RadioGroup value={codeState.choice} onChange={handleCodeStateChanged} size="sm">
@@ -202,7 +215,7 @@ export const TournamentRegistration: React.FC<TournamentRegistrationProps> = (pr
                 </RadioGroup>
               </FormControl>
             )}
-            {codeState.choice === CodeChoice.EXISTING && (
+            {codeState.choice === CodeChoice.EXISTING && !simpleMode && (
               <FormControl error={false}>
                 <FormLabel>Code</FormLabel>
                 <Input
@@ -260,7 +273,15 @@ export const TournamentRegistration: React.FC<TournamentRegistrationProps> = (pr
                     <ContentCopy />
                   </IconButton>
                 </Box>
-                <Typography level="body-md">
+                <Button
+                  variant="outlined"
+                  startDecorator={<ContentCopy />}
+                  sx={{ marginTop: '0.5rem', alignSelf: 'flex-start' }}
+                  onClick={() => copy(`${window.location.origin}${registrationUrl(props.tournamentId)}?teamCode=${encodeURIComponent(codeState.code ?? '')}&simple=1`)}
+                >
+                  Copy shareable registration link
+                </Button>
+                <Typography level="body-md" sx={{ marginTop: '0.5rem' }}>
                   Be sure to save this code and share it with your teammate.
                   If you lose it contact <a href="mailto:admin@kgpb.us">admin@kgpb.us</a>.
                 </Typography>

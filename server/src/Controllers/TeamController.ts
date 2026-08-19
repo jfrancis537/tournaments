@@ -215,11 +215,15 @@ namespace TeamController {
       return;
     }
 
+    const registrationLink =
+      `https://${EnvironmentVariables.HOST}/tournament/${tournament.id}/register` +
+      `?teamCode=${encodeURIComponent(registration.teamCode!)}&simple=1`;
+
     const sent = await MailManager.sendEmail({
       from: EnvironmentVariables.EMAIL_SENDER,
       to: registration.contactEmail,
       subject: `Partner reminder for ${tournament.name}`,
-      html: PartnerReminderEmail(registration.name, tournament.name, registration.teamCode!),
+      html: PartnerReminderEmail(registration.name, tournament.name, registration.teamCode!, registrationLink),
     });
 
     resp.sendStatus(sent ? 200 : 500);

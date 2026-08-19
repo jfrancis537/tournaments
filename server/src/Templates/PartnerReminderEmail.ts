@@ -1,4 +1,4 @@
-export default (name: string, tournamentName: string, teamCode: string) => (
+export default (name: string, tournamentName: string, teamCode: string, registrationLink: string) => (
   `<!DOCTYPE html>
   <html>
     <body>
@@ -8,8 +8,10 @@ export default (name: string, tournamentName: string, teamCode: string) => (
         You registered for <strong>${tournamentName}</strong> but your team code
         <strong>${teamCode}</strong> has not been matched with a partner yet.
       </p>
-      <p>Share your team code with your partner so they can complete their registration,
-         or contact the tournament organizer if you need assistance.</p>
+      <p>Send your partner this link — their team code is already filled in, they just add their name:</p>
+      <p><a href="${registrationLink}">${registrationLink}</a></p>
+      <p>Or share your team code <strong>${teamCode}</strong> with them directly, or contact the
+         tournament organizer if you need assistance.</p>
     </body>
   </html>`
 );
